@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_perfect"
+display_name = "Chase Sterling"
+applied_position = "Product Associate"
+birth_date = "1996-06-18"
+degree = 3
+school = "Lakeshore State University"
+skills = PackedStringArray("Agile", "Stakeholder Mgmt", "Analytics", "Growth")
+salary_k = 85
+bonus_pct = 15
+jobs = [{"company": "Vantage Soft", "title": "Project Lead", "start": "2022-07", "end": ""}, {"company": "ShopCircle", "title": "Specialist", "start": "2020-07", "end": "2022-07"}]
+self_eval = "Results-obsessed. I treat every company like it's my own."
+attachment = "Three references, all worded identically"
+portrait_seed = 20260302
+ability = 35
+honesty = 15
+loyalty = 10
+pressure = 80
+performance = 100
+event_override = &"embezzle"
+is_story = true

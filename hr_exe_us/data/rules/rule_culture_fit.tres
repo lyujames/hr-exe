@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleCultureFit" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleCultureFit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_culture_fit"
+day_added = 3
+title_key = "Culture fit"
+text_key = "Digital natives only. Reject if graduated over 14 years ago."
+reject_reason_key = "We're looking for someone with more energy."
+is_absurd = true
+max_years = 14

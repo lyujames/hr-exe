@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_future"
+text_key = "五年后你在哪里？"
+probes = PackedStringArray("loyalty", "performance")
+honest = "想在一个方向上做深，这里合适就留下。"
+honest_low = "不确定，可能自己创业。"
+standard = "在这里，和公司一起成长。"
+flaw = "五年后……在这里吧？和公司一起。"
+chief_item = "稳定性"
+chief_standard = "五年，这个稳定。"
+chief_honest = "留不留的，不是你说了算。"
+chief_flaw = "在这里就行。"
+

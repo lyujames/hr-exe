@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_overtime"
+text_key = "Unlimited PTO. How much went unused?"
+concept = &"overtime"
+bare_text = "Are your evenings ours?"
+probes = PackedStringArray("pressure")
+honest = "I took my vacation. That's how I stayed good at this."
+honest_low = "Honestly? All of it. I need the time."
+standard = "PTO is a mindset. I rarely need it."
+flaw = "Um, none? I mean, some. Whatever's right."
+chief_item = "Grit"
+chief_standard = "That's the energy."
+chief_honest = "We trust people to self-manage."
+chief_flaw = "Cool, cool."

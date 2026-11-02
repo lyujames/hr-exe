@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RuleVisaPolicy" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleVisaPolicy.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_visa_policy"
+day_added = 3
+title_key = "Visa policy (see news and Legal)"
+text_key = ""
+reject_reason_key = "We're unable to sponsor at this time."
+is_absurd = true
+unlisted = true
+blocked = PackedStringArray("H-1B")
+opt_min_days = 30

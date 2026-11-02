@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RuleWorkAuth" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleWorkAuth.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_work_auth"
+day_added = 2
+title_key = "Work authorization"
+text_key = "Status must be valid today. Check page 3. See Legal notices."
+reject_reason_key = "You aren't currently authorized for this role."
+is_absurd = false

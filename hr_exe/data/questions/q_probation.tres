@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_probation"
+text_key = "试用期六个月能接受吗？"
+probes = PackedStringArray("loyalty")
+honest = "能，但转正标准要写清楚。"
+honest_low = "上家也这么说，第五个月辞退了我。"
+standard = "我相信公司会看到我的价值。"
+flaw = "六个月……挺好，能多学习。"
+chief_item = "稳定性"
+chief_standard = "价值嘛，六个月能看到一点。"
+chief_honest = "我们这边不搞那么细。"
+chief_flaw = "能学习，能学习。"
+

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_weekend"
+text_key = "Cool with the odd weekend? We're pretty scrappy."
+probes = PackedStringArray("pressure")
+honest = "Now and then, with notice."
+honest_low = "Weekends are for my family."
+standard = "Weekends are just unscheduled weekdays."
+flaw = "How... odd is odd?"

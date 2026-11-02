@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "晋升空间怎么样？"
+lie = "扁平化管理，人人都是负责人。"
+safe = "看个人发展。"
+truth = "上一个晋升的是王总的外甥。"
+

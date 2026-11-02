@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_gap"
+text_key = "What did your career break teach you?"
+concept = &"gap"
+bare_text = "Did you ever make a company wait?"
+probes = PackedStringArray("honesty")
+honest = "Nothing. I was taking care of my dad."
+honest_low = "I couldn't get out of bed for a while."
+standard = "It taught me radical self-ownership. I also got certified."
+flaw = "I was... upskilling. Lots of courses."
+requires_gap = true
+chief_item = "Culture Fit"
+chief_standard = "Great story. Very LinkedIn."
+chief_honest = "Let's keep that off the notes."
+chief_flaw = "Upskilling, got it."

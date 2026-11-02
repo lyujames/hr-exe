@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_future"
+text_key = "Where do you see yourself growing?"
+concept = &"loyalty"
+bare_text = "How many years can we use you?"
+probes = PackedStringArray("loyalty", "performance")
+honest = "Not sure yet. Depends what this role turns into."
+honest_low = "Honestly, I just need a job right now."
+standard = "Right here, scaling alongside this amazing team."
+flaw = "Growing... with... the company?"
+chief_item = "Culture Fit"
+chief_standard = "See, that's a culture add."
+chief_honest = "Okay. Noted."
+chief_flaw = "Sure."

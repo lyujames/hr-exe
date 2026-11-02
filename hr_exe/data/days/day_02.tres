@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/rules/rule_salary.tres" id="4"]
+[ext_resource type="Resource" path="res://data/chief/question_day2.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day2.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 2
+resume_count = 10
+screening_seconds = 170.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
+boss_mail = "各位家人：\n预算要收紧。年包超过 24 万的一律不要。\n简历上写的是月薪和薪数，自己算，桌上有计算器。\n昨天那个人我看了，还行。今天继续面。\n—— 王总"
+coworker_note = "老周的便签：\n20k×14 看着不贵，算完就超了。\n昨天的规则还在，规则只增不减。"
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "“三十五岁现象”再引热议"
+news_body = "专家：年龄并非能力指标。多家企业回应：我们只看“活力”。"
+family_sms = "孩子：爸爸妈妈，老师说我的英语进步了！\n配偶：你爸说这几天胸口闷，不肯去医院。"
+chief_opener = "我们这边节奏比较快，长话短说。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

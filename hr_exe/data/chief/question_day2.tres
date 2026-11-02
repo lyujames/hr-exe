@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_pressure"
+text_key = "抗压能力怎么样？我们上一个走得比较突然。"
+probes = PackedStringArray("pressure")
+honest = "能扛，但想先问问 TA 为什么走。"
+honest_low = "……TA 是怎么走的？"
+standard = "压力就是动力。"
+flaw = "压力……就是动力吧。"
+

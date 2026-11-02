@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_weakness"
+text_key = "Tell me about a time you failed."
+concept = &"weakness"
+bare_text = "Will you ever admit it was our fault?"
+probes = PackedStringArray("honesty")
+honest = "I shipped a bad migration. I told my lead and fixed it."
+honest_low = "I miss deadlines. I'm working on it."
+standard = "I cared too much, and it became my greatest teacher."
+flaw = "I, um, can't think of one, really."
+chief_item = "Presence"
+chief_standard = "Love the growth mindset."
+chief_honest = "Maybe don't lead with that."
+chief_flaw = "Moving on."

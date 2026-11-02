@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/rules/rule_degree.tres" id="4"]
+[ext_resource type="Resource" path="res://data/story/candidate_perfect.tres" id="5"]
+[ext_resource type="Resource" path="res://data/chief/question_day1.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day1.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 1
+resume_count = 8
+screening_seconds = 150.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
+story_candidates = Array[ExtResource("3")]([ExtResource("5")])
+story_slot = 3
+boss_mail = "各位家人：\n招聘这摊事从今天起归你。规则很简单：本科及以上。\n按手册办事，别问为什么。\n今晚前给我面一个人，定下来。\n我们是一家人。\n—— 王总"
+coworker_note = "老周的便签：\n把印章拖到简历上。拒绝要选一句理由，那句话会进日志。\n对错晚上才告诉你。"
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "本市春招回暖，企业“招人比往年更挑”"
+news_body = "人力资源机构称，求职者平均投递 87 份简历才获得一次面试。"
+family_sms = "配偶：补习班这周的钱该交了，老师催了两次。"
+chief_opener = "简历我刚看。你问，我听着。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

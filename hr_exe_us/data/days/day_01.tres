@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/rules/rule_degree.tres" id="r0"]
+[ext_resource type="Resource" path="res://data/story/candidate_perfect.tres" id="story"]
+[ext_resource type="Resource" path="res://data/chief/question_day1.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day1.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 1
+resume_count = 8
+screening_seconds = 150.0
+new_rules = Array[ExtResource("2")]([ExtResource("r0")])
+story_candidates = Array[ExtResource("3")]([ExtResource("story")])
+story_slot = 3
+boss_mail = "Team,\nRecruiting is yours as of today. Simple rule: bachelor's degree or better.\nFollow the handbook. Don't ask why.\nInterview one person by tonight and make a call.\nWe're a family.\n— Brad"
+coworker_note = "Sticky from Linda:\nDrag a stamp onto the resume. Rejects need a reason.\nResults come tonight."
+bills = [{"id": "student_loan", "label": "Student loan", "amount": 45}]
+headline = "Spring hiring rebounds, employers “pickier than ever”"
+news_body = "Recruiters say job seekers now send 87 applications for every interview."
+family_sms = "Spouse: Student loan autopay bounced. Can you move money today?"
+chief_opener = "Just read the resume. You drive, I'll listen."
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

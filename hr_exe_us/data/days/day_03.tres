@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/rules/rule_visa_policy.tres" id="rv"]
+[ext_resource type="Resource" path="res://data/rules/rule_culture_fit.tres" id="r0"]
+[ext_resource type="Resource" path="res://data/rules/rule_visa_policy.tres" id="rv"]
+[ext_resource type="Resource" path="res://data/rules/rule_gap.tres" id="r1"]
+[ext_resource type="Resource" path="res://data/chief/question_day3.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day3.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 3
+resume_count = 12
+screening_seconds = 190.0
+new_rules = Array[ExtResource("2")]([ExtResource("r0"), ExtResource("r1"), ExtResource("rv")])
+legal_notices = PackedStringArray("F-1 OPT: reject if under 30 days remain on the status.")
+fires_employee_event = true
+boss_mail = "Team,\nFocus on culture fit. See the handbook. Don't put that part in writing.\nAlso, no gaps over 6 months. Momentum matters.\nYou read last night's paper, right? We're a family.\n— Brad"
+coworker_note = "Sticky from Linda:\nI graduated in 1998.\nLegal cut birthdays. Grad year is still there."
+bills = [{"id": "student_loan", "label": "Student loan", "amount": 45}, {"id": "er_copay", "label": "Dad's ER copay", "amount": 75}]
+headline = "AI hiring tool claims “300% efficiency gain”"
+news_body = "HireBot's parent company closes a new funding round. CEO: “The future of HR is a future without HR.”"
+news_by_event = {"embezzle": ["New hire vanishes with petty cash two days in", "Company says the employee “interviewed perfectly.” Police urge caution on expense approvals."]}
+family_sms = "Spouse: Your dad's in the ER. They need the copay up front. Can you come home early?"
+chief_opener = "We want hungry people. You're the gatekeeper."
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

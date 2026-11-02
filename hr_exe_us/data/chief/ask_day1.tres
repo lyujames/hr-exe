@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "What's the work-life balance like?"
+lie = "We have unlimited PTO."
+safe = "It ebbs and flows."
+truth = "Tyler's kid does homework here."

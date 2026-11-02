@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleAgeLimit" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleAgeLimit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_age"
+day_added = 3
+title_key = "年龄要求"
+text_key = "须在 35 岁以下：满 35 周岁当天起拒绝。年龄自己算。"
+reject_reason_key = "您的年龄不符合团队活力要求。"
+is_absurd = true
+max_age = 34

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_pressure"
+text_key = "How do you handle ambiguity? Our last hire left kind of ambiguously."
+probes = PackedStringArray("pressure")
+honest = "Fine. But what happened to them?"
+honest_low = "...What happened to them?"
+standard = "Ambiguity is where I thrive."
+flaw = "I, uh, thrive. In that."

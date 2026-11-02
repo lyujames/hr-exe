@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleDegree" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleDegree.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_degree"
+day_added = 1
+title_key = "Education"
+text_key = "Bachelor's degree or higher. In-progress degrees don't count."
+reject_reason_key = "Your education doesn't meet the requirements."
+is_absurd = false
+min_degree = 2

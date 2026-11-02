@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleGap" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleGap.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_gap"
+day_added = 3
+title_key = "职业连续性"
+text_key = "空窗期超过 6 个月拒绝。\n空窗 = 下段起始月 − 上段结束月；最新一段已结束的，算到今天。"
+reject_reason_key = "您的职业连续性不符合我司要求。"
+is_absurd = true
+max_months = 6

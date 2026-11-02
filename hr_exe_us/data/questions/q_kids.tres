@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_kids"
+text_key = "How do you recharge? Kids at home?"
+concept = &"family"
+bare_text = "Will anyone else ever need you?"
+probes = PackedStringArray("honesty")
+honest = "Is that relevant to the role?"
+honest_low = "Two kids. Sometimes I need to leave by five."
+standard = "I recharge by shipping. The team is my family."
+flaw = "No! I mean, not... planning... anything."
+lawsuit_risk = 1
+chief_item = "Culture Fit"
+chief_standard = "Total team player."
+chief_honest = "Just making conversation."
+chief_flaw = "Ha, no worries."

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_equity"
+text_key = "0.01% equity instead of a raise?"
+concept = &"pay"
+bare_text = "Will you take a promise instead of money?"
+probes = PackedStringArray("loyalty")
+honest = "What's the valuation and the strike price?"
+honest_low = "I can't pay rent with that."
+standard = "I want real skin in the game."
+flaw = "Is that... a lot? It sounds like a lot."
+chief_item = "Grit"
+chief_standard = "Founder mentality."
+chief_honest = "We're pre-liquidity, so."
+chief_flaw = "It's a lot."

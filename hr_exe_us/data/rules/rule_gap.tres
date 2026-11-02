@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleGap" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleGap.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_gap"
+day_added = 3
+title_key = "Career continuity"
+text_key = "Reject gaps over 6 months: end date to next start, or to today."
+reject_reason_key = "We value candidates with a continuous track record."
+is_absurd = true
+max_months = 6

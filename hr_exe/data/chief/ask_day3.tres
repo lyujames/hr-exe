@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "这个岗位为什么空着？"
+lie = "业务发展迅速，正在扩编。"
+safe = "团队有些调整。"
+truth = "上一个走得突然，工牌还在抽屉里。"
+

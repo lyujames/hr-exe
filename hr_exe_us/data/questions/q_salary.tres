@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_salary"
+text_key = "Your range? (Posted: $80k–$400k, DOE.)"
+concept = &"salary"
+bare_text = "What is the least you'd take?"
+probes = PackedStringArray("honesty")
+honest = "Market rate. What's the actual band?"
+honest_low = "Whatever you can do. I have rent."
+standard = "I'm far more motivated by the mission."
+flaw = "Oh, um, flexible! Very flexible."
+chief_item = "Presence"
+chief_standard = "That's a mission-driven hire."
+chief_honest = "We'll circle back on comp."
+chief_flaw = "Flexible is great."

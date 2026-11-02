@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_test"
+text_key = "Quick take-home (about six hours)"
+concept = &"skills"
+bare_text = "Will you work for free first?"
+probes = PackedStringArray("ability")
+honest = "(Done in an hour. They also flag a bug in the prompt.)"
+honest_low = "(They stare at the screen. Time runs out.)"
+standard = ""
+flaw = ""
+always_truthful = true
+chief_item = ""
+chief_standard = ""
+chief_honest = "An intern wrote that prompt last night."
+chief_flaw = ""

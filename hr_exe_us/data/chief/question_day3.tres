@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_marriage"
+text_key = "Off the record, you married? Kids? Just curious."
+probes = PackedStringArray("honesty")
+honest = "Is that relevant to the role?"
+honest_low = "Married. One kid, age three."
+standard = "Right now I'm focused on my career."
+flaw = "No plans. Really. None."
+lawsuit_risk = 1

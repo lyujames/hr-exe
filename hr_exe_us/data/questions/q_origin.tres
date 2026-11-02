@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_origin"
+text_key = "Where are you from, originally?"
+concept = &"origin"
+bare_text = "Are you going to be paperwork?"
+probes = PackedStringArray("honesty")
+honest = "Why do you ask?"
+honest_low = "Is this about my visa?"
+standard = "I'm a global citizen. Home is this team."
+flaw = "Here! I mean, everywhere. Mostly here."
+lawsuit_risk = 1
+chief_item = "Vibe"
+chief_standard = "Love that. Very global."
+chief_honest = "Just making conversation."
+chief_flaw = "Ha, okay."

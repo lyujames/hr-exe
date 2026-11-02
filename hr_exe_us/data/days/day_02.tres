@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/rules/rule_work_auth.tres" id="rw"]
+[ext_resource type="Resource" path="res://data/rules/rule_salary.tres" id="r0"]
+[ext_resource type="Resource" path="res://data/chief/question_day2.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day2.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 2
+resume_count = 10
+screening_seconds = 170.0
+new_rules = Array[ExtResource("2")]([ExtResource("r0"), ExtResource("rw")])
+legal_notices = PackedStringArray("TN status is for Canadian and Mexican citizens only. Check citizenship.")
+boss_mail = "Team,\nWe're tightening the belt. Nothing over $110k total comp.\nResumes list base and bonus %. Do the math. You have a calculator.\nLegal is posting notices on your desk now. Read them. Read the paper too.\n— Brad"
+coworker_note = "Sticky from Linda:\n$95k + 15% looks cheap. Do the math.\nOld rules stay."
+bills = [{"id": "student_loan", "label": "Student loan", "amount": 45}]
+headline = "$100,000 H-1B fee takes effect tomorrow"
+news_body = "Local employers say they will stop hiring H-1B workers rather than pay. “We value global talent,” one added."
+family_sms = "Kid: My teacher says my reading got better!\nSpouse: Your dad's chest hurts again. He won't see a doctor. The deductible."
+chief_opener = "We move fast here, so let's keep it tight."
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

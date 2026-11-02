@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_age"
+text_key = "Okay reporting to someone younger?"
+concept = &"age"
+bare_text = "When do you get expensive?"
+probes = PackedStringArray("honesty")
+honest = "Sure. Is that a question about my age?"
+honest_low = "How old do you think I am?"
+standard = "Age is just a number. I'm a digital native at heart."
+flaw = "Oh, ha, I'm, uh, young at heart."
+lawsuit_risk = 1
+chief_item = "Vibe"
+chief_standard = "Love the energy."
+chief_honest = "...Yep, okay."
+chief_flaw = "Ha. Right."
