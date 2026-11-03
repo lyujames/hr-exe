@@ -21,6 +21,7 @@ func _ready() -> void:
 	test_save_roundtrip()
 	await test_scene_branches()
 	await test_interview()
+	await test_pause_menu()
 	print("TESTS DONE, failures=", failures)
 	get_tree().quit(failures)
 
@@ -483,3 +484,36 @@ func test_save_roundtrip() -> void:
 	check(restored.skills.size() == 4, "skills restored")
 	SaveManager.clear()
 	check(not SaveManager.has_save(), "cleared")
+
+
+func test_pause_menu() -> void:
+	# 第 2 天筛到一半：暂停 → 存档（存的是早上）→ 退出 → 继续，回到第 2 天早上
+	SaveManager.clear()
+	var main := _main(2)
+	var morning_savings := GameState.savings
+	main.show_desk()
+	await get_tree().process_frame
+	main.open_menu()
+	check(get_tree().paused, "menu pauses the desk clock")
+	GameState.record_decision(_candidate(), "pass", &"", "")
+	GameState.savings += 77
+	main.menu.save()
+	check(SaveManager.saved_day() == 2, "checkpoint is today")
+	main.menu._confirm_quit()
+	main.menu.quit()
+	await get_tree().process_frame
+	check(not get_tree().paused, "unpaused after quit")
+	check(not main._menu_button.visible, "no menu on title")
+	check(main.current.has_method("start_saved"), "back to title")
+	main.current.start_saved()
+	await get_tree().process_frame
+	check(GameState.day == 2 and GameState.savings == morning_savings, "resume from this morning")
+	check(GameState.decision_log.is_empty(), "half-done day not saved")
+	check(main.current.scene_file_path.ends_with("MailScreen.tscn"), "resume at morning mail")
+	check(main._menu_button.visible, "menu during play")
+
+	# 别的局的存档不算这一局的
+	GameState.new_game(5)
+	check(SaveManager.saved_day() == 0, "other run's save not counted")
+	main.queue_free()
+	SaveManager.clear()

@@ -34,6 +34,8 @@ var boss_promised_rule := false
 var lawsuit_risk := 0
 ## 玩家回答候选人反问的原话，终章由 HireBot 原样复述。
 var reply_log: Array = []
+## 当天清晨的状态快照：手动存档存的是它，今天做到一半的进度不进存档。
+var morning := {}
 
 # 当日数据，只在一天内有效
 var stats := {}
@@ -65,6 +67,7 @@ func begin_day() -> void:
 	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "bonus": 0, "event_fine": 0}
 	passed_today = []
 	event_today = {}
+	morning = to_dict().duplicate(true)
 
 
 func day_seed() -> int:

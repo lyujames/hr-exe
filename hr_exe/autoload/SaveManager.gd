@@ -1,5 +1,5 @@
 extends Node
-## 存档：每日结束后自动写 JSON；存的是下一天清晨的状态。
+## 存档：每日结束后自动写 JSON；暂停菜单也能手动存。存的都是某一天清晨的状态。
 
 const SAVE_PATH := "user://save.json"
 const PLAYTEST_PATH := "user://playtest.jsonl"
@@ -9,9 +9,24 @@ func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
 
 
-func save_game() -> void:
+func save_game(data := GameState.to_dict()) -> void:
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	file.store_string(JSON.stringify(GameState.to_dict()))
+	file.store_string(JSON.stringify(data))
+
+
+## 游玩途中手动存档：回到今天早上。
+func save_checkpoint() -> void:
+	save_game(GameState.morning)
+
+
+## 存档里是这一局的第几天；没有存档或是别的局的存档时为 0。
+func saved_day() -> int:
+	if not has_save():
+		return 0
+	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	if data is not Dictionary or int(data.get("run_seed", 0)) != GameState.run_seed:
+		return 0
+	return int(data.day)
 
 
 func load_game() -> bool:

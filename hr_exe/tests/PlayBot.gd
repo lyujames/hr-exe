@@ -102,6 +102,8 @@ func screen_desk(day: int) -> void:
 	var desk: Desk = main.current
 	await wait(0.3)
 	await shot("day%d_desk" % day)
+	if day == 1:
+		await screen_menu()
 	desk.doc.flip()
 	await wait(0.05)
 	await shot("day%d_desk_back" % day)
@@ -136,6 +138,24 @@ func screen_desk(day: int) -> void:
 	await wait(0.3)
 	await shot("day%d_closing" % day)
 	await press("继续")
+
+
+## 暂停菜单：Esc 打开，存档，点到“退出”确认后取消，再 Esc 关掉。
+func screen_menu() -> void:
+	var key := InputEventKey.new()
+	key.keycode = KEY_ESCAPE
+	key.pressed = true
+	Input.parse_input_event(key)
+	await frames()
+	check(is_instance_valid(main.menu) and get_tree().paused, "esc opens pause menu")
+	main.menu.save()
+	check(SaveManager.saved_day() == 1, "manual save on day 1")
+	await shot("day1_menu_saved")
+	main.menu._confirm_quit()
+	await shot("day1_menu_quit")
+	main.menu.close()
+	await frames()
+	check(not get_tree().paused, "menu closed")
 
 
 const DOC_POS_OFFSET := Vector2(120, 30)
