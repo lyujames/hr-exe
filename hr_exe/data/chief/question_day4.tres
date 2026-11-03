@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_school"
+text_key = "你本科是哪个学校的？"
+probes = PackedStringArray("honesty")
+honest = "学校一般，但我做过的项目都写在简历上了。"
+honest_low = "不是什么好学校……这个很重要吗？"
+standard = "母校给了我很好的平台，我一直很感恩。"
+flaw = "就……本地的一所大学，挺好的。"

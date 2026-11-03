@@ -14,6 +14,15 @@ func load_day(day: int) -> DayConfig:
 	return load("res://data/days/day_%02d.tres" % day)
 
 
+## 往前找最近一次设置的职位描述。
+func job_posting(day: int) -> JobPosting:
+	for d in range(day, 0, -1):
+		var posting := load_day(d).job_posting
+		if posting:
+			return posting
+	return null
+
+
 ## 规则只增不减；只要违反一条就应拒绝。
 func evaluate(c: Candidate) -> Dictionary:
 	var failed: Array[Rule] = []

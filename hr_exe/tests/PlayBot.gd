@@ -1,5 +1,5 @@
 extends Node
-## 端到端冒烟：真实场景跑完三天并逐屏截图。需要窗口环境。
+## 端到端冒烟：真实场景跑完第一个月（5 天）并逐屏截图。需要窗口环境。
 ## godot --path . res://tests/PlayBot.tscn -- <截图目录>
 
 var main: Control
@@ -175,13 +175,17 @@ func run() -> void:
 	await shot("title")
 	await press("开始上班")
 	check(GameState.day == 1, "day 1")
-	for day in range(1, 4):
+	var last := GameState.LAST_DAY
+	for day in range(1, last + 1):
+		await wait(0.35)  # 等早间推送滑入
 		await shot("day%d_mail" % day)
 		await press("开始筛简历")
 		if main.current is BossOffice:
-			await shot("boss_event")
-			await press("“他面试时评分表都是满分。”")
-			await shot("boss_reply")
+			await shot("day%d_boss_event" % day)
+			# 第 1 天的人评分表满分，可以甩给评分表；之后的人只能认错
+			if main.current.event.blame:
+				await press("“他面试时评分表都是满分。”" if day == 3 else "“是我的判断失误。”")
+				await shot("day%d_boss_reply" % day)
 			await press("回工位")
 		await screen_desk(day)
 		if main.current is InterviewRoom:
@@ -189,11 +193,12 @@ func run() -> void:
 		await shot("day%d_report" % day)
 		await press("确认")
 		await shot("day%d_news" % day)
-		await press("第二天" if day < 3 else "下班回家")
+		await press("第二天" if day < last else "下班回家")
 	check(main.current is SliceEnd, "slice end reached")
+	check(not GameState.is_bankrupt(), "careful play survives the first mortgage")
 	await shot("slice_end")
-	check(GameState.hires.size() == 3, "three hires")
-	check(GameState.reply_log.size() == 3, "every reply logged")
+	check(GameState.hires.size() == last, "one hire a day")
+	check(GameState.reply_log.size() == last, "every reply logged")
 	check(GameState.lawsuit_risk == 1, "day 3 chief question adds lawsuit risk")
 	check(GameState.hires[0].candidate.is_story, "story candidate interviewed first")
 	check(GameState.boss_promised_rule, "full scorecard path taken")

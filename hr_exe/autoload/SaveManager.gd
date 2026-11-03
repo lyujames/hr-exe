@@ -29,13 +29,13 @@ func clear() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
 
 
-## 里程碑关卡：“第 3 天结束时是否想玩第 4 天”，每局追加一行，供试玩后统计。
-func record_playtest(wants_day_4: bool) -> void:
+## 里程碑关卡：“第一个月底是否想玩下个月”，每局追加一行，供试玩后统计。
+func record_playtest(wants_next: bool) -> void:
 	var mode := FileAccess.READ_WRITE if FileAccess.file_exists(PLAYTEST_PATH) else FileAccess.WRITE
 	var file := FileAccess.open(PLAYTEST_PATH, mode)
 	file.seek_end()
 	file.store_line(JSON.stringify({
-		"wants_day_4": wants_day_4, "savings": GameState.savings, "conscience": GameState.conscience,
+		"last_day": GameState.LAST_DAY, "wants_next": wants_next, "savings": GameState.savings, "conscience": GameState.conscience,
 		"boss_trust": GameState.boss_trust, "family_state": GameState.family_state,
 		"decisions": GameState.decision_log.size(), "hires": GameState.hires.size(),
 	}))

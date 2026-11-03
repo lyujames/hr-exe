@@ -11,12 +11,15 @@
 [resource]
 script = ExtResource("1")
 day = 3
+date = "2026-03-04"
 resume_count = 12
 screening_seconds = 190.0
 new_rules = Array[ExtResource("2")]([ExtResource("4"), ExtResource("5")])
 fires_employee_event = true
-boss_mail = "各位家人：\n公司要保持活力。从今天起，35 岁以下。\n另外，空窗期超过 6 个月的不要，年轻人不能停。\n别跟我谈公平。我们是一家人。\n—— 王总"
-coworker_note = "老周的便签：\n我今年 46。\n年龄用桌上的日历算，差一天都算。"
+candidate_mix = {"fresh": 40, "regular": 30, "changer": 15, "laid_off": 15}
+morning_push = "企业招聘最看重“年轻”"
+boss_mail = "各位家人：\n公司要保持活力。从今天起，只要 90 后。\n另外，简历有空窗的，看他写的原因：家里的事、生孩子、身体不好，都不要。不写原因的，更不要。\n别跟我谈公平。我们是一家人。\n—— 王总"
+coworker_note = "老周的便签：\n我是 80 年的。\n空窗那行小字要看。“家中有事”也是家里的事。"
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}, {"id": "hospital", "label": "父亲住院押金", "amount": 150}]
 headline = "AI 招聘工具宣称“提升效率 300%”"
 news_body = "HireBot 母公司完成新一轮融资。CEO：“HR 的未来，是不再需要 HR 的未来。”"

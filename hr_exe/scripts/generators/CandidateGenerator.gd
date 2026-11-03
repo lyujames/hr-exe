@@ -22,7 +22,24 @@ const SELF_EVALS := [
 	"注重细节，乐于接受新挑战。",
 	"希望找一份能长期做下去的工作。",
 ]
-const ATTACHMENTS := ["无", "作品集：见附件（未附）", "推荐人：前主管，电话已留", "已离职，可随时到岗", "在职，需一个月交接"]
+const ATTACHMENTS := ["无", "作品集：见附件（未附）", "推荐人：前主管，电话已留"]
+## 人群背景：按 DayConfig.candidate_mix 抽取。只定年龄段、离职状态和自我评价，
+## 规则相关的字段之后仍由 shape() 改写。
+const FRESH_EVALS := [
+	"应届毕业，愿意从实习做起。",
+	"在校期间担任学生会干部，组织能力强。",
+	"两段实习经历，能独立完成任务。",
+]
+const CHANGER_EVALS := [
+	"从教培行业转行，愿意从实习做起。",
+	"原来做外贸，行业不景气，想换个方向。",
+	"三十岁重新出发，不怕从零开始。",
+]
+const LAID_OFF_EVALS := [
+	"前公司业务调整，整个部门被裁。",
+	"希望尽快到岗，薪资可谈。",
+	"什么岗位都可以先试试。",
+]
 
 
 static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> Array[Candidate]:
@@ -30,14 +47,30 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> A
 	rng.seed = day_seed
 	var result: Array[Candidate] = []
 	for i in cfg.resume_count:
-		result.append(_generate(rng, rules, "gen_%d_%02d" % [cfg.day, i]))
+		var background := _pick_background(rng, cfg.candidate_mix)
+		result.append(_generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background))
 	for story in cfg.story_candidates:
 		result.insert(mini(cfg.story_slot, result.size()), story)
 	return result
 
 
-static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String) -> Candidate:
+static func _pick_background(rng: RandomNumberGenerator, mix: Dictionary) -> String:
+	if mix.is_empty():
+		return "regular"
+	var total := 0.0
+	for weight in mix.values():
+		total += float(weight)
+	var roll := rng.randf() * total
+	for key: String in mix:
+		roll -= float(mix[key])
+		if roll < 0.0:
+			return key
+	return mix.keys().back()
+
+
+static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background := "regular") -> Candidate:
 	var c := _base(rng, id)
+	_apply_background(c, background, rng)
 	var target: Rule = rules[rng.randi_range(0, rules.size() - 1)]
 	var roll := rng.randf()
 	var target_form := Rule.Shape.PASS
@@ -47,6 +80,8 @@ static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String
 		target_form = Rule.Shape.FAIL
 	for rule in rules:
 		rule.shape(c, target_form if rule == target else Rule.Shape.PASS, rng)
+	# 年龄可能被规则改过，经历最后再排
+	build_jobs(c, rng)
 	if c.degree < Candidate.Degree.BACHELOR:
 		c.school = COLLEGES[rng.randi_range(0, COLLEGES.size() - 1)]
 	# 荒谬规则刷掉的人，往往是更好的员工
@@ -62,49 +97,87 @@ static func _base(rng: RandomNumberGenerator, id: String) -> Candidate:
 	c.id = id
 	c.display_name = pick.call(SURNAMES) + pick.call(GIVEN)
 	c.applied_position = pick.call(POSITIONS)
+	if GameState.job_posting:
+		c.applied_position = GameState.job_posting.title
 	c.birth_date = DateUtil.years_before(GameState.today, rng.randi_range(24, 44), -rng.randi_range(0, 360))
 	c.degree = Candidate.Degree.BACHELOR if rng.randf() < 0.7 else Candidate.Degree.MASTER
 	c.school = pick.call(SCHOOLS)
 	var skills := SKILLS.duplicate()
 	for i in 4:
 		c.skills.append(skills.pop_at(rng.randi_range(0, skills.size() - 1)))
-	c.salary_months = [12, 13, 14][rng.randi_range(0, 2)]
 	c.salary_k = rng.randi_range(9, 26)
+	c.salary_low_k = c.salary_k - rng.randi_range(2, 4) if rng.randf() < 0.5 else 0
 	c.self_eval = pick.call(SELF_EVALS)
 	c.attachment = pick.call(ATTACHMENTS)
+	c.left_months_ago = -1 if rng.randf() < 0.65 else rng.randi_range(1, 8)
+	if c.left_months_ago >= 0 and rng.randf() < 0.4:
+		c.attachment = RuleEmployed.QUIT_NOTE
+	elif c.left_months_ago < 0 and rng.randf() < 0.3:
+		c.attachment = RuleEmployed.NOTICE_NOTE
+	if rng.randf() < 0.45:
+		var notes: Array = RuleGap.PASS_NOTES + RuleGap.EDGE_PASS_NOTES + RuleGap.EDGE_FAIL_NOTES + RuleGap.FAIL_NOTES
+		c.gap_months = rng.randi_range(3, 14)
+		c.gap_note = notes[rng.randi_range(0, notes.size() - 1)]
 	c.portrait_seed = rng.randi()
 	c.ability = rng.randi_range(20, 90)
 	c.honesty = rng.randi_range(15, 95)
 	c.loyalty = rng.randi_range(15, 90)
 	c.pressure = rng.randi_range(20, 90)
 	c.performance = rng.randi_range(10, 95)
-	build_jobs(c, rng, rng.randi_range(0, 12))
 	return c
 
 
-## 从今天往回排工作经历，并在其中放入恰好一段 gap 个月的空窗。
-static func build_jobs(c: Candidate, rng: RandomNumberGenerator, gap: int) -> void:
+static func _apply_background(c: Candidate, background: String, rng: RandomNumberGenerator) -> void:
+	c.background = background
+	match background:
+		"fresh":
+			c.birth_date = DateUtil.years_before(GameState.today, rng.randi_range(22, 24), -rng.randi_range(0, 360))
+			c.salary_k = rng.randi_range(6, 14)
+			c.left_months_ago = -1
+			c.gap_months = 0
+			c.gap_note = ""
+			if c.attachment == RuleEmployed.QUIT_NOTE:
+				c.attachment = "无"
+			c.self_eval = FRESH_EVALS[rng.randi_range(0, FRESH_EVALS.size() - 1)]
+		"changer":
+			c.birth_date = DateUtil.years_before(GameState.today, rng.randi_range(30, 40), -rng.randi_range(0, 360))
+			c.self_eval = CHANGER_EVALS[rng.randi_range(0, CHANGER_EVALS.size() - 1)]
+		"laid_off":
+			c.left_months_ago = rng.randi_range(1, 6)
+			if c.attachment == RuleEmployed.NOTICE_NOTE:
+				c.attachment = "无"
+			c.self_eval = LAID_OFF_EVALS[rng.randi_range(0, LAID_OFF_EVALS.size() - 1)]
+
+
+## 从今天往回排工作经历：按 left_months_ago 决定最近一段是否“至今”，
+## gap_months > 0 时在两段之间放一段空窗（说明在 gap_note）。
+static func build_jobs(c: Candidate, rng: RandomNumberGenerator) -> void:
 	var now := DateUtil.month_index(GameState.today)
-	var career := maxi((c.get_age(GameState.today) - 22) * 12, 12)
-	gap = mini(gap, maxi(career - 6, 0))
-	var gap_before_latest := gap > 0 and career - gap >= 30 and rng.randf() < 0.5
-	var cursor := now
+	var career := maxi((c.get_age(GameState.today) - 22) * 12, 24)
+	var left := mini(c.left_months_ago, 10)
+	var gap := 0
+	if c.gap_months > 0:
+		gap = clampi(c.gap_months, 2, maxi(career - maxi(left, 0) - 12, 2))
+	# 空窗放在第 1、2 段之间；经历够长时有时放在第 2、3 段之间
+	var gap_after := 1 if career - maxi(left, 0) - gap < 60 or rng.randf() < 0.6 else 2
+	var cursor := now - maxi(left, 0)
 	var earliest := now - career
 	c.jobs = []
-	var first := true
 	while cursor - earliest >= 6 and c.jobs.size() < MAX_JOBS:
-		var length := mini(rng.randi_range(14, 40), cursor - earliest)
-		if first and gap > 0 and not gap_before_latest:
+		if gap > 0 and c.jobs.size() == gap_after:
 			cursor -= gap
-			length = mini(length, maxi(cursor - earliest, 6))
-		var end := "" if first and (gap == 0 or gap_before_latest) else DateUtil.month_string(cursor)
+			gap = 0
+			if cursor - earliest < 6:
+				break
+		var reserve := (gap + 6) * (gap_after - c.jobs.size()) if gap > 0 else 0
+		var length := clampi(rng.randi_range(14, 40), 6, maxi(cursor - earliest - reserve, 6))
+		var title: String = TITLES[rng.randi_range(0, TITLES.size() - 1)]
 		c.jobs.append({
 			"company": COMPANIES[rng.randi_range(0, COMPANIES.size() - 1)],
-			"title": TITLES[rng.randi_range(0, TITLES.size() - 1)],
+			"title": "实习生" if c.background == "fresh" else title,
 			"start": DateUtil.month_string(cursor - length),
-			"end": end,
+			"end": "" if c.jobs.is_empty() and left < 0 else DateUtil.month_string(cursor),
 		})
 		cursor -= length
-		if first and gap_before_latest:
-			cursor -= gap
-		first = false
+	if not c.has_gap():
+		c.gap_note = ""

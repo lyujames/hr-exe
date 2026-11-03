@@ -1,6 +1,6 @@
 class_name EmployeeEvents
 ## 延迟反馈：录用的后果不在当天出现，由隐藏属性决定几天后发生什么。
-## 垂直切片只有 3 天，把设计中的 3–7 天压缩为第 3 天早上结算最早的一位录用者。
+## 切片把设计中的 3–7 天压缩：第 3、5 天早上各结算一位最早录用、还没结果的人。
 
 const BLAME_FINE := 200
 const HC_FINE := 100
@@ -59,7 +59,7 @@ static func _empty_headcount() -> Dictionary:
 	return {
 		"id": "no_hire", "name": "", "fine": HC_FINE, "scorecard_full": false, "blame": false,
 		"title": "HC 空着",
-		"body": "三天了，一个人都没招进来。\n“我养你是让你拒人的吗？这个月的招聘成本你来背。”",
+		"body": "这几天，一个人都没招进来。\n“我养你是让你拒人的吗？这个月的招聘成本你来背。”",
 	}
 
 

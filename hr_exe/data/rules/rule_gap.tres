@@ -7,7 +7,6 @@ script = ExtResource("1")
 id = &"rule_gap"
 day_added = 3
 title_key = "职业连续性"
-text_key = "空窗期超过 6 个月拒绝。\n空窗 = 下段起始月 − 上段结束月；最新一段已结束的，算到今天。"
+text_key = "有空窗的，看说明：涉及家庭、生育、身体的拒绝；没写说明的也拒绝。"
 reject_reason_key = "您的职业连续性不符合我司要求。"
 is_absurd = true
-max_months = 6

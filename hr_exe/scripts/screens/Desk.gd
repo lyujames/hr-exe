@@ -32,23 +32,12 @@ func _build_room() -> void:
 	UI.panel(self, Rect2(0, 0, 640, 18), UI.DESK_DARK)
 	UI.label(self, "第 %d 天　%s" % [GameState.day, GameState.today], Vector2(6, 1), UI.TEXT_DIM)
 	_clock = UI.label(self, "09:00", Vector2(304, 1), UI.GREEN)
-	UI.label(self, "存款 ¥%d" % GameState.savings, Vector2(560, 1), UI.TEXT_DIM)
+	UI.label(self, "存款 ¥%d / 月供 ¥%d" % [GameState.savings, GameState.MORTGAGE], Vector2(496, 1), UI.TEXT_DIM)
 
 	_pile = Control.new()
 	_pile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_pile)
 	_count = UI.label(self, "", Vector2(10, 26), UI.TEXT)
-
-	# 日历：算年龄和空窗期用
-	var date := DateUtil.parse(GameState.today)
-	UI.panel(self, Rect2(540, 24, 92, 64), UI.PAPER, UI.BLACK)
-	UI.panel(self, Rect2(540, 24, 92, 16), UI.RED)
-	var month := UI.label(self, "%d 年 %d 月" % [date.x, date.y], Vector2(540, 25), UI.PAPER)
-	month.size.x = 92
-	month.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var day_label := UI.label(self, "%d 日　%s" % [date.z, DateUtil.weekday(GameState.today)], Vector2(540, 50), UI.INK)
-	day_label.size.x = 92
-	day_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	# 处理完的简历飞进这里
 	UI.panel(self, Rect2(344, 300, 186, 52), UI.DESK_DARK, UI.BLACK)
@@ -64,10 +53,11 @@ func _build_room() -> void:
 	add_child(book)
 	book.setup()
 
-	var calc := CalcWidget.new()
-	calc.position = Vector2(540, 94)
-	add_child(calc)
-	calc.setup()
+	if GameState.job_posting:
+		var posting := JobPostingDoc.new()
+		posting.position = Vector2(532, 24)
+		add_child(posting)
+		posting.setup(GameState.job_posting)
 
 	_doc_layer = Control.new()
 	_doc_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE

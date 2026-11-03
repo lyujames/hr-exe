@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "管培生（实习）"
+pay_text = "补贴 ¥150/天
+表现好可转正"
+requirements = PackedStringArray("985/211 优先", "两段大厂实习", "可实习半年以上", "接受弹性工作", "认同“家”文化")

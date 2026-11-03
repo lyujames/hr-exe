@@ -12,8 +12,11 @@ func check(condition: bool, message: String) -> void:
 
 func _ready() -> void:
 	test_rule_boundaries()
+	test_school_rule()
+	test_calendar()
 	test_generator()
 	test_economy()
+	test_month_end()
 	test_events()
 	test_save_roundtrip()
 	await test_scene_branches()
@@ -27,7 +30,6 @@ func _candidate() -> Candidate:
 	c.birth_date = "1995-01-01"
 	c.degree = Candidate.Degree.BACHELOR
 	c.salary_k = 10
-	c.salary_months = 12
 	c.jobs = [{"company": "a", "title": "b", "start": "2020-01", "end": ""}]
 	return c
 
@@ -37,33 +39,78 @@ func test_rule_boundaries() -> void:
 	GameState.day = 3
 	GameState.begin_day()
 	check(GameState.today == "2026-03-04", "day 3 date")
-	check(RuleEngine.active_rules.size() == 4, "four rules on day 3")
+	check(RuleEngine.active_rules.size() == 5, "five rules on day 3")
 	var c := _candidate()
 	check(RuleEngine.evaluate(c).pass, "clean candidate passes")
-	c.birth_date = "1991-03-05"  # 34 岁差一天满 35
-	check(RuleEngine.evaluate(c).pass, "34y11m passes")
-	c.birth_date = "1991-03-04"  # 满 35
-	check(not RuleEngine.evaluate(c).pass, "turning 35 today fails")
+	c.birth_date = "1990-01-01"
+	check(RuleEngine.evaluate(c).pass, "born 1990 passes")
+	c.birth_date = "1989-12-31"
+	check(not RuleEngine.evaluate(c).pass, "born 1989 fails")
 	c = _candidate()
-	c.salary_k = 20
-	check(RuleEngine.evaluate(c).pass, "exact budget passes")
-	c.salary_months = 13
-	check(not RuleEngine.evaluate(c).pass, "over budget fails")
+	c.salary_k = 18
+	c.salary_low_k = 15
+	check(RuleEngine.evaluate(c).pass, "range topping at budget passes")
+	c.salary_k = 19
+	check(not RuleEngine.evaluate(c).pass, "range upper bound over budget fails")
 	c = _candidate()
-	c.jobs = [{"company": "a", "title": "b", "start": "2020-01", "end": "2025-09"}]
-	check(c.max_gap_months(GameState.today) == 6, "gap counts to today")
-	check(RuleEngine.evaluate(c).pass, "six-month gap passes")
-	c.jobs[0].end = "2025-08"
-	check(not RuleEngine.evaluate(c).pass, "seven-month gap fails")
+	c.jobs[0].end = "2026-03"
+	check(not RuleEngine.evaluate(c).pass, "left this month fails")
+	c = _candidate()
+	c.attachment = "已离职，可随时到岗"
+	check(not RuleEngine.evaluate(c).pass, "says quit in attachment fails")
 	c = _candidate()
 	c.jobs = [
 		{"company": "a", "title": "b", "start": "2024-02", "end": ""},
 		{"company": "a", "title": "b", "start": "2020-01", "end": "2023-07"},
 	]
-	check(c.max_gap_months(GameState.today) == 7, "inner gap counted")
+	check(c.has_gap(), "inner gap found")
+	check(not RuleEngine.evaluate(c).pass, "gap without note fails")
+	c.gap_note = "进修考证"
+	check(RuleEngine.evaluate(c).pass, "gap for study passes")
+	c.gap_note = "陪父亲住院"
+	check(not RuleEngine.evaluate(c).pass, "gap for family fails")
+	c.jobs[1].end = "2024-02"
+	c.gap_note = ""
+	check(not c.has_gap() and RuleEngine.evaluate(c).pass, "back-to-back jobs have no gap")
 	c = _candidate()
 	c.degree = Candidate.Degree.COLLEGE
 	check(RuleEngine.evaluate(c).failed.size() == 1, "degree failure reports rule")
+
+
+func test_school_rule() -> void:
+	GameState.new_game(2)
+	GameState.day = 4
+	GameState.begin_day()
+	check(RuleEngine.active_rules.size() == 6, "six rules on day 4")
+	var c := _candidate()
+	c.school = "东江大学"
+	check(RuleEngine.evaluate(c).pass, "famous school passes")
+	c.school = "东江大学科文学院"
+	check(not RuleEngine.evaluate(c).pass, "branch college of a famous school fails")
+	c.degree = Candidate.Degree.MASTER
+	c.school = "东江大学"
+	c.undergrad_school = "明湖学院"
+	check(not RuleEngine.evaluate(c).pass, "famous master over plain bachelor fails")
+	c.school = "明湖学院"
+	c.undergrad_school = "南山理工大学"
+	check(RuleEngine.evaluate(c).pass, "plain master over famous bachelor passes")
+	var restored := Candidate.from_dict(c.to_dict())
+	check(restored.undergrad_school == "南山理工大学", "undergrad school saved")
+
+
+func test_calendar() -> void:
+	GameState.new_game(3)
+	var expected := ["2026-03-02", "2026-03-03", "2026-03-04", "2026-03-18", "2026-03-31"]
+	for day in range(1, GameState.LAST_DAY + 1):
+		GameState.day = day
+		GameState.begin_day()
+		check(GameState.today == expected[day - 1], "date of day %d" % day)
+		check(GameState.config.morning_push != "", "morning push on day %d" % day)
+		check(GameState.job_posting != null and GameState.job_posting.title == "管培生（实习）", "job posting carries over to day %d" % day)
+		check(GameState.days_to_mortgage() == GameState.LAST_DAY - day, "days to mortgage on day %d" % day)
+		check(GameState.is_month_end() == (day == 5), "month end only on day 5")
+	var batch := CandidateGenerator.generate_day(GameState.config, RuleEngine.active_rules, GameState.day_seed())
+	check(batch.all(func(c: Candidate) -> bool: return c.applied_position == "管培生（实习）"), "everyone applies for the posted job")
 
 
 func test_generator() -> void:
@@ -72,7 +119,7 @@ func test_generator() -> void:
 	var edge := 0
 	for game_seed in range(1, 40):
 		GameState.new_game(game_seed)
-		for day in range(1, 4):
+		for day in range(1, GameState.LAST_DAY + 1):
 			GameState.day = day
 			GameState.begin_day()
 			var batch := CandidateGenerator.generate_day(GameState.config, RuleEngine.active_rules, GameState.day_seed())
@@ -91,17 +138,22 @@ func test_generator() -> void:
 	var reject_rate := float(rejected) / total
 	print("reject_rate=", reject_rate, " edge_rate=", float(edge) / total)
 	check(reject_rate > 0.3 and reject_rate < 0.6, "reject rate in range")
-	var slice_total: int = 8 + 10 + 12 + 1
-	check(slice_total == 31, "about 30 resumes plus story")
+	var slice_total := 0
+	for day in range(1, GameState.LAST_DAY + 1):
+		var config := RuleEngine.load_day(day)
+		slice_total += config.resume_count + config.story_candidates.size()
+	check(slice_total == 58, "first month: 57 resumes plus story")
 
 
 func _is_edge(c: Candidate) -> bool:
 	if c.degree_note != "":
 		return true
-	if absi(c.salary_k * c.salary_months * 1000 - 240000) < 16000:
+	if absi(c.salary_k - 18) <= 1 and GameState.day >= 2:
 		return true
-	var age_days := Time.get_unix_time_from_datetime_string(GameState.today) - Time.get_unix_time_from_datetime_string(c.birth_date)
-	return GameState.day >= 3 and absf(age_days / 86400.0 - 35 * 365.25) < 32.0
+	if c.attachment.contains("在职") or c.attachment.contains("已离职"):
+		return true
+	var year := DateUtil.parse(c.birth_date).x
+	return GameState.day >= 3 and (year == 1989 or year == 1990 or c.has_gap())
 
 
 func test_economy() -> void:
@@ -118,7 +170,7 @@ func test_economy() -> void:
 	check(GameState.conscience == 0, "degree is not absurd")
 	var before := GameState.savings
 	GameState.settle([])
-	check(GameState.savings == before + 270 - 250, "unpaid bill not charged")
+	check(GameState.savings == before + 270, "unpaid bill not charged, no mortgage mid-month")
 	check(GameState.family_state == -1, "unpaid bill hurts family")
 
 	GameState.new_game(6)
@@ -131,6 +183,27 @@ func test_economy() -> void:
 	check(GameState.decision_log[0].violated_rule, "log marks violation")
 	GameState.record_decision(old, "reject", &"rule_age", "您的年龄不符合团队活力要求。")
 	check(GameState.decision_log[1].reason_text == "您的年龄不符合团队活力要求。", "reason kept verbatim")
+
+
+func test_month_end() -> void:
+	GameState.new_game(4)
+	GameState.day = 5
+	GameState.begin_day()
+	GameState.savings = 1000
+	GameState.settle(["tutoring"])
+	check(GameState.savings == 1000 + 300 - 1250 - 60, "mortgage charged on month end")
+	check(GameState.is_bankrupt(), "short on mortgage is bankrupt")
+
+	# 第 5 天早上结算第 2 天录用的人
+	GameState.new_game(5)
+	var lazy := _candidate()
+	lazy.ability = 20
+	GameState.add_hire(load("res://data/story/candidate_perfect.tres"), {"狼性": 5})
+	GameState.hires[0].event_resolved = true
+	GameState.add_hire(lazy, {"狼性": 3})
+	GameState.day = 5
+	GameState.begin_day()
+	check(EmployeeEvents.due_event().id == "delay", "day 5 settles the next hire")
 
 
 func test_events() -> void:
@@ -298,8 +371,9 @@ func test_interview() -> void:
 		var card: QuestionCard = load("res://data/questions/%s.tres" % path)
 		check(card.always_truthful or card.chief_item in InterviewRoom.SCORE_ITEMS, "chief item valid: " + path)
 		check(card.chief_honest != "", "chief reaction: " + path)
-	for day in range(1, 4):
+	for day in range(1, GameState.LAST_DAY + 1):
 		var config := RuleEngine.load_day(day)
+		check(config.chief_question.lawsuit_risk == 0 or day == 3, "only day 3 chief question is illegal")
 		check(config.chief_opener != "" and config.chief_question != null and config.candidate_ask != null, "chief data day %d" % day)
 
 	# 表演者加分、说实话减分；主管占掉一问，上限 5

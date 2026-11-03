@@ -7,7 +7,7 @@ script = ExtResource("1")
 id = &"rule_salary"
 day_added = 2
 title_key = "薪资预算"
-text_key = "年包 = 月薪 × 薪数，不得超过 ¥240,000。"
+text_key = "期望月薪不超过 18k。写区间的看上限：15–20k 就是 20k。"
 reject_reason_key = "期望薪资超出岗位预算。"
 is_absurd = false
-max_annual = 240000
+max_monthly_k = 18

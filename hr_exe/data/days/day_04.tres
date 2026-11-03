@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Resource" path="res://data/rules/rule_school.tres" id="4"]
+[ext_resource type="Resource" path="res://data/chief/question_day4.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day4.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 4
+date = "2026-03-18"
+resume_count = 13
+screening_seconds = 200.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
+candidate_mix = {"fresh": 35, "regular": 25, "changer": 15, "laid_off": 25}
+morning_push = "第一学历成求职新门槛"
+boss_mail = "各位家人：
+从今天起，第一学历必须是名校。名单在手册里。
+读了研的，看本科。本科不行，研究生读得再好也是镀金。
+现在应届生一抓一大把，我们有挑的资本。
+—— 王总"
+coworker_note = "老周的便签：
+“东江大学科文学院”不是东江大学。
+硕士那行下面，有时候还有一行小字。"
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "30 岁硕士投递实习岗：“先进门再说”"
+news_body = "某招聘平台称，今年实习岗的投递者里，“非应届”的越来越多。"
+family_sms = "配偶：你爸出院了，医生让下个月复查。
+孩子：班上同学都去学编程了，我也想去。"
+chief_opener = "名校的我优先看。别的你筛掉就行。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

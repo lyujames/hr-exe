@@ -47,15 +47,19 @@ func _render_front() -> void:
 	_content.add_child(photo)
 	UI.label(_content, c.display_name, Vector2(80, 8), UI.INK)
 	UI.label(_content, "应聘：" + c.applied_position, Vector2(80, 26), UI.INK)
-	UI.label(_content, "出生：" + c.birth_date, Vector2(80, 44), UI.INK)
+	var birth := DateUtil.parse(c.birth_date)
+	UI.label(_content, "出生：%d 年 %d 月" % [birth.x, birth.y], Vector2(80, 44), UI.INK)
 	var line := 82
 	var degree := "学历：" + c.degree_name() + "　" + c.school
 	UI.label(_content, degree, Vector2(8, line), UI.INK)
 	line += 16
+	if c.undergrad_school != "":
+		UI.label(_content, "（本科：%s）" % c.undergrad_school, Vector2(8, line), UI.INK_SOFT)
+		line += 16
 	if c.degree_note != "":
 		UI.label(_content, "（%s）" % c.degree_note, Vector2(8, line), UI.INK_SOFT)
 		line += 16
-	UI.label(_content, "期望：月薪 %dk × %d 薪" % [c.salary_k, c.salary_months], Vector2(8, line), UI.INK)
+	UI.label(_content, "期望：月薪 " + c.salary_text(), Vector2(8, line), UI.INK)
 	line += 18
 	UI.label(_content, "技能：", Vector2(8, line), UI.INK)
 	UI.label(_content, " / ".join(c.skills), Vector2(44, line), UI.INK, 180)
@@ -65,11 +69,17 @@ func _render_back() -> void:
 	var c := candidate
 	UI.label(_content, "工作经历（从新到旧）", Vector2(8, 8), UI.INK_SOFT)
 	var line := 26
-	for job: Dictionary in c.jobs:
+	var gap_at := c.gap_index()
+	for i in c.jobs.size():
+		var job: Dictionary = c.jobs[i]
 		var end: String = job.end.replace("-", ".") if job.end != "" else "至今"
 		UI.label(_content, "%s – %s" % [job.start.replace("-", "."), end], Vector2(8, line), UI.INK)
 		UI.label(_content, "%s · %s" % [job.company, job.title], Vector2(16, line + 14), UI.INK_SOFT)
-		line += 32
+		line += 30
+		if i == gap_at:
+			var note := c.gap_note if c.gap_note != "" else "（未写）"
+			UI.label(_content, "┆ 空窗说明：" + note, Vector2(16, line), UI.INK)
+			line += 16
 	UI.label(_content, "自我评价", Vector2(8, 172), UI.INK_SOFT)
 	UI.label(_content, c.self_eval, Vector2(8, 188), UI.INK, 216)
 	UI.label(_content, "附：" + c.attachment, Vector2(8, 222), UI.INK_SOFT, 216)

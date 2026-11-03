@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Resource" path="res://data/chief/question_day5.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day5.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 5
+date = "2026-03-31"
+resume_count = 14
+screening_seconds = 210.0
+new_rules = Array[ExtResource("2")]([])
+fires_employee_event = true
+candidate_mix = {"fresh": 30, "regular": 20, "changer": 20, "laid_off": 30}
+morning_push = "多地房贷利率下调"
+boss_mail = "各位家人：
+月底了。这个月的 HC 必须用完，今天面的人直接定。
+规则照旧，一条不少。
+下个月公司要“降本增效”，到时候另行通知。
+我们是一家人。
+—— 王总"
+coworker_note = "老周的便签：
+今天月底，房贷别忘了。
+我当年也以为下个月就好了。"
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "月供压力调查：七成家庭“月底最怕看余额”"
+news_body = "受访者称：“工资一到账就转走了，像个过路财神。”"
+family_sms = "配偶：今天还房贷。卡里的钱我看过了，你自己看吧。
+孩子：编程班的老师说，以后程序员最吃香。"
+chief_opener = "今天必须定一个。月底了，谁都不想背空着的 HC。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

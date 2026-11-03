@@ -3,19 +3,23 @@ extends Node
 
 const START_DATE := "2026-03-02"
 const START_SAVINGS := 200
-const LAST_DAY := 3
+const LAST_DAY := 5
 const BASE_PAY := 300
 const PIECE_PAY := 5
 const VIOLATION_FINE := 50
 const FREE_WARNINGS := 2
 const STREAK_LENGTH := 5
 const STREAK_BONUS := 10
-const MORTGAGE := 250
+## 每 5 个工作日算一个月，月底一次扣月供。
+const DAYS_PER_MONTH := 5
+const MORTGAGE := 1250
 
 var run_seed := 0
 var day := 1
 var today := START_DATE
 var config: DayConfig
+## 本月的职位描述，月初的那天设置，之后沿用。
+var job_posting: JobPosting
 var savings := START_SAVINGS
 var conscience := 0
 var boss_trust := 0
@@ -54,8 +58,9 @@ func new_game(game_seed := 0) -> void:
 
 
 func begin_day() -> void:
-	today = DateUtil.add_days(START_DATE, day - 1)
 	config = RuleEngine.load_day(day)
+	today = config.date if config.date != "" else DateUtil.add_days(START_DATE, day - 1)
+	job_posting = RuleEngine.job_posting(day)
 	RuleEngine.set_day(day)
 	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "bonus": 0, "event_fine": 0}
 	passed_today = []
@@ -118,8 +123,21 @@ func income() -> int:
 	return BASE_PAY + stats.processed * PIECE_PAY + stats.bonus - fines() - stats.event_fine
 
 
+func is_month_end() -> bool:
+	return day % DAYS_PER_MONTH == 0
+
+
+## 距月底还房贷还有几个工作日；今天就是还款日时为 0。
+func days_to_mortgage() -> int:
+	return (DAYS_PER_MONTH - day % DAYS_PER_MONTH) % DAYS_PER_MONTH
+
+
+func mortgage_today() -> int:
+	return MORTGAGE if is_month_end() else 0
+
+
 func settle(paid_bills: Array) -> int:
-	var net := income() - MORTGAGE
+	var net := income() - mortgage_today()
 	for bill: Dictionary in config.bills:
 		if bill.id in paid_bills:
 			net -= int(bill.amount)

@@ -5,6 +5,8 @@ signal finished
 
 var paid := {}
 var _total: Label
+var _mortgage_label: Label
+var _mortgage_bar: Panel
 var settled_net := 0
 
 
@@ -23,7 +25,8 @@ func _ready() -> void:
 		y = _row("违规 %d 次（%d 次警告）" % [s.wrong, free], -GameState.fines(), y)
 	if s.event_fine > 0:
 		y = _row("员工事故", -s.event_fine, y)
-	y = _row("房贷", -GameState.MORTGAGE, y)
+	if GameState.is_month_end():
+		y = _row("房贷（月供）", -GameState.MORTGAGE, y)
 	y += 6.0
 	for bill: Dictionary in GameState.config.bills:
 		paid[bill.id] = true
@@ -39,6 +42,9 @@ func _ready() -> void:
 		box.toggled.connect(_toggle_bill.bind(bill.id))
 		add_child(box)
 		y += 24.0
+	_mortgage_label = UI.label(self, "", Vector2(40, 244), UI.INK)
+	UI.panel(self, Rect2(40, 262, 260, 10), UI.PAPER_DIM, UI.INK_SOFT)
+	_mortgage_bar = UI.panel(self, Rect2(41, 263, 0, 8), UI.GREEN_DIM)
 	_total = UI.label(self, "", Vector2(40, 284), UI.INK)
 	UI.button(self, "确认", Rect2(40, 316, 260, 24), confirm)
 	_build_notice()
@@ -80,11 +86,22 @@ func paid_ids() -> Array:
 
 
 func _refresh() -> void:
-	var net := GameState.income() - GameState.MORTGAGE
+	var net := GameState.income() - GameState.mortgage_today()
 	for bill: Dictionary in GameState.config.bills:
 		if paid[bill.id]:
 			net -= int(bill.amount)
-	_total.text = "今日结余 %+d　→　存款 ¥%d" % [net, GameState.savings + net]
+	var after := GameState.savings + net
+	_total.text = "今日结余 %+d　→　存款 ¥%d" % [net, after]
+	# 进度条：手里的钱够不够这个月的月供
+	var funds := after + GameState.mortgage_today()
+	var short := GameState.MORTGAGE - funds
+	if GameState.is_month_end():
+		_mortgage_label.text = "今天还月供 ¥%d" % GameState.MORTGAGE + ("　还差 ¥%d" % short if short > 0 else "")
+	else:
+		_mortgage_label.text = "距月底还房贷 %d 天　" % GameState.days_to_mortgage() + ("还差 ¥%d" % short if short > 0 else "已够月供")
+	_mortgage_label.add_theme_color_override("font_color", UI.RED if short > 0 else UI.INK)
+	_mortgage_bar.size.x = 258.0 * clampf(float(funds) / GameState.MORTGAGE, 0.0, 1.0)
+	_mortgage_bar.get_theme_stylebox("panel").bg_color = UI.RED if short > 0 else UI.GREEN_DIM
 
 
 func confirm() -> void:
