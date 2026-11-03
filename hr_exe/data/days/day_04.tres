@@ -10,8 +10,8 @@
 script = ExtResource("1")
 day = 4
 date = "2026-03-18"
-resume_count = 13
-screening_seconds = 200.0
+resume_count = 8
+screening_seconds = 170.0
 new_rules = Array[ExtResource("2")]([ExtResource("4")])
 candidate_mix = {"fresh": 35, "regular": 25, "changer": 15, "laid_off": 25}
 morning_push = "第一学历成求职新门槛"
@@ -26,7 +26,8 @@ coworker_note = "老周的便签：
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
 headline = "30 岁硕士投递实习岗：“先进门再说”"
 news_body = "某招聘平台称，今年实习岗的投递者里，“非应届”的越来越多。"
-family_sms = "配偶：你爸出院了，医生让下个月复查。
+news_by_event = {"embezzle": ["本市一科技公司新员工试用期内卷款失联", "公司负责人称“面试时表现完美”。警方提醒：备用金审批需谨慎。"]}
+family_sms = "老婆：你爸出院了，医生让下个月复查。
 孩子：班上同学都去学编程了，我也想去。"
 chief_opener = "名校的我优先看。别的你筛掉就行。"
 chief_question = ExtResource("chief_q")

@@ -45,9 +45,9 @@ func _render_front() -> void:
 	photo.position = Vector2(8, 8)
 	photo.set_process(false)
 	_content.add_child(photo)
-	UI.label(_content, c.display_name, Vector2(80, 8), UI.INK)
+	UI.label(_content, c.fact("display_name"), Vector2(80, 8), UI.INK)
 	UI.label(_content, "应聘：" + c.applied_position, Vector2(80, 26), UI.INK)
-	var birth := DateUtil.parse(c.birth_date)
+	var birth := DateUtil.parse(c.fact("birth_date"))
 	UI.label(_content, "出生：%d 年 %d 月" % [birth.x, birth.y], Vector2(80, 44), UI.INK)
 	var line := 82
 	var degree := "学历：" + c.degree_name() + "　" + c.school

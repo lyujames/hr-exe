@@ -48,10 +48,20 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> A
 	var result: Array[Candidate] = []
 	for i in cfg.resume_count:
 		var background := _pick_background(rng, cfg.candidate_mix)
-		result.append(_generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background))
+		var c := _generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background)
+		_attach_docs(c, rng)
+		result.append(c)
 	for story in cfg.story_candidates:
 		result.insert(mini(cfg.story_slot, result.size()), story)
 	return result
+
+
+## 发材料，再按密度埋矛盾。矛盾只改材料上写的，事实不动，所以判定和陷阱密度不受影响。
+static func _attach_docs(c: Candidate, rng: RandomNumberGenerator) -> void:
+	c.docs = RuleEngine.active_docs
+	for d in RuleEngine.active_discrepancies:
+		if d.doc in c.docs and rng.randf() < d.chance(c):
+			d.shape(c, rng)
 
 
 static func _pick_background(rng: RandomNumberGenerator, mix: Dictionary) -> String:

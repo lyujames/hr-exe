@@ -10,7 +10,7 @@ func _ready() -> void:
 	UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK_DARK)
 	if GameState.is_bankrupt():
 		UI.label(self, "存款归零", Vector2(40, 30), UI.RED)
-		UI.label(self, "配偶：卡刷不出来了。今晚你别回来了，我带孩子回我妈家。", Vector2(40, 56), UI.TEXT, 560)
+		UI.label(self, "老婆：卡刷不出来了。今晚你别回来了，我带孩子回我妈家。", Vector2(40, 56), UI.TEXT, 560)
 		UI.label(self, "（破产结局 · 切片结束）", Vector2(40, 92), UI.TEXT_DIM)
 		UI.button(self, "回到标题", Rect2(260, 300, 120, 24), finished.emit)
 		return

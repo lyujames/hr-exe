@@ -1,20 +1,36 @@
 class_name EmployeeEvents
 ## 延迟反馈：录用的后果不在当天出现，由隐藏属性决定几天后发生什么。
-## 切片把设计中的 3–7 天压缩：第 3、5 天早上各结算一位最早录用、还没结果的人。
+## 每个人在留任期满那天早上结算一次：走了的没有留任奖金，还在的记进 stats.retained。
 
 const BLAME_FINE := 200
-const HC_FINE := 100
 const LIE_FINE := 300
+## 由重到轻；同一天几个人满期，老板只叫最重的那个，其余的只在日结里一行带过。
+const SEVERITY := ["embezzle", "jump", "burnout", "delay", "praise"]
+const LEAVES := ["embezzle", "jump", "burnout"]
 
 
 static func due_event() -> Dictionary:
-	if not GameState.config.fires_employee_event:
-		return {}
+	var events: Array = []
 	for hire: Dictionary in GameState.hires:
-		if not hire.event_resolved:
+		if not hire.event_resolved and GameState.retention_due(hire) <= GameState.day:
 			hire.event_resolved = true
-			return _for_hire(hire)
-	return _empty_headcount()
+			var event := _for_hire(hire)
+			var days := GameState.retention_due(hire) - int(hire.day_hired)
+			var entry := {"name": event.name, "days": days, "left": event.id in LEAVES, "title": event.title}
+			GameState.stats.retained.append(entry)
+			events.append(event)
+	if events.is_empty():
+		return _empty_headcount() if _no_hires_this_month() else {}
+	events.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return SEVERITY.find(a.id) < SEVERITY.find(b.id))
+	return events[0]
+
+
+## 月初录用的人本该满期的那天，这个月还一个人都没招。
+static func _no_hires_this_month() -> bool:
+	var month_start := GameState.day - (GameState.day - 1) % GameState.DAYS_PER_MONTH
+	if GameState.day != month_start + int(GameState.pay.retention_days):
+		return false
+	return not GameState.hires.any(func(h: Dictionary) -> bool: return int(h.day_hired) >= month_start)
 
 
 static func _for_hire(hire: Dictionary) -> Dictionary:
@@ -34,7 +50,7 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 	match kind:
 		"embezzle":
 			event.title = "%s 不见了" % c.display_name
-			event.body = "你录用的 %s 入职第二天，带着项目备用金失联了。\n“你面试的，你签的字。这钱算谁的？”" % c.display_name
+			event.body = "你录用的 %s 试用期还没满，带着项目备用金失联了。\n“你面试的，你签的字。这钱算谁的？”" % c.display_name
 		"delay":
 			event.title = "项目延期"
 			event.body = "你录用的 %s 把排期拖了一周。\n“这就是你挑的人？”" % c.display_name
@@ -57,9 +73,9 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 
 static func _empty_headcount() -> Dictionary:
 	return {
-		"id": "no_hire", "name": "", "fine": HC_FINE, "scorecard_full": false, "blame": false,
+		"id": "no_hire", "name": "", "fine": 0, "scorecard_full": false, "blame": false,
 		"title": "HC 空着",
-		"body": "这几天，一个人都没招进来。\n“我养你是让你拒人的吗？这个月的招聘成本你来背。”",
+		"body": "这几天，一个人都没招进来。\n“我养你是让你拒人的吗？”",
 	}
 
 

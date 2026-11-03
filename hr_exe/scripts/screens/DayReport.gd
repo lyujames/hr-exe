@@ -16,10 +16,17 @@ func _ready() -> void:
 	UI.panel(self, Rect2(30, 12, 280, 336), UI.PAPER, UI.BLACK)
 	UI.label(self, "日结单 · 第 %d 天" % GameState.day, Vector2(40, 18), UI.INK)
 	var y := 40.0
-	y = _row("底薪", GameState.BASE_PAY, y)
-	y = _row("计件 %d 份" % s.processed, s.processed * GameState.PIECE_PAY, y)
-	if s.bonus > 0:
-		y = _row("连续正确奖金", s.bonus, y)
+	var pay := GameState.pay
+	y = _row("底薪", int(pay.base), y)
+	y = _row("绩效 %d 份 × ¥%d" % [s.processed, pay.per_resume], GameState.performance_pay(), y)
+	y = _row("判对 %d 份 × ¥%d" % [s.correct, pay.per_correct], GameState.judge_bonus(), y)
+	for r: Dictionary in s.retained:
+		if r.left:
+			y = _row("留任 %s：已离职" % r.name, 0, y)
+		elif pay.retention_deferred:
+			y = _row("留任 %s 满 %d 天（延发）" % [r.name, r.days], 0, y)
+		else:
+			y = _row("留任 %s 满 %d 天" % [r.name, r.days], int(pay.retention), y)
 	if s.wrong > 0:
 		var free := mini(s.wrong, GameState.FREE_WARNINGS)
 		y = _row("违规 %d 次（%d 次警告）" % [s.wrong, free], -GameState.fines(), y)
@@ -53,7 +60,8 @@ func _ready() -> void:
 
 func _row(text: String, amount: int, y: float) -> float:
 	UI.label(self, text, Vector2(40, y), UI.INK)
-	var value := UI.label(self, "%s¥%d" % ["+" if amount > 0 else "−", absi(amount)], Vector2(220, y), UI.RED if amount < 0 else UI.INK)
+	var prefix := "+" if amount > 0 else ("−" if amount < 0 else "")
+	var value := UI.label(self, "%s¥%d" % [prefix, absi(amount)], Vector2(220, y), UI.RED if amount < 0 else UI.INK)
 	value.size.x = 80
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	return y + 18.0
@@ -71,6 +79,11 @@ func _build_notice() -> void:
 		y += 32.0
 	if s.errors.size() > 8:
 		UI.label(self, "……另有 %d 条" % (s.errors.size() - 8), Vector2(336, y), UI.INK_SOFT)
+	var pending := GameState.pending_hires()
+	if not pending.is_empty():
+		# 只是让玩家知道，不进今天的收入
+		var due := pending.map(func(h: Dictionary) -> String: return "%s 第 %d 天" % [h.candidate.display_name, GameState.retention_due(h)])
+		UI.label(self, "在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)), Vector2(336, 270), UI.INK_SOFT, 266)
 	if s.unprocessed > 0:
 		UI.label(self, "未处理简历 %d 份。" % s.unprocessed, Vector2(336, 306), UI.INK_SOFT)
 	UI.label(self, "正确 %d / 已处理 %d" % [s.correct, s.processed], Vector2(336, 324), UI.INK_SOFT)

@@ -204,7 +204,7 @@ func run() -> void:
 			await shot("day%d_boss_event" % day)
 			# 第 1 天的人评分表满分，可以甩给评分表；之后的人只能认错
 			if main.current.event.blame:
-				await press("“他面试时评分表都是满分。”" if day == 3 else "“是我的判断失误。”")
+				await press("“他面试时评分表都是满分。”" if day == 4 else "“是我的判断失误。”")
 				await shot("day%d_boss_reply" % day)
 			await press("回工位")
 		await screen_desk(day)

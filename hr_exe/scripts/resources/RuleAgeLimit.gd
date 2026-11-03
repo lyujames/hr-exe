@@ -1,11 +1,11 @@
 class_name RuleAgeLimit extends Rule
 
-## “只要 90 后”：只看出生年份，不算周岁。
+## “只要 90 后”：只看出生年份，不算周岁。带了身份证的看身份证，简历上写的不算。
 @export var min_birth_year := 1990
 
 
 func check(c: Candidate) -> bool:
-	return DateUtil.parse(c.birth_date).x >= min_birth_year
+	return DateUtil.parse(c.fact("birth_date", "id_card")).x >= min_birth_year
 
 
 func shape(c: Candidate, form: Shape, rng: RandomNumberGenerator) -> void:
