@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_intern_job"
+text_key = "知道实习生在我们这儿主要干什么吗？"
+probes = PackedStringArray("honesty")
+honest = "打杂为主，做得好能跟一个需求。"
+honest_low = "JD 上写的是参与核心项目……不是吗？"
+standard = "公司需要什么，我就学什么。"
+flaw = "参、参与核心项目？"
+audience = "intern"

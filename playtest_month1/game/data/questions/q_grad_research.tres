@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_grad_research"
+text_key = "说说你的研究方向，和这个岗位有什么关系？"
+probes = PackedStringArray("ability")
+honest = "做推荐系统的，用户分层那套能直接用上。"
+honest_low = "做的是材料仿真……关系不大，但我学东西快。"
+standard = "我的研究方向和贵司业务高度契合。"
+flaw = "研究方向是……嗯，交叉学科。"
+audience = "grad"
+chief_item = "格局"
+chief_standard = "高度契合，我喜欢这个词。"
+chief_honest = "关系不大你来干嘛？"
+chief_flaw = "交叉学科？听不懂。"

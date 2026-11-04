@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_marriage"
+text_key = "结婚了吗？随便问问。"
+probes = PackedStringArray("honesty")
+honest = "这和岗位有关吗？"
+honest_low = "结了，孩子三岁。"
+standard = "目前以事业为重。"
+flaw = "暂时……没有打算。真的。"
+lawsuit_risk = 1
+audience = "regular"

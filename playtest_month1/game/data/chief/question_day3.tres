@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_weekend"
+text_key = "你能接受偶尔周末吗？"
+probes = PackedStringArray("pressure")
+honest = "偶尔可以，提前说就行。"
+honest_low = "周末要回学校上课，不太行。"
+standard = "周末不重要，项目重要。"
+flaw = "偶、偶尔……是多偶尔？"

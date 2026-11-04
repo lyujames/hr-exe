@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_gap"
+audience = "regular"
+text_key = "解释一下简历上这段空窗期"
+probes = PackedStringArray("honesty")
+honest = "照顾生病的父亲。"
+honest_low = "那段时间状态不好，什么都没做。"
+standard = "自我提升、学习新技能。"
+flaw = "我当时……在学习。学了挺多东西。"
+requires_gap = true
+chief_item = "稳定性"
+chief_standard = "学习好，学习不占工位。"
+chief_honest = "这段以后别写简历上了。"
+chief_flaw = "学了就行，不用细说。"
+

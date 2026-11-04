@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_thesis"
+text_key = "学校能放你出来半年吗？别干一个月说要回去写论文。"
+probes = PackedStringArray("loyalty")
+honest = "论文九月开题，在那之前都能来。"
+honest_low = "……论文那边，到时候再说吧。"
+standard = "已经和导师沟通好了，全力以赴。"
+flaw = "能、能放的。导师人很好。应该能。"
+audience = "intern"

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "产品运营实习生"
+pay_text = "补贴 ¥150/天
+表现好可转正"
+requirements = PackedStringArray("本科、硕士在读", "计算机、统计、市场营销相关专业", "有校园项目经历", "能长期实习", "认同“家”文化")

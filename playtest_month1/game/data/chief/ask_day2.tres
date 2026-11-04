@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "进来以后有人带吗？我主要做什么？"
+lie = "有导师一对一带，直接参与核心项目。"
+safe = "会根据业务需要安排。"
+truth = "带你的是上一批的实习生，他下周走。"

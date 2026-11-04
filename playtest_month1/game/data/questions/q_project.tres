@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_project"
+text_key = "简历上那个项目，你具体做了哪部分？"
+probes = PackedStringArray("ability")
+honest = "数据是我爬的，表是我洗的，答辩是队友上去讲的。"
+honest_low = "我主要做 PPT……名字写前面是因为我是队长。"
+standard = "从 0 到 1 全流程主导，带领团队拿了奖。"
+flaw = "全、全部都参与了，每个环节都有我。"
+audience = "intern"
+chief_item = "狼性"
+chief_standard = "主导好，我们就要能扛事的。"
+chief_honest = "答辩都不上？胆子小了点。"
+chief_flaw = "都参与，那就是都会。"

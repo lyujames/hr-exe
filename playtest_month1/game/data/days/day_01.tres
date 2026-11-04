@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/rules/rule_degree.tres" id="4"]
+[ext_resource type="Resource" path="res://data/story/candidate_perfect.tres" id="5"]
+[ext_resource type="Resource" path="res://data/jobs/job_month1.tres" id="job"]
+
+[resource]
+script = ExtResource("1")
+day = 1
+date = "2026-03-02"
+resume_count = 4
+screening_seconds = 120.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
+story_candidates = Array[ExtResource("3")]([ExtResource("5")])
+story_slot = 3
+candidate_mix = {"fresh": 100}
+job_posting = ExtResource("job")
+morning_push = "互联网公司暑期实习开抢"
+boss_mail = "各位家人：
+蜂巢科技要招一批产品运营实习生，招聘这摊事从今天起归你。
+今天先熟悉熟悉：只要本科、硕士在读的学生，大专的不要。过了的人明天来面。
+我们是一家人。
+—— 王总"
+coworker_note = "老周的便签：
+把印章拖到简历上。拒绝要选一句理由，选准是哪条另有奖金。
+工资按份计件，看得越多挣得越多。
+盖错了，打印机当场吐一张违规单。"
+pay = {"base": 170, "per_resume": 15, "per_correct": 5, "per_reason": 5, "retention": 150, "retention_days": 3, "retention_deferred": false, "fines": false, "instant_notice": true}
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "实习岗“一岗难求”：互联网运营实习投递比达 300:1"
+news_body = "某招聘平台称，大三学生平均投递 60 份简历，才换来一次实习面试。"
+family_sms = "老婆：补习班这周的钱该交了，老师催了两次。"

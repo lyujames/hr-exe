@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "内容运营（社招）"
+pay_text = "月薪 8–18k
+弹性工作"
+requirements = PackedStringArray("本科及以上", "3 年以上互联网运营", "抗压能力强", "接受弹性工作", "认同“家”文化")

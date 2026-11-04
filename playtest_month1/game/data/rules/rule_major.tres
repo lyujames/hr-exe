@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleMajor" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleMajor.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_major"
+day_added = 3
+title_key = "指定专业"
+text_key = "实习生专业只要：计算机科学与技术、软件工程、统计学、市场营销。看主修，辅修不算。"
+reject_reason_key = "您的专业与岗位要求不符。"
+is_absurd = false
+majors = PackedStringArray("计算机科学与技术", "软件工程", "统计学", "市场营销")

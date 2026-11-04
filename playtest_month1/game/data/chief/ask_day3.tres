@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "加班多吗？"
+lie = "我们是弹性工作制。"
+safe = "看项目阶段。"
+truth = "上个月主管的孩子在工位写作业。"
+

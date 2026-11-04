@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_our_app"
+text_key = "用过我们的 App 吗？哪里不好用？"
+probes = PackedStringArray("honesty")
+honest = "用过。注销账号要打客服电话，这个挺劝退的。"
+honest_low = "来之前刚下的，还没注册。"
+standard = "用了三年，体验一直很好，是我最常用的 App。"
+flaw = "用过……首页挺好看的。颜色，颜色挺好。"
+audience = "intern"
+chief_item = "格局"
+chief_standard = "听听，用户都这么说。"
+chief_honest = "注销那个是故意的，出去别讲。"
+chief_flaw = "首页是我们组改的。"

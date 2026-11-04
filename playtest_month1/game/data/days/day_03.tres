@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/rules/rule_major.tres" id="4"]
+[ext_resource type="Resource" path="res://data/chief/question_day3.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day3.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 3
+date = "2026-03-04"
+resume_count = 5
+screening_seconds = 145.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
+candidate_mix = {"fresh": 100}
+morning_push = "实习招聘只认“对口专业”？"
+boss_mail = "各位家人：
+两天了，该熟了。从今天起我有要求：专业要对口，名单在手册上。不在名单上的，再优秀也不要。
+按手册办事，别问为什么。
+—— 王总"
+coworker_note = "老周的便签：
+专业看主修，辅修不算。
+昨天的规则还在，规则只增不减。"
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "“专业对口”成实习门槛：非相关专业投递回复率不足一成"
+news_body = "受访学生：“我学的是哲学，可我真的会写文案。”"
+family_sms = "老婆：你爸还是说胸口闷，我明天陪他去医院看看。"
+chief_opener = "我们节奏快，实习生来了就得能上手。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

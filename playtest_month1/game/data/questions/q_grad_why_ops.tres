@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_grad_why_ops"
+text_key = "读了研究生，为什么来投运营实习？"
+probes = PackedStringArray("honesty")
+honest = "算法岗投了二十家都没回音，运营是保底。"
+honest_low = "……我也不知道自己适合做什么。"
+standard = "我认为运营是离用户最近的岗位。"
+flaw = "因、因为运营……很有挑战性。"
+audience = "grad"
+chief_item = "格局"
+chief_standard = "离用户最近，说得好。"
+chief_honest = "保底？那你随时会走。"
+chief_flaw = "挑战性？你说说哪里有挑战。"

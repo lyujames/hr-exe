@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_leaving"
+audience = "regular"
+text_key = "为什么离开上一家？"
+probes = PackedStringArray("loyalty")
+honest = "被裁了。"
+honest_low = "钱不够，哪边给得多我去哪边。"
+standard = "寻求更大的平台。"
+flaw = "那个……平台，对，寻求更大的平台。"
+chief_item = "稳定性"
+chief_standard = "我们平台确实大。"
+chief_honest = "这个……记一下。"
+chief_flaw = "平台好。平台大。"
+

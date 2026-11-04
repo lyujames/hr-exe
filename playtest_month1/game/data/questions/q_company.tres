@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_company"
+audience = "regular"
+text_key = "说说你对我们公司的了解。"
+probes = PackedStringArray("honesty")
+honest = "查过，差评写得挺有文采。"
+honest_low = "没查，海投的。"
+standard = "贵司的价值观深深打动了我。"
+flaw = "贵司……（瞥了一眼桌上的名牌）"
+chief_item = "格局"
+chief_standard = "你看，外面都这么说。"
+chief_honest = "这个，你们 HR 跟进一下。"
+chief_flaw = "名牌上有，不丢人。"
+

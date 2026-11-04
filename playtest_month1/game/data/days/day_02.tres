@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/chief/question_day2.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day2.tres" id="chief_a"]
+
+[resource]
+script = ExtResource("1")
+day = 2
+date = "2026-03-03"
+resume_count = 5
+screening_seconds = 140.0
+new_rules = Array[ExtResource("2")]([])
+candidate_mix = {"fresh": 100}
+morning_push = "实习面试，面试官最爱问的十个问题"
+boss_mail = "各位家人：
+昨天你筛过的实习生，今天来面试。赵主管是带他们的人，他要问什么你别拦着。
+实习生不谈工资，问问 TA 知不知道来干什么。
+—— 王总"
+coworker_note = "老周的便签：
+学历后面的小字要看，专升本还没入学的不算。
+面试 5 问，研究生 7 问。赵主管会抢。"
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "“三十五岁现象”再引热议"
+news_body = "专家：年龄并非能力指标。多家企业回应：我们只看“活力”。"
+family_sms = "孩子：爸爸妈妈，老师说我的英语进步了！
+老婆：你爸说这几天胸口闷，不肯去医院。"
+chief_opener = "实习生嘛，招进来归我带。你问，我听着。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")
