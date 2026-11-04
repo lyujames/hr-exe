@@ -1,7 +1,10 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Resource" path="res://data/rules/rule_age.tres" id="4"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="6"]
+[ext_resource type="Resource" path="res://data/discrepancies/birth_resume.tres" id="7"]
 [ext_resource type="Resource" path="res://data/chief/question_day5.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day5.tres" id="chief_a"]
 
@@ -10,19 +13,21 @@ script = ExtResource("1")
 day = 5
 date = "2026-03-31"
 resume_count = 8
-screening_seconds = 170.0
-new_rules = Array[ExtResource("2")]([])
+screening_seconds = 180.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
+new_docs = PackedStringArray("id_card")
+discrepancies = Array[ExtResource("6")]([ExtResource("7")])
 candidate_mix = {"fresh": 30, "regular": 20, "changer": 20, "laid_off": 30}
-morning_push = "多地房贷利率下调"
+morning_push = "企业招聘最看重“年轻”"
 boss_mail = "各位家人：
 月底了。这个月的 HC 必须用完，今天面的人直接定。
-规则照旧，一条不少。
-下个月公司要“降本增效”，到时候另行通知。
-我们是一家人。
+公司要保持活力。从今天起，只要 90 后。简历一律附身份证复印件，年龄看身份证，简历上自己填的不算。
+别跟我谈公平。我们是一家人。
 —— 王总"
 coworker_note = "老周的便签：
-今天月底，房贷别忘了。
-我当年也以为下个月就好了。"
+我是 80 年的。
+简历上的年份是自己填的。
+附注里说已离职的，也算裸辞。"
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
 headline = "月供压力调查：七成家庭“月底最怕看余额”"
 news_body = "受访者称：“工资一到账就转走了，像个过路财神。”"

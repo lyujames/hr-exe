@@ -21,7 +21,8 @@ class_name DayConfig extends Resource
 @export var morning_push: String
 @export_multiline var boss_mail: String
 @export_multiline var coworker_note: String
-## 本月工资标准 {base, per_resume, per_correct, retention, retention_days, retention_deferred}，只在月初设置，之后沿用。
+## 本月工资标准 {base, per_resume, per_correct, retention, retention_days, retention_deferred, fines}，只在月初设置，之后沿用。
+## fines 为 false 时不扣钱：违规只是拿不到判断奖金，老板对质也不罚款；没写算 true。
 ## 员工事件不再按天配置：每个录用的人在留任期满那天早上结算。
 @export var pay: Dictionary = {}
 ## 可选开销 [{id, label, amount, unpaid_note}]：可以不付，家庭状态会恶化。

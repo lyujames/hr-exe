@@ -12,6 +12,7 @@ func check(condition: bool, message: String) -> void:
 
 func _ready() -> void:
 	test_rule_boundaries()
+	test_pacing()
 	test_school_rule()
 	test_id_card()
 	test_calendar()
@@ -38,10 +39,10 @@ func _candidate() -> Candidate:
 
 func test_rule_boundaries() -> void:
 	GameState.new_game(1)
-	GameState.day = 3
+	GameState.day = 5
 	GameState.begin_day()
-	check(GameState.today == "2026-03-04", "day 3 date")
-	check(RuleEngine.active_rules.size() == 5, "five rules on day 3")
+	check(GameState.today == "2026-03-31", "day 5 date")
+	check(RuleEngine.active_rules.size() == 4, "four rules by month end")
 	var c := _candidate()
 	check(RuleEngine.evaluate(c).pass, "clean candidate passes")
 	c.birth_date = "1990-01-01"
@@ -60,54 +61,88 @@ func test_rule_boundaries() -> void:
 	c = _candidate()
 	c.attachment = "已离职，可随时到岗"
 	check(not RuleEngine.evaluate(c).pass, "says quit in attachment fails")
+	# 空窗规则第二个月才上，这里直接测规则本身
+	var gap: Rule = load("res://data/rules/rule_gap.tres")
 	c = _candidate()
 	c.jobs = [
 		{"company": "a", "title": "b", "start": "2024-02", "end": ""},
 		{"company": "a", "title": "b", "start": "2020-01", "end": "2023-07"},
 	]
 	check(c.has_gap(), "inner gap found")
-	check(not RuleEngine.evaluate(c).pass, "gap without note fails")
+	check(RuleEngine.evaluate(c).pass, "month 1 ignores gaps")
+	check(not gap.check(c), "gap without note fails")
 	c.gap_note = "进修考证"
-	check(RuleEngine.evaluate(c).pass, "gap for study passes")
+	check(gap.check(c), "gap for study passes")
 	c.gap_note = "陪父亲住院"
-	check(not RuleEngine.evaluate(c).pass, "gap for family fails")
+	check(not gap.check(c), "gap for family fails")
 	c.jobs[1].end = "2024-02"
 	c.gap_note = ""
-	check(not c.has_gap() and RuleEngine.evaluate(c).pass, "back-to-back jobs have no gap")
+	check(not c.has_gap() and gap.check(c), "back-to-back jobs have no gap")
 	c = _candidate()
 	c.degree = Candidate.Degree.COLLEGE
 	check(RuleEngine.evaluate(c).failed.size() == 1, "degree failure reports rule")
 
 
+## 节奏：每天最多一个新概念（新规则或新材料），第 2 天留给第一次面试。
+func test_pacing() -> void:
+	var rules_by_day := [1, 1, 2, 3, 4]
+	for day in range(1, GameState.LAST_DAY + 1):
+		var config := RuleEngine.load_day(day)
+		check(config.new_rules.size() <= 1, "at most one new rule on day %d" % day)
+		check(config.new_docs.is_empty() or config.new_rules.size() == 1, "a new doc comes with the rule that reads it")
+		for rule in config.new_rules:
+			check(rule.day_added == day, "%s added on its own day" % rule.id)
+		GameState.new_game(day)
+		GameState.day = day
+		GameState.begin_day()
+		check(RuleEngine.active_rules.size() == rules_by_day[day - 1], "rule count on day %d" % day)
+	check(RuleEngine.load_day(2).new_rules.is_empty(), "day 2 is for the first interview")
+
+	# 先教后考：新规则当天不出边界陷阱，且被抽中更多；第二天起陷阱回来
+	var salary_edge := [0, 0]
+	var salary_hits := [0, 0]
+	for game_seed in range(1, 80):
+		GameState.new_game(game_seed)
+		for i in 2:
+			GameState.day = 3 + i
+			GameState.begin_day()
+			for c in CandidateGenerator.generate_day(GameState.config, RuleEngine.active_rules, GameState.day_seed()):
+				if c.salary_k >= 18 and c.salary_k <= 20:
+					salary_edge[i] += 1
+				if c.salary_k > 18:
+					salary_hits[i] += 1
+	check(salary_edge[0] == 0, "no salary edge on the day it is added")
+	check(salary_edge[1] > 20, "salary edges start the next day")
+	print("salary rejects day3/day4=", salary_hits)
+
+
 func test_school_rule() -> void:
-	GameState.new_game(2)
-	GameState.day = 4
-	GameState.begin_day()
-	check(RuleEngine.active_rules.size() == 6, "six rules on day 4")
+	# 名校规则第二个月才上，这里直接测规则本身
+	var school: Rule = load("res://data/rules/rule_school.tres")
 	var c := _candidate()
 	c.school = "东江大学"
-	check(RuleEngine.evaluate(c).pass, "famous school passes")
+	check(school.check(c), "famous school passes")
 	c.school = "东江大学科文学院"
-	check(not RuleEngine.evaluate(c).pass, "branch college of a famous school fails")
+	check(not school.check(c), "branch college of a famous school fails")
 	c.degree = Candidate.Degree.MASTER
 	c.school = "东江大学"
 	c.undergrad_school = "明湖学院"
-	check(not RuleEngine.evaluate(c).pass, "famous master over plain bachelor fails")
+	check(not school.check(c), "famous master over plain bachelor fails")
 	c.school = "明湖学院"
 	c.undergrad_school = "南山理工大学"
-	check(RuleEngine.evaluate(c).pass, "plain master over famous bachelor passes")
+	check(school.check(c), "plain master over famous bachelor passes")
 	var restored := Candidate.from_dict(c.to_dict())
 	check(restored.undergrad_school == "南山理工大学", "undergrad school saved")
 
 
 func test_id_card() -> void:
 	GameState.new_game(14)
-	GameState.day = 2
+	GameState.day = 4
 	GameState.begin_day()
-	check(RuleEngine.active_docs.is_empty(), "no ID card before day 3")
-	GameState.day = 3
+	check(RuleEngine.active_docs.is_empty(), "no ID card before day 5")
+	GameState.day = 5
 	GameState.begin_day()
-	check(RuleEngine.active_docs == PackedStringArray(["id_card"]), "ID card from day 3")
+	check(RuleEngine.active_docs == PackedStringArray(["id_card"]), "ID card from day 5")
 	# 简历写 1990，身份证是 1989：看简历能过，其实不过
 	var c := _candidate()
 	c.birth_date = "1989-11-05"
@@ -123,12 +158,12 @@ func test_id_card() -> void:
 	check(restored.docs == c.docs and restored.fact("birth_date") == "1990-03-05", "docs and overrides survive JSON")
 	check(restored.id_number() == number, "ID number stable after reload")
 
-	# 生成器：第 3 天起人人带身份证，一部分简历年份改过；改的只是简历，判定按事实不变
+	# 生成器：第 5 天起人人带身份证，一部分简历年份改过；改的只是简历，判定按事实不变
 	var planted := 0
 	var liars := 0
-	for game_seed in range(1, 30):
+	for game_seed in range(1, 90):
 		GameState.new_game(game_seed)
-		for day in [3, 4, 5]:
+		for day in [5]:
 			GameState.day = day
 			GameState.begin_day()
 			for g in CandidateGenerator.generate_day(GameState.config, RuleEngine.active_rules, GameState.day_seed()):
@@ -145,9 +180,10 @@ func test_id_card() -> void:
 				var plain := Candidate.from_dict(g.to_dict())
 				plain.doc_overrides = {}
 				check(RuleEngine.evaluate(plain).pass == RuleEngine.evaluate(g).pass, "mismatch never changes the verdict")
-	var days := 29.0 * 3
+	var days := 89.0
 	print("birth mismatches/day=", planted / days, " younger claims/day=", liars / days)
-	check(liars / days > 0.7 and liars / days < 1.5, "about one 'claims to be 90s' trap a day")
+	# 第 5 天年龄是新规则、被多抽，所以“写成 90 后”的人比往后多一点
+	check(liars / days > 0.7 and liars / days < 2.0, "one or two 'claims to be 90s' traps a day")
 	check(planted / days < 3.5, "mismatches stay a minority of the pile")
 
 
@@ -187,31 +223,31 @@ func test_generator() -> void:
 				else:
 					rejected += 0 if result.pass else 1
 					edge += 1 if _is_edge(c) else 0
-					if day >= 3:
+					if day >= 4:
 						late_total += 1
 						late_rejected += 0 if result.pass else 1
 				check(not c.jobs.is_empty(), "has jobs")
 				for i in c.jobs.size():
 					check(c.jobs[i].start < (c.jobs[i].end if c.jobs[i].end != "" else "9999"), "job order")
 	var reject_rate := float(rejected) / total
-	print("reject_rate=", reject_rate, " edge_rate=", float(edge) / total, " day3-5_reject_rate=", float(late_rejected) / late_total)
+	print("reject_rate=", reject_rate, " edge_rate=", float(edge) / total, " day4-5_reject_rate=", float(late_rejected) / late_total)
 	check(reject_rate > 0.3 and reject_rate < 0.6, "reject rate in range")
 	var slice_total := 0
 	for day in range(1, GameState.LAST_DAY + 1):
 		var config := RuleEngine.load_day(day)
 		slice_total += config.resume_count + config.story_candidates.size()
-	check(slice_total == 37, "first month: 5 on day 1 (story included), then 8 a day")
+	check(slice_total == 31, "first month ramps up: 5 (story included), 5, 6, 7, 8")
 
 
 func _is_edge(c: Candidate) -> bool:
 	if c.degree_note != "":
 		return true
-	if absi(c.salary_k - 18) <= 1 and GameState.day >= 2:
+	if absi(c.salary_k - 18) <= 1 and GameState.day >= 3:
 		return true
-	if c.attachment.contains("在职") or c.attachment.contains("已离职"):
+	if GameState.day >= 4 and (c.attachment.contains("在职") or c.attachment.contains("已离职")):
 		return true
 	var year := DateUtil.parse(c.birth_date).x
-	return GameState.day >= 3 and (year == 1989 or year == 1990 or c.has_gap())
+	return GameState.day >= 5 and (year == 1989 or year == 1990)
 
 
 func test_economy() -> void:
@@ -223,18 +259,21 @@ func test_economy() -> void:
 		GameState.record_decision(bad, "pass", &"", "")  # 3 次违规：2 警告 + 1 罚款
 	GameState.record_decision(good, "pass", &"", "")
 	check(GameState.stats.wrong == 3, "three violations")
-	check(GameState.fines() == 50, "first two are warnings")
+	check(GameState.fines() == 0, "month 1: violations cost no money")
 	check(GameState.performance_pay() == 4 * 5, "every processed resume pays performance")
 	check(GameState.judge_bonus() == 3, "only correct verdicts pay the judging bonus")
-	check(GameState.income() == 300 + 20 + 3 - 50, "income")
+	check(GameState.income() == 300 + 20 + 3, "income")
 	check(GameState.conscience == 0, "degree is not absurd")
 	var before := GameState.savings
 	GameState.settle([])
-	check(GameState.savings == before + 273, "unpaid bill not charged, no mortgage mid-month")
+	check(GameState.savings == before + 323, "unpaid bill not charged, no mortgage mid-month")
 	check(GameState.family_state == -1, "unpaid bill hurts family")
+	# 第二个月起打开罚款：前 2 次警告，之后每次 −¥50
+	_fines_on()
+	check(GameState.fines() == 50, "later months: first two are warnings")
 
 	GameState.new_game(6)
-	GameState.day = 3
+	GameState.day = 5
 	GameState.begin_day()
 	var old := _candidate()
 	old.birth_date = "1980-01-01"
@@ -279,6 +318,12 @@ func test_month_end() -> void:
 	check(GameState.deferred_bonus == 150, "deferred retention recorded")
 
 
+## 模拟第二个月起的工资标准：违规和对质都扣钱。复制一份，别改到缓存的 day_01。
+func _fines_on() -> void:
+	GameState.pay = GameState.pay.duplicate()
+	GameState.pay.fines = true
+
+
 func test_events() -> void:
 	var perfect: Candidate = load("res://data/story/candidate_perfect.tres")
 	var full := {"狼性": 5, "格局": 5, "稳定性": 5, "颜值": 5}
@@ -287,6 +332,7 @@ func test_events() -> void:
 	check(EmployeeEvents.due_event().is_empty(), "no event before retention ends")
 	GameState.day = 4
 	GameState.begin_day()
+	_fines_on()
 	var event := EmployeeEvents.due_event()
 	check(event.id == "embezzle", "story override fires")
 	check(GameState.retention_bonus() == 0 and GameState.stats.retained[0].left, "leaver earns no retention")
@@ -299,14 +345,26 @@ func test_events() -> void:
 	GameState.add_hire(perfect, {"狼性": 5, "格局": 3, "稳定性": 5, "颜值": 5})
 	GameState.day = 4
 	GameState.begin_day()
+	_fines_on()
 	event = EmployeeEvents.due_event()
 	EmployeeEvents.resolve_blame(event, "scorecard")
 	check(GameState.stats.event_fine == EmployeeEvents.LIE_FINE, "lying is punished")
+
+	# 第一个月：对质照样发生，但不扣钱；撒谎照样掉老板信任
+	GameState.new_game(8)
+	GameState.add_hire(perfect, {"狼性": 5, "格局": 3, "稳定性": 5, "颜值": 5})
+	GameState.day = 4
+	GameState.begin_day()
+	event = EmployeeEvents.due_event()
+	check(event.blame and event.fine == 0, "month 1: confrontation without a fine")
+	EmployeeEvents.resolve_blame(event, "scorecard")
+	check(GameState.stats.event_fine == 0 and GameState.boss_trust == -1, "month 1: lying costs trust, not money")
 
 	GameState.new_game(9)
 	GameState.add_hire(perfect, full)
 	GameState.day = 4
 	GameState.begin_day()
+	_fines_on()
 	EmployeeEvents.resolve_blame(EmployeeEvents.due_event(), "own")
 	check(GameState.boss_trust == 1 and GameState.stats.event_fine == EmployeeEvents.BLAME_FINE, "owning it costs money, earns trust")
 
@@ -385,9 +443,9 @@ func test_scene_branches() -> void:
 	check(GameState.stats.processed == 1, "open decision still recorded")
 	check(GameState.stats.unprocessed == 4, "rest unprocessed")
 
-	# 第 3 天：身份证跟着简历来，跟着简历走
+	# 第 5 天：身份证跟着简历来，跟着简历走
 	main.queue_free()
-	main = _main(3)
+	main = _main(5)
 	main.show_desk()
 	desk = main.current
 	await get_tree().process_frame
@@ -443,7 +501,7 @@ func _room(day: int, c: Candidate) -> InterviewRoom:
 	GameState.new_game(30 + day)
 	GameState.day = day
 	GameState.begin_day()
-	GameState.passed_today.append(c)
+	GameState.interviewees.append(c)
 	var room: InterviewRoom = load("res://scenes/InterviewRoom.tscn").instantiate()
 	add_child(room)
 	return room
@@ -466,10 +524,29 @@ func _button(node: Node, text: String) -> Button:
 	return null
 
 
+## 主管插话的时机和问题定死，测试不跟着随机走。
+func _fix_chief(room: InterviewRoom, slots: Array[int], ids: Array[StringName]) -> void:
+	room.chief_slots = slots
+	room.chief_cards.clear()
+	for id in ids:
+		room.chief_cards.append(_chief_card(id))
+
+
+func _chief_card(id: StringName) -> QuestionCard:
+	for day in range(1, GameState.LAST_DAY + 1):
+		var card := RuleEngine.load_day(day).chief_question
+		if card.id == id:
+			return card
+	return null
+
+
+## 一直问到候选人反问：主管插话就让他问，否则问下一张能问的卡。
 func _ask_until_candidate(room: InterviewRoom) -> void:
-	room.ask(_card(room, &"q_overtime"))
-	room.chief_ask()
-	room.ask(_card(room, &"q_weakness"))
+	while room.asked < InterviewRoom.QUESTIONS_ALLOWED:
+		if _button(room, "让主管问"):
+			room.chief_ask()
+		else:
+			room.ask(room.cards.filter(func(q: QuestionCard) -> bool: return q.available_for(room.candidate))[0])
 
 
 func test_interview() -> void:
@@ -482,19 +559,48 @@ func test_interview() -> void:
 		check(config.chief_question.lawsuit_risk == 0 or day == 3, "only day 3 chief question is illegal")
 		check(config.chief_opener != "" and config.chief_question != null and config.candidate_ask != null, "chief data day %d" % day)
 
-	# 表演者加分、说实话减分；主管占掉一问，上限 5
+	# 主管随机插话：1–2 问，不抢开场那一问，只问到今天为止出现过的问题，不重复；同一局同一天不变
+	var counts := {}
+	for seed in range(40):
+		GameState.new_game(500 + seed)
+		GameState.day = 2 + seed % 4
+		GameState.begin_day()
+		GameState.interviewees.append(_candidate())
+		var r: InterviewRoom = load("res://scenes/InterviewRoom.tscn").instantiate()
+		add_child(r)
+		counts[r.chief_slots.size()] = true
+		check(r.chief_slots.size() in [1, 2] and r.chief_slots.size() == r.chief_cards.size(), "chief asks 1-2")
+		check(r.chief_slots.all(func(n: int) -> bool: return n >= 1 and n < InterviewRoom.QUESTIONS_ALLOWED), "chief never opens or closes past 5")
+		check(r.chief_cards.size() < 2 or r.chief_cards[0] != r.chief_cards[1], "chief doesn't repeat himself")
+		for card in r.chief_cards:
+			var unlocked := range(1, GameState.day + 1).any(func(d: int) -> bool: return RuleEngine.load_day(d).chief_question == card)
+			check(unlocked, "chief question unlocked by day %d" % GameState.day)
+		var again: InterviewRoom = load("res://scenes/InterviewRoom.tscn").instantiate()
+		add_child(again)
+		check(again.chief_slots == r.chief_slots and again.chief_cards == r.chief_cards, "chief plan stable for the day")
+		r.queue_free()
+		again.queue_free()
+	check(counts.size() == 2, "chief sometimes asks once, sometimes twice")
+
+	# 一共 5 问：主管连着插两次也照样占名额
 	var performer := _candidate()
 	performer.performance = 90
-	var room := _room(1, performer)
+	var room := _room(2, performer)
+	_fix_chief(room, [1, 2], [&"chief_weekend", &"chief_pressure"])
 	room.ask(_card(room, &"q_overtime"))
 	check(room.scorecard["狼性"] == 4, "standard answer raises score")
-	check(room.asked == 1 and _button(room, "让主管问") != null, "chief cuts in after first card")
+	check(room.asked == 1 and _button(room, "让主管问") != null, "chief cuts in at his slot")
 	room.chief_ask()
-	check(room.asked == 2, "chief uses a question")
+	check(room.asked == 2 and _button(room, "让主管问") != null, "chief cuts in twice in a row")
+	room.chief_ask()
+	check(room.asked == 3 and _button(room, "让主管问") == null, "back to cards")
 	check(GameState.lawsuit_risk == 0, "ordinary chief question is legal")
 	room.scorecard["狼性"] = 5
 	room.ask(_card(room, &"q_friday"))
 	check(room.scorecard["狼性"] == 5, "score capped")
+	check(_button(room, "“%s”" % GameState.config.candidate_ask.lie) == null, "still a question left")
+	room.ask(_card(room, &"q_future"))
+	check(room.asked == 5 and _button(room, "“%s”" % GameState.config.candidate_ask.lie) != null, "candidate asks after the fifth")
 	room.queue_free()
 
 	var honest := _candidate()
@@ -514,6 +620,7 @@ func test_interview() -> void:
 
 	# 违法提问累积诉讼风险
 	room = _room(3, performer)
+	_fix_chief(room, [1], [&"chief_marriage"])
 	room.ask(_card(room, &"q_overtime"))
 	room.chief_ask()
 	check(GameState.lawsuit_risk == 1, "illegal chief question adds risk")

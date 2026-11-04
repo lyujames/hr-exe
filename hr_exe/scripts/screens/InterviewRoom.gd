@@ -1,6 +1,6 @@
 class_name InterviewRoom extends Control
-## 面试：HR 与赵主管共同面试。玩家问卡，主管抢走一问并当场改评分表，
-## 候选人反问后填老板评分表，决定是否录用。
+## 面试：HR 与赵主管共同面试，一共问 5 个问题。主管在随机的时候插进来抢走 1–2 问，
+## 问什么从他到今天为止的问题里随机抽；玩家问卡时他当场改评分表。候选人反问后填老板评分表，决定是否录用。
 
 signal finished
 
@@ -8,9 +8,12 @@ const QUESTION_PATHS := [
 	"q_overtime", "q_weakness", "q_leaving", "q_future", "q_gap", "q_test",
 	"q_family", "q_friday", "q_company", "q_probation",
 ]
-## 含主管抢走的那一问。
-const QUESTIONS_ALLOWED := 3
-const CHIEF_CUTS_IN_AFTER := 1
+## 含主管抢走的那几问。
+const QUESTIONS_ALLOWED := 5
+## 主管抢几问；第一问总是玩家开场。
+const CHIEF_ASKS_MIN := 1
+const CHIEF_ASKS_MAX := 2
+const CHIEF_CUT_IN_LINES := ["等一下，我问一句。", "我插一句。", "这个我来问。", "你先停一下。"]
 const SCORE_ITEMS := ["狼性", "格局", "稳定性", "颜值"]
 const CHIEF_SEED := 4101
 const LIE_LOYALTY_HIT := 25
@@ -21,6 +24,10 @@ const WALK_OUT_ABILITY := 60
 var candidate: Candidate
 var cards: Array[QuestionCard] = []
 var asked := 0
+## 问到第几问之后主管插进来（asked 的值），以及他要问的卡，按顺序一一对应。
+var chief_slots: Array[int] = []
+var chief_cards: Array[QuestionCard] = []
+var _rng := RandomNumberGenerator.new()
 var scorecard := {}
 var _promise := ""
 var _loyalty_hit := 0
@@ -36,6 +43,7 @@ func _ready() -> void:
 		cards.append(load("res://data/questions/%s.tres" % path))
 	for item in SCORE_ITEMS:
 		scorecard[item] = 3
+	_plan_chief()
 	UI.panel(self, Rect2(0, 0, 640, 360), UI.WALL)
 	UI.panel(self, Rect2(0, 210, 300, 150), UI.DESK)
 	UI.label(self, "面试 · " + candidate.display_name + " · " + candidate.applied_position, Vector2(12, 6), UI.GREEN)
@@ -62,9 +70,9 @@ func _build_chief() -> void:
 	_chief_line = UI.label(self, "“%s”" % GameState.config.chief_opener, Vector2(386, 310), UI.INK, 234)
 
 
-## 优先剧情候选人，否则从今天通过的人里随机抽。
+## 优先剧情候选人，否则从昨天通过的人里随机抽。
 func pick_candidate() -> Candidate:
-	var passed := GameState.passed_today
+	var passed := GameState.interviewees
 	for c in passed:
 		if c.is_story:
 			return c
@@ -73,9 +81,25 @@ func pick_candidate() -> Candidate:
 	return passed[rng.randi_range(0, passed.size() - 1)]
 
 
+## 种子跟着这一局和这一天走：读档重来同一天，主管还是那样插话。
+func _plan_chief() -> void:
+	_rng.seed = hash([GameState.day_seed(), "chief"])
+	var pool: Array[QuestionCard] = []
+	for d in range(1, GameState.day + 1):
+		var card := RuleEngine.load_day(d).chief_question
+		if card and card not in pool:
+			pool.append(card)
+	var slots := range(1, QUESTIONS_ALLOWED)
+	var count := mini(_rng.randi_range(CHIEF_ASKS_MIN, CHIEF_ASKS_MAX), pool.size())
+	for i in count:
+		chief_slots.append(slots.pop_at(_rng.randi_range(0, slots.size() - 1)))
+		chief_cards.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+	chief_slots.sort()
+
+
 func _show_cards() -> void:
 	UI.clear(_side)
-	UI.label(_side, "问题卡（还能问 %d 张）" % (QUESTIONS_ALLOWED - asked), Vector2(316, 12), UI.TEXT)
+	UI.label(_side, "问题卡（第 %d / %d 问）" % [asked + 1, QUESTIONS_ALLOWED], Vector2(316, 12), UI.TEXT)
 	var y := 34.0
 	for card in cards:
 		var b := UI.button(_side, card.text_key, Rect2(316, y, 308, 23), ask.bind(card))
@@ -90,10 +114,14 @@ func ask(card: QuestionCard) -> void:
 	_speech.text = "你：%s\n\n%s：%s" % [card.text_key, candidate.display_name, reply.text]
 	_portrait.tic = reply.tic
 	_chief_react(card, reply.kind)
-	if asked == CHIEF_CUTS_IN_AFTER:
-		_show_chief_cut_in()
-	elif asked >= QUESTIONS_ALLOWED:
+	_next()
+
+
+func _next() -> void:
+	if asked >= QUESTIONS_ALLOWED:
 		_show_candidate_ask()
+	elif asked in chief_slots:
+		_show_chief_cut_in()
 	else:
 		_show_cards()
 
@@ -110,20 +138,22 @@ func _chief_react(card: QuestionCard, kind: String) -> void:
 func _show_chief_cut_in() -> void:
 	UI.clear(_side)
 	UI.panel(_side, Rect2(316, 20, 308, 96), UI.PAPER, UI.BLACK)
-	UI.label(_side, "赵主管放下手机。\n“等一下，我问一句。”", Vector2(326, 30), UI.INK)
+	var again := chief_slots.find(asked) > 0
+	var line: String = "还有一个。" if again else CHIEF_CUT_IN_LINES[_rng.randi_range(0, CHIEF_CUT_IN_LINES.size() - 1)]
+	UI.label(_side, "%s\n“%s”" % ["赵主管又抬起头。" if again else "赵主管放下手机。", line], Vector2(326, 30), UI.INK)
 	UI.button(_side, "让主管问", Rect2(326, 74, 288, 30), chief_ask)
 
 
 ## 主管的问题照样占名额，玩家拦不住。
 func chief_ask() -> void:
-	var card := GameState.config.chief_question
+	var card: QuestionCard = chief_cards[chief_slots.find(asked)]
 	asked += 1
 	GameState.lawsuit_risk += card.lawsuit_risk
 	var reply := card.answer(candidate)
 	_speech.text = "赵主管：%s\n\n%s：%s" % [card.text_key, candidate.display_name, reply.text]
 	_portrait.tic = reply.tic
 	_chief_line.text = "（问完，继续看手机。）"
-	_show_cards()
+	_next()
 
 
 func _show_candidate_ask() -> void:

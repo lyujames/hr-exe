@@ -1,12 +1,9 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
-[ext_resource type="Resource" path="res://data/rules/rule_age.tres" id="4"]
-[ext_resource type="Resource" path="res://data/rules/rule_gap.tres" id="5"]
-[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="6"]
-[ext_resource type="Resource" path="res://data/discrepancies/birth_resume.tres" id="7"]
+[ext_resource type="Resource" path="res://data/rules/rule_salary.tres" id="4"]
 [ext_resource type="Resource" path="res://data/chief/question_day3.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day3.tres" id="chief_a"]
 
@@ -14,15 +11,13 @@
 script = ExtResource("1")
 day = 3
 date = "2026-03-04"
-resume_count = 8
-screening_seconds = 160.0
-new_rules = Array[ExtResource("2")]([ExtResource("4"), ExtResource("5")])
-new_docs = PackedStringArray("id_card")
-discrepancies = Array[ExtResource("6")]([ExtResource("7")])
+resume_count = 6
+screening_seconds = 155.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
 candidate_mix = {"fresh": 40, "regular": 30, "changer": 15, "laid_off": 15}
-morning_push = "企业招聘最看重“年轻”"
-boss_mail = "各位家人：\n公司要保持活力。从今天起，只要 90 后。简历一律附身份证复印件，年龄看身份证，简历上自己填的不算。\n另外，简历有空窗的，看他写的原因：家里的事、生孩子、身体不好，都不要。不写原因的，更不要。\n别跟我谈公平。我们是一家人。\n—— 王总"
-coworker_note = "老周的便签：\n我是 80 年的。\n空窗那行小字要看。“家中有事”也是家里的事。\n简历上的年份是自己填的。"
+morning_push = "多家企业收紧人力预算"
+boss_mail = "各位家人：\n预算要收紧。期望月薪超过 18k 的一律不要。\n昨天那个人我看了，还行。今天继续面。\n—— 王总"
+coworker_note = "老周的便签：\n期望月薪那一行看一眼就行。\n昨天的规则还在，规则只增不减。"
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}, {"id": "hospital", "label": "父亲住院押金", "amount": 150}]
 headline = "AI 招聘工具宣称“提升效率 300%”"
 news_body = "HireBot 母公司完成新一轮融资。CEO：“HR 的未来，是不再需要 HR 的未来。”"

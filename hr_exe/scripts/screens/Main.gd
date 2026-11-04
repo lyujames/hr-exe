@@ -73,7 +73,7 @@ func show_desk() -> void:
 
 
 func show_interview() -> void:
-	if GameState.passed_today.is_empty():
+	if GameState.interviewees.is_empty():
 		show_report()
 	else:
 		_swap("res://scenes/InterviewRoom.tscn", show_report)
@@ -92,7 +92,6 @@ func next_day() -> void:
 		SaveManager.clear()
 		_swap("res://scenes/SliceEnd.tscn", show_title)
 	else:
-		GameState.day += 1
-		GameState.begin_day()
+		GameState.advance_day()
 		SaveManager.save_game()
 		start_day()

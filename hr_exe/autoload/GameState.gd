@@ -33,6 +33,8 @@ var boss_promised_rule := false
 var lawsuit_risk := 0
 ## 玩家回答候选人反问的原话，终章由 HireBot 原样复述。
 var reply_log: Array = []
+## 昨天筛简历通过、今天来面试的人：当天通过的人第二天才面试。
+var interviewees: Array[Candidate] = []
 ## 当天清晨的状态快照：手动存档存的是它，今天做到一半的进度不进存档。
 var morning := {}
 
@@ -55,6 +57,14 @@ func new_game(game_seed := 0) -> void:
 	boss_promised_rule = false
 	lawsuit_risk = 0
 	reply_log = []
+	interviewees = []
+	begin_day()
+
+
+## 今天通过的人约到明天面试。
+func advance_day() -> void:
+	interviewees = passed_today.duplicate()
+	day += 1
 	begin_day()
 
 
@@ -127,7 +137,14 @@ func record_reply(c: Candidate, ask: CandidateAsk, choice: String, text: String)
 	reply_log.append({"day": day, "candidate_name": c.display_name, "question": ask.question, "choice": choice, "answer": text})
 
 
+## 第一个月不扣钱：违规只是拿不到判断奖金，老板对质也不罚款。
+func fines_on() -> bool:
+	return pay.get("fines", true)
+
+
 func fines() -> int:
+	if not fines_on():
+		return 0
 	return maxi(0, stats.wrong - FREE_WARNINGS) * VIOLATION_FINE
 
 
@@ -149,7 +166,7 @@ func retention_bonus() -> int:
 	return 0 if pay.retention_deferred else retained_count() * int(pay.retention)
 
 
-## 第 1–2 次违规只警告；未处理的简历拿不到绩效和判断奖金。
+## 罚款开着时第 1–2 次违规只警告；未处理的简历拿不到绩效和判断奖金。
 func income() -> int:
 	return int(pay.base) + performance_pay() + judge_bonus() + retention_bonus() - fines() - stats.event_fine
 
@@ -191,6 +208,7 @@ func to_dict() -> Dictionary:
 		"boss_trust": boss_trust, "family_state": family_state, "deferred_bonus": deferred_bonus,
 		"decision_log": decision_log, "hires": hires, "boss_promised_rule": boss_promised_rule,
 		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log,
+		"interviewees": interviewees.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 	}
 
 
@@ -207,4 +225,7 @@ func load_dict(data: Dictionary) -> void:
 	lawsuit_risk = int(data.get("lawsuit_risk", 0))  # 旧存档没有这两项
 	reply_log = data.get("reply_log", [])
 	deferred_bonus = int(data.get("deferred_bonus", 0))
+	interviewees = []
+	for c: Dictionary in data.get("interviewees", []):
+		interviewees.append(Candidate.from_dict(c))
 	begin_day()

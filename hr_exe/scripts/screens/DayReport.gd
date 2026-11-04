@@ -28,8 +28,11 @@ func _ready() -> void:
 		else:
 			y = _row("留任 %s 满 %d 天" % [r.name, r.days], int(pay.retention), y)
 	if s.wrong > 0:
-		var free := mini(s.wrong, GameState.FREE_WARNINGS)
-		y = _row("违规 %d 次（%d 次警告）" % [s.wrong, free], -GameState.fines(), y)
+		if GameState.fines_on():
+			var free := mini(s.wrong, GameState.FREE_WARNINGS)
+			y = _row("违规 %d 次（%d 次警告）" % [s.wrong, free], -GameState.fines(), y)
+		else:
+			y = _row("违规 %d 次（本月不罚款）" % s.wrong, 0, y)
 	if s.event_fine > 0:
 		y = _row("员工事故", -s.event_fine, y)
 	if GameState.is_month_end():
@@ -84,6 +87,8 @@ func _build_notice() -> void:
 		# 只是让玩家知道，不进今天的收入
 		var due := pending.map(func(h: Dictionary) -> String: return "%s 第 %d 天" % [h.candidate.display_name, GameState.retention_due(h)])
 		UI.label(self, "在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)), Vector2(336, 270), UI.INK_SOFT, 266)
+	if not GameState.passed_today.is_empty() and GameState.day < GameState.LAST_DAY:
+		UI.label(self, "今天通过 %d 人，约明天面试。" % GameState.passed_today.size(), Vector2(336, 288), UI.INK_SOFT)
 	if s.unprocessed > 0:
 		UI.label(self, "未处理简历 %d 份。" % s.unprocessed, Vector2(336, 306), UI.INK_SOFT)
 	UI.label(self, "正确 %d / 已处理 %d" % [s.correct, s.processed], Vector2(336, 324), UI.INK_SOFT)

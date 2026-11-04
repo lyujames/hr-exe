@@ -65,6 +65,8 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 			event.body = "全员邮件：在王总的英明领导下，项目提前上线。\n其中 %s 贡献突出。顺便感谢 HR 同事。" % c.display_name
 			event.fine = 0
 			event.blame = false
+	if not GameState.fines_on():
+		event.fine = 0
 	var promise: String = hire.get("promise", "")
 	if promise != "" and kind in ["jump", "burnout"]:
 		event.body += "\n离职记录：“面试时 HR 说：%s”" % promise
@@ -88,14 +90,14 @@ static func resolve_blame(event: Dictionary, choice: String) -> String:
 			reply = "规则是让你判断的，不是让你不动脑子。"
 		"own":
 			GameState.boss_trust += 1
-			reply = "嗯，敢担责任。钱照扣，但我记住了。"
+			reply = "嗯，敢担责任。钱照扣，但我记住了。" if GameState.fines_on() else "嗯，敢担责任。这次先不扣你钱，我记住了。"
 		"scorecard":
 			if event.scorecard_full:
 				fine = 0
 				GameState.boss_promised_rule = true
 				reply = "……满分确实是满分。行，那以后加一条规矩。"
 			else:
-				fine = LIE_FINE
+				fine = LIE_FINE if GameState.fines_on() else 0
 				GameState.boss_trust -= 1
 				reply = "评分表我看了，根本不是满分。还学会撒谎了？"
 	GameState.stats.event_fine += fine

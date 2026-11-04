@@ -1,10 +1,12 @@
 class_name CandidateGenerator
-## 用种子随机生成路人，并调控陷阱密度：约 40% 的简历刚好卡在规则边界上。
+## 用种子随机生成路人，并调控陷阱密度：约 40% 的简历刚好卡在规则边界上（规则加入当天除外）。
 ## 这里只负责塑形；对错永远由 RuleEngine 求值。
 
 const EDGE_DENSITY := 0.4
 const MAX_JOBS := 4
 const FAIL_DENSITY := 0.25
+## 先教后考：规则加入当天被抽中的权重，以及当天不出边界陷阱，第二天起才出。
+const NEW_RULE_WEIGHT := 3
 
 const SURNAMES := ["李", "王", "张", "刘", "陈", "杨", "赵", "黄", "周", "吴", "徐", "孙", "马", "朱", "胡", "林", "郭", "何", "高", "罗"]
 const GIVEN := ["伟", "芳", "娜", "敏", "静", "强", "磊", "洋", "勇", "杰", "娟", "涛", "明", "超", "秀英", "晓东", "雅婷", "子轩", "思远", "浩然", "欣怡", "建国", "文博", "梦瑶"]
@@ -48,7 +50,7 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> A
 	var result: Array[Candidate] = []
 	for i in cfg.resume_count:
 		var background := _pick_background(rng, cfg.candidate_mix)
-		var c := _generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background)
+		var c := _generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background, cfg.day)
 		_attach_docs(c, rng)
 		result.append(c)
 	for story in cfg.story_candidates:
@@ -78,14 +80,18 @@ static func _pick_background(rng: RandomNumberGenerator, mix: Dictionary) -> Str
 	return mix.keys().back()
 
 
-static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background := "regular") -> Candidate:
+static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background := "regular", day := 0) -> Candidate:
 	var c := _base(rng, id)
 	_apply_background(c, background, rng)
-	var target: Rule = rules[rng.randi_range(0, rules.size() - 1)]
+	var target := _pick_target(rng, rules, day)
 	var roll := rng.randf()
 	var target_form := Rule.Shape.PASS
 	if roll < EDGE_DENSITY:
-		target_form = Rule.Shape.EDGE_PASS if rng.randf() < 0.5 else Rule.Shape.EDGE_FAIL
+		var passes := rng.randf() < 0.5
+		if target.day_added == day:
+			target_form = Rule.Shape.PASS if passes else Rule.Shape.FAIL
+		else:
+			target_form = Rule.Shape.EDGE_PASS if passes else Rule.Shape.EDGE_FAIL
 	elif roll < EDGE_DENSITY + FAIL_DENSITY:
 		target_form = Rule.Shape.FAIL
 	for rule in rules:
@@ -99,6 +105,19 @@ static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String
 		c.ability = mini(c.ability + 25, 100)
 		c.loyalty = mini(c.loyalty + 20, 100)
 	return c
+
+
+## 今天新加的规则多抽几次，让玩家把手册上的“新”和桌上的简历对上。
+static func _pick_target(rng: RandomNumberGenerator, rules: Array[Rule], day: int) -> Rule:
+	var total := 0
+	for rule in rules:
+		total += NEW_RULE_WEIGHT if rule.day_added == day else 1
+	var roll := rng.randi_range(0, total - 1)
+	for rule in rules:
+		roll -= NEW_RULE_WEIGHT if rule.day_added == day else 1
+		if roll < 0:
+			return rule
+	return rules.back()
 
 
 static func _base(rng: RandomNumberGenerator, id: String) -> Candidate:
