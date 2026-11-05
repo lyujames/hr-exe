@@ -5,6 +5,9 @@ signal finished
 
 var _next: Button
 var _replies: Array[Button] = []
+## 短信框跟着字数长高：回复那一行接在最后一条短信下面，不再压在固定的 y 上。
+var _sms_box: Panel
+var _sms_label: Label
 
 
 func _ready() -> void:
@@ -31,14 +34,15 @@ func _ready() -> void:
 	UI.panel(self, Rect2(52, 100, 336, 1), UI.INK_SOFT)
 	UI.label(self, body, Vector2(52, 110), UI.INK, 336)
 
-	UI.panel(self, Rect2(420, 60, 186, 154), Color("161b1a"), UI.BLACK)
+	_sms_box = UI.panel(self, Rect2(420, 60, 186, 154), Color("161b1a"), UI.BLACK)
 	UI.label(self, "短信", Vector2(430, 66), UI.GREEN)
-	UI.label(self, sms, Vector2(430, 86), UI.TEXT, 166)
+	_sms_label = UI.label(self, sms, Vector2(430, 86), UI.TEXT, 166)
+	_fit_box(_sms_bottom())
 	_next = UI.button(self, "回家", Rect2(420, 296, 186, 24), finished.emit)
 	var options := GameState.sms_options()
 	if options.is_empty():
 		if GameState.family_state < 0:
-			UI.label(self, "（你没有回复。）", Vector2(430, 192), UI.TEXT_DIM)
+			_add_reply_line("（你没有回复。）", UI.TEXT_DIM)
 		return
 	# 今晚可以回：选一句才能去第二天
 	_next.visible = false
@@ -59,5 +63,22 @@ func _reply(option: Dictionary) -> void:
 		b.queue_free()
 	_replies = []
 	var silent: bool = option.key == "silent"
-	UI.label(self, "（你没有回复。）" if silent else "你：" + option.label, Vector2(430, 192), UI.TEXT_DIM if silent else UI.GREEN, 166)
+	_add_reply_line("（你没有回复。）" if silent else "你：" + option.label, UI.TEXT_DIM if silent else UI.GREEN)
 	_next.visible = true
+
+
+## 最后一条短信的下沿。
+func _sms_bottom() -> float:
+	var lines := _sms_label.get_line_count()
+	var line_h := _sms_label.get_line_height() + _sms_label.get_theme_constant("line_spacing")
+	return _sms_label.position.y + lines * line_h
+
+
+func _add_reply_line(text: String, color: Color) -> void:
+	var line := UI.label(self, text, Vector2(430, _sms_bottom() + 6.0), color, 166)
+	_fit_box(line.position.y + line.get_line_count() * (line.get_line_height() + 1.0))
+
+
+## 框至少原来那么高，字多就往下长。
+func _fit_box(content_bottom: float) -> void:
+	_sms_box.size.y = maxf(154.0, content_bottom + 8.0 - _sms_box.position.y)

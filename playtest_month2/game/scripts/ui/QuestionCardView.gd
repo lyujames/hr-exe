@@ -44,7 +44,9 @@ func _draw_face(parent: Control) -> StyleBoxFlat:
 	UI.label(parent, tag[0], Vector2(8, 4), UI.PAPER)
 	if card.lawsuit_risk > 0:
 		UI.label(parent, "!", Vector2(SIZE.x - 12, 4), UI.RED)
-	UI.label(parent, card.text_key, Vector2(5, 22), UI.INK, SIZE.x - 10)
+	var text := UI.label(parent, card.text_key, Vector2(5, 22), UI.INK, SIZE.x - 10)
+	# 卡还没入树时 UI.label 设的宽度会被顶掉，等入树后再压回去才会折行
+	text.set_deferred("size", Vector2(SIZE.x - 10, 0))
 	return box
 
 
@@ -59,7 +61,6 @@ func _get_drag_data(_at: Vector2) -> Variant:
 	var preview := Control.new()
 	var face := Control.new()
 	face.position = -SIZE / 2.0
-	face.rotation = -0.06
 	preview.add_child(face)
 	_draw_face(face).border_color = UI.GREEN
 	set_drag_preview(preview)

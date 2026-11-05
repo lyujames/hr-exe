@@ -3,9 +3,6 @@ class_name RuleKeywords extends Rule
 ## 技能写了超过 max_skills 个，算关键词堆砌，也拒。
 
 const FILLERS := ["Python", "Go", "Spring Boot", "Kafka", "Docker", "Linux", "Git", "Vue", "MongoDB", "Kubernetes", "Nginx", "Elasticsearch"]
-## 第 11 天起有人在技能栏写 AI 工具：只是一个技能，不加分也不减分。
-const AI_FILLER := "AI 编程助手"
-const AI_FROM_DAY := 11
 
 @export var max_skills := 8
 
@@ -34,11 +31,7 @@ static func _lookalikes(c: Candidate) -> PackedStringArray:
 
 
 static func fillers() -> Array:
-	var pool := FILLERS.duplicate()
-	if GameState.day >= AI_FROM_DAY:
-		pool.append(AI_FILLER)
-		pool.append(AI_FILLER)
-	return pool
+	return FILLERS.duplicate()
 
 
 func shape(c: Candidate, form: Shape, rng: RandomNumberGenerator) -> void:
