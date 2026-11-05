@@ -12,6 +12,11 @@ class_name QuestionCard extends Resource
 @export var flaw: String        # 破绽
 ## 现场测试：表演不出来，只看属性。
 @export var always_truthful := false
+## 尖锐题：问的是细节和数字，模板接不住。表演力要到 SHARP_BLUFF 才背得下来，
+## 平时能背过去的人（70–84）在这里只能说实话或露破绽；背下来的人追问时直接冒汗。
+@export var sharp := false
+## 表演力到多少就背标准答案；0 表示按 sharp 取 BLUFF / SHARP_BLUFF。简历行的卡按有没有水分另算（见 ResumeQuestions）。
+@export var bluff_at := 0
 ## 问谁："all"、"intern"（实习生）、"grad"（在读研究生实习生）、"regular"（社招）。
 @export var audience := "all"
 ## 只对有空窗期的人可用。
@@ -31,6 +36,19 @@ class_name QuestionCard extends Resource
 @export var chief_standard: String
 @export var chief_honest: String
 @export var chief_flaw: String
+@export_group("组长反应")
+## 组长自己的卡打哪一项（技术 / 协作）；空的话按探的属性算，见 lead_item_for。
+@export var lead_item: String
+## 组长听到这几种回答时说的话；空就用 LEAD_LINES 里的。
+@export var lead_strong: String
+@export var lead_weak: String
+@export var lead_standard: String
+@export var lead_flaw: String
+
+
+## 平时表演力到这个数就背标准答案。
+const BLUFF := 70
+const SHARP_BLUFF := 85
 
 
 func for_audience(c: Candidate) -> bool:
@@ -50,14 +68,20 @@ func available_for(c: Candidate) -> bool:
 func answer(c: Candidate) -> Dictionary:
 	var strong := is_strong(c)
 	if c.answers.has(String(id)):
-		return {"text": c.answers[String(id)], "tic": "none", "kind": "honest", "strong": strong}
+		return {"text": c.answers[String(id)], "tic": "none", "kind": c.answer_kind, "strong": strong}
 	if always_truthful:
 		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
-	if c.performance >= 70:
+	if c.performance >= bluff_threshold():
 		return {"text": standard, "tic": "none", "kind": "standard", "strong": strong}
 	if c.honesty >= 55:
 		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
 	return {"text": flaw, "tic": "sweat" if c.honesty < 30 else "eyes", "kind": "flaw", "strong": strong}
+
+
+func bluff_threshold() -> int:
+	if bluff_at > 0:
+		return bluff_at
+	return SHARP_BLUFF if sharp else BLUFF
 
 
 func is_strong(c: Candidate) -> bool:
@@ -76,13 +100,13 @@ func can_follow_up() -> bool:
 func follow_up(c: Candidate, first: Dictionary) -> Dictionary:
 	var key := String(id) + "+"
 	if c.answers.has(key):
-		return {"text": c.answers[key], "tic": "none", "kind": "honest", "strong": first.strong}
+		return {"text": c.answers[key], "tic": "none", "kind": c.answer_kind, "strong": first.strong}
 	match first.kind:
 		"standard":
-			return {"text": standard_followup, "tic": "eyes", "kind": "standard", "strong": first.strong}
+			return {"text": standard_followup, "tic": "sweat" if sharp else "eyes", "kind": "standard", "strong": first.strong}
 		"flaw":
 			return {"text": flaw_followup, "tic": escalate(first.tic), "kind": "flaw", "strong": first.strong}
-	if c.answers.has(String(id)):
+	if c.answers.has(String(id)) and first.kind == "honest":
 		var told := "（TA 想了想，一条一条往下说：什么时候、几个人、多少数字，前后都对得上。）" if first.strong \
 			else "（TA 说得很细，细到连自己没做好的地方也一起说了。）"
 		return {"text": told, "tic": "none", "kind": "honest", "strong": first.strong}
@@ -115,6 +139,47 @@ const CHIEF_FOLLOWUP_LINES := {
 	"strong": ["嗯，有数。", "这个说得实在。", "行，是干过的。"],
 	"weak": ["问细了就露底。", "那就是没做过。", "……嗯。"],
 }
+
+
+## 组长和主管反着来：他自己写代码，听得出背的。说实话又说得出东西的加分；
+## 老实说不会的不扣也不加（实话他认，可组里要会的）；背标准答案、露破绽的都扣。
+const LEAD_ITEMS := ["技术", "协作"]
+const LEAD_LINES := {
+	"strong": ["嗯，干过。", "这个对。", "行，有东西。"],
+	"weak": ["不会就说不会，挺好。可我们组要会的。", "……那这块得从头带。", "实话。记下了。"],
+	"standard": ["这是网上的标准答案。", "背的吧。", "这些我们组实习生也会背。"],
+	"flaw": ["你自己信吗？", "编的。", "……换个问题吧。"],
+}
+
+
+static func lead_item_for(card: QuestionCard) -> String:
+	if card.lead_item != "":
+		return card.lead_item
+	return "技术" if "ability" in card.probes else "协作"
+
+
+func lead_reaction(reply: Dictionary, pick: int) -> Dictionary:
+	var key := _lead_key(reply)
+	var own: String = {"strong": lead_strong, "weak": lead_weak, "standard": lead_standard, "flaw": lead_flaw}[key]
+	var line: String = own if own != "" else LEAD_LINES[key][pick % 3]
+	return {"line": line, "delta": {"strong": 1, "weak": 0, "standard": -1, "flaw": -1}[key]}
+
+
+## 追问时组长更狠：问穿了的再扣，越说越具体的加两分。
+func lead_followup_reaction(reply: Dictionary, pick: int) -> Dictionary:
+	var key := _lead_key(reply)
+	var lines := {"strong": ["对，就是这么回事。", "这个细节编不出来。", "行。"], "weak": LEAD_LINES.weak,
+		"standard": ["一问细就没了。", "刚才那段是背的。", "……行了。"], "flaw": LEAD_LINES.flaw}
+	return {"line": lines[key][pick % 3], "delta": {"strong": 2, "weak": 0, "standard": -1, "flaw": -1}[key]}
+
+
+static func _lead_key(reply: Dictionary) -> String:
+	match reply.kind:
+		"honest":
+			return "strong" if reply.strong else "weak"
+		"standard":
+			return "standard"
+	return "flaw"
 
 
 func chief_followup_reaction(reply: Dictionary, pick: int) -> Dictionary:

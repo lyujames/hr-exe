@@ -69,7 +69,8 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 	if not GameState.fines_on():
 		event.fine = 0
 	if hire.get("chief_pick", false):
-		event.body += "\n赵主管在旁边：“我带得好。”" if kind == "praise" else "\n赵主管在旁边：“人是你面的。”"
+		var who: String = hire.get("picked_by", "赵主管")
+		event.body += "\n%s在旁边：“%s”" % [who, "我带得好。" if kind == "praise" else "人是你面的。"]
 	var promise: String = hire.get("promise", "")
 	if promise != "" and kind in ["jump", "burnout"]:
 		event.body += "\n离职记录：“面试时 HR 说：%s”" % promise

@@ -40,6 +40,8 @@ var lawsuit_risk := 0
 var reply_log: Array = []
 ## 昨天筛简历通过、今天来面试的人：当天通过的人第二天才面试。
 var interviewees: Array[Candidate] = []
+## 今天已经面过的人（display_name）：剧情候选人那场面完，有奇葩的日子再加一场（见 InterviewRoom.second_candidate）。
+var interviewed_today: PackedStringArray = []
 ## 夹在简历里的信封 {day, from, amount, candidate_id, taken}：第一个月只收不追，下个月有人来“惦记”。
 var kickbacks: Array = []
 ## 当天清晨的状态快照：手动存档存的是它，今天做到一半的进度不进存档。
@@ -86,6 +88,7 @@ func begin_day() -> void:
 	# retained：今天满期、人还在的 {name, day_hired, days}
 	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "paid_bills": [], "left_early": false, "texts": [], "called": false}
 	passed_today = []
+	interviewed_today = []
 	event_today = {}
 	morning = to_dict().duplicate(true)
 
@@ -158,14 +161,15 @@ func took_kickback() -> bool:
 
 ## 手写人物的去向：hired（录用了）、pass、reject，没见过为空串。reason 是拒绝时选的那句（原样，带句号）。
 func story_outcome(id: String) -> Dictionary:
-	var result := {"verdict": "", "reason": "", "chief_pick": false}
+	var result := {"verdict": "", "reason": "", "chief_pick": false, "picked_by": ""}
 	for entry: Dictionary in decision_log:
 		if entry.candidate_id == id:
-			result = {"verdict": entry.verdict, "reason": entry.reason_text, "chief_pick": false}
+			result = {"verdict": entry.verdict, "reason": entry.reason_text, "chief_pick": false, "picked_by": ""}
 	for h: Dictionary in hires:
 		if String(h.candidate.id) == id:
 			result.verdict = "hired"
 			result.chief_pick = h.get("chief_pick", false)
+			result.picked_by = h.get("picked_by", "赵主管")
 	return result
 
 
@@ -292,12 +296,12 @@ func leave_early() -> void:
 
 
 ## loyalty_hit 只作用于入职记录：候选人资源是共享的，不能改。
-func add_hire(c: Candidate, scorecard: Dictionary, promise := "", loyalty_hit := 0, chief_pick := false) -> void:
+func add_hire(c: Candidate, scorecard: Dictionary, promise := "", loyalty_hit := 0, chief_pick := false, picked_by := "赵主管") -> void:
 	var data := c.to_dict()
 	data.loyalty = maxi(0, data.loyalty - loyalty_hit)
 	hires.append({
 		"candidate": data, "day_hired": day, "scorecard": scorecard, "promise": promise,
-		"event_resolved": false, "retention_due": day + int(pay.retention_days), "chief_pick": chief_pick,
+		"event_resolved": false, "retention_due": day + int(pay.retention_days), "chief_pick": chief_pick, "picked_by": picked_by,
 	})
 
 
@@ -364,6 +368,11 @@ func income() -> int:
 	return int(pay.base) + performance_pay() + judge_bonus() + reason_bonus() + chief_bonus() + retention_bonus() - fines() - stats.event_fine + stats.gray
 
 
+## 这个月第几天，1 起。
+func day_in_month() -> int:
+	return (day - 1) % DAYS_PER_MONTH + 1
+
+
 func is_month_end() -> bool:
 	return day % DAYS_PER_MONTH == 0
 
@@ -424,6 +433,7 @@ func load_dict(data: Dictionary) -> void:
 	deferred_bonus = int(data.get("deferred_bonus", 0))
 	kickbacks = data.get("kickbacks", [])
 	interviewees = []
+	interviewed_today = []
 	for c: Dictionary in data.get("interviewees", []):
 		interviewees.append(Candidate.from_dict(c))
 	begin_day()

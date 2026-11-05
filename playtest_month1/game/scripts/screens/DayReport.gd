@@ -24,7 +24,7 @@ func _ready() -> void:
 	if pay.get("per_reason", 0) > 0:
 		y = _row("理由准确 %d 份 × ¥%d" % [s.reason_ok, pay.per_reason], GameState.reason_bonus(), y)
 	for name: String in s.chief_picks:
-		y = _row("主管推荐奖 %s" % name, int(pay.get("chief_bonus", 0)), y)
+		y = _row("%s %s" % [GameState.config.interviewer.get("bonus", "主管推荐奖"), name], int(pay.get("chief_bonus", 0)), y)
 	for r: Dictionary in s.retained:
 		if r.left:
 			y = _row("留任 %s：已离职" % r.name, 0, y)
