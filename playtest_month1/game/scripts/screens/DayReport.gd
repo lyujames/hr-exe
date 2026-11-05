@@ -14,7 +14,8 @@ func _ready() -> void:
 	var s := GameState.stats
 	UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK_DARK)
 	UI.panel(self, Rect2(30, 12, 280, 336), UI.PAPER, UI.BLACK)
-	UI.label(self, "日结单 · 第 %d 天" % GameState.day, Vector2(40, 18), UI.INK)
+	var off := "提前下班" if GameState.stats.left_early else "18:00 下班"
+	UI.label(self, "日结单 · 第 %d 天 · %s" % [GameState.day, off], Vector2(40, 18), UI.INK)
 	var y := 40.0
 	var pay := GameState.pay
 	y = _row("底薪", int(pay.base), y)
@@ -22,6 +23,8 @@ func _ready() -> void:
 	y = _row("绩效 %d 份" % s.processed, GameState.performance_pay() + GameState.judge_bonus(), y)
 	if pay.get("per_reason", 0) > 0:
 		y = _row("理由准确 %d 份 × ¥%d" % [s.reason_ok, pay.per_reason], GameState.reason_bonus(), y)
+	for name: String in s.chief_picks:
+		y = _row("主管推荐奖 %s" % name, int(pay.get("chief_bonus", 0)), y)
 	for r: Dictionary in s.retained:
 		if r.left:
 			y = _row("留任 %s：已离职" % r.name, 0, y)
@@ -37,6 +40,8 @@ func _ready() -> void:
 			y = _row("违规 %d 次（本月不罚款）" % s.wrong, 0, y)
 	if s.event_fine > 0:
 		y = _row("员工事故", -s.event_fine, y)
+	if s.gray > 0:
+		y = _row("信封（不入账）", s.gray, y)
 	if GameState.is_month_end():
 		y = _row("房贷（月供）", -GameState.MORTGAGE, y)
 	y += 6.0
@@ -80,25 +85,46 @@ func _build_notice() -> void:
 	if s.errors.is_empty():
 		UI.label(self, "今日无违规。继续保持。", Vector2(336, y), UI.INK)
 		y += 22.0
-	# 理由不准不算违规，排在违规后面、颜色淡一点；只在有理由奖金的月份提
-	var notes: Array = s.errors.map(func(e: Dictionary) -> Array: return [e, UI.INK])
-	if GameState.pay.get("per_reason", 0) > 0:
-		notes.append_array(s.reason_off.map(func(e: Dictionary) -> Array: return [e, UI.INK_SOFT]))
-	for note: Array in notes.slice(0, 7):
-		UI.label(self, note[0].name + " —— " + note[0].why, Vector2(336, y), note[1], 266)
-		y += 32.0
-	if notes.size() > 7:
-		UI.label(self, "……另有 %d 条" % (notes.size() - 7), Vector2(336, y), UI.INK_SOFT)
+	# 底部几行从下往上排：会换行的那行先量高度，违规条目只占剩下的地方
+	var footer: Array = []
 	var pending := GameState.pending_hires()
 	if not pending.is_empty():
 		# 只是让玩家知道，不进今天的收入
 		var due := pending.map(func(h: Dictionary) -> String: return "%s 第 %d 天" % [h.candidate.display_name, GameState.retention_due(h)])
-		UI.label(self, "在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)), Vector2(336, 270), UI.INK_SOFT, 266)
+		footer.append("在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)))
 	if not GameState.passed_today.is_empty() and GameState.day < GameState.LAST_DAY:
-		UI.label(self, "今天通过 %d 人，约明天面试。" % GameState.passed_today.size(), Vector2(336, 288), UI.INK_SOFT)
+		footer.append("今天通过 %d 人，约明天面试。" % GameState.passed_today.size())
 	if s.unprocessed > 0:
-		UI.label(self, "未处理简历 %d 份。" % s.unprocessed, Vector2(336, 306), UI.INK_SOFT)
-	UI.label(self, "正确 %d / 已处理 %d" % [s.correct, s.processed], Vector2(336, 324), UI.INK_SOFT)
+		footer.append("未处理简历 %d 份。" % s.unprocessed)
+	footer.append("正确 %d / 已处理 %d" % [s.correct, s.processed])
+	var labels: Array[Label] = []
+	var footer_h := 0.0
+	for text: String in footer:
+		var l := UI.label(self, text, Vector2(336, 0), UI.INK_SOFT, 266)
+		labels.append(l)
+		footer_h += l.size.y + 1.0
+	var fy := 342.0 - footer_h
+	for l: Label in labels:
+		l.position.y = fy
+		fy += l.size.y + 1.0
+	# 理由不准不算违规，排在违规后面、颜色淡一点；只在有理由奖金的月份提
+	var notes: Array = s.errors.map(func(e: Dictionary) -> Array: return [e, UI.INK])
+	if GameState.pay.get("per_reason", 0) > 0:
+		notes.append_array(s.reason_off.map(func(e: Dictionary) -> Array: return [e, UI.INK_SOFT]))
+	var limit := 342.0 - footer_h - 6.0
+	var shown := 0
+	for note: Array in notes:
+		var l := UI.label(self, note[0].name + " —— " + note[0].why, Vector2(336, y), note[1], 266)
+		var h := l.size.y + 5.0
+		# 给“另有 N 条”留一行
+		var need := h + (16.0 if shown < notes.size() - 1 else 0.0)
+		if y + need > limit:
+			l.free()
+			break
+		y += h
+		shown += 1
+	if shown < notes.size():
+		UI.label(self, "……另有 %d 条" % (notes.size() - shown), Vector2(336, y), UI.INK_SOFT)
 
 
 func _toggle_bill(pressed: bool, id: String) -> void:

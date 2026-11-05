@@ -1,11 +1,12 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
 [ext_resource type="Resource" path="res://data/rules/rule_degree.tres" id="4"]
 [ext_resource type="Resource" path="res://data/story/candidate_perfect.tres" id="5"]
-[ext_resource type="Resource" path="res://data/jobs/job_month1.tres" id="job"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Resource" path="res://data/jobs/job_ops.tres" id="job_ops"]
 
 [resource]
 script = ExtResource("1")
@@ -17,10 +18,11 @@ new_rules = Array[ExtResource("2")]([ExtResource("4")])
 story_candidates = Array[ExtResource("3")]([ExtResource("5")])
 story_slot = 3
 candidate_mix = {"fresh": 100}
-job_posting = ExtResource("job")
+new_postings = Array[ExtResource("jp")]([ExtResource("job_ops")])
 morning_push = "互联网公司暑期实习开抢"
 boss_mail = "各位家人：
-蜂巢科技要招一批产品运营实习生，招聘这摊事从今天起归你。
+你在星桥做了十年 HR，大厂出来的，我们看重的就是经验。
+蜂巢科技要招一批产品运营实习生，JD 在你桌上。招聘这摊事从今天起归你。
 今天先熟悉熟悉：只要本科、硕士在读的学生，大专的不要。过了的人明天来面。
 我们是一家人。
 —— 王总"
@@ -28,8 +30,12 @@ coworker_note = "老周的便签：
 把印章拖到简历上。拒绝要选一句理由，选准是哪条另有奖金。
 工资按份计件，看得越多挣得越多。
 盖错了，打印机当场吐一张违规单。"
-pay = {"base": 170, "per_resume": 15, "per_correct": 5, "per_reason": 5, "retention": 150, "retention_days": 3, "retention_deferred": false, "fines": false, "instant_notice": true}
+pay = {"base": 170, "per_resume": 15, "per_correct": 5, "per_reason": 5, "chief_bonus": 100, "retention": 150, "retention_days": 3, "retention_deferred": false, "fines": false, "instant_notice": true}
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
 headline = "实习岗“一岗难求”：互联网运营实习投递比达 300:1"
 news_body = "某招聘平台称，大三学生平均投递 60 份简历，才换来一次实习面试。"
 family_sms = "老婆：补习班这周的钱该交了，老师催了两次。"
+sms_flag = "d1_tutoring"
+sms_replies = [{"key": "paid", "label": "交了。", "paid": "tutoring"}, {"key": "later", "label": "下周吧。", "unpaid": "tutoring"}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "t1_1", "at": 540, "text": "老婆：今天开始管招聘了吧？那边都是年轻人，你别太较真。", "replies": [{"key": "warm", "label": "放心，干了十年了。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}, {"id": "t1_2", "at": 810, "text": "老婆：补习班老师又在群里@我了，说这周的钱该交了。", "replies": [{"key": "warm", "label": "辛苦你了，晚上我看看。", "marriage": 1}, {"key": "curt", "label": "在忙。", "marriage": 0}]}]
+home_scene = [{"text": "18:00 下班。地铁上站了四十分钟，到家 18:45。楼道的灯又坏了。"}, {"text": "孩子：爸爸！你们新公司有没有滑梯？我同学说互联网公司都有滑梯。"}, {"ask": "h1_slide", "options": [{"key": "snack", "label": "没有滑梯，有个零食柜。", "then": [{"text": "孩子：那你明天给我带一包！"}, {"text": "老婆：（在厨房）别给他带，牙刚补完。"}]}, {"key": "resume", "label": "爸爸今天看了 {processed} 份简历。", "then": [{"text": "孩子：简历是什么？"}, {"text": "你：就是一张纸，写你是谁、会干什么。"}, {"text": "孩子：那我也写一张。我会跳绳，一分钟一百六十个。"}]}]}, {"text": "吃饭的时候，老婆把手机扣在桌上。", "when": "d1_tutoring:silent"}, {"text": "老婆：补习班的短信你看见了吧。", "when": "d1_tutoring:silent"}, {"text": "老婆：补习班的钱扣了，老师总算不在群里@我了。", "when": "d1_tutoring:paid"}, {"text": "老婆：补习班说下周再不交，就把他调去后排那个大班。", "when": "d1_tutoring:later"}, {"text": "老婆：新公司怎么样？"}, {"ask": "h1_job", "options": [{"key": "honest", "label": "说实话，有点不适应。", "marriage": 1, "then": [{"text": "老婆：十年了，换个地方当然不适应。"}, {"text": "老婆：慢慢来，别跟小年轻较劲。"}]}, {"key": "fine", "label": "挺好的，都是年轻人。", "then": [{"text": "老婆：那就好。"}, {"text": "她低头接着吃饭。"}]}, {"key": "tired", "label": "别问了，累。", "marriage": -1, "then": [{"text": "老婆没再问。孩子看看她，又看看你。"}]}]}, {"text": "十点，孩子睡了。老婆在沙发上对这个月的账，你坐在旁边，脑子里还是那几份简历。"}]

@@ -10,10 +10,17 @@ func _ready() -> void:
 	UI.panel(self, Rect2(60, 24, 520, 18), UI.GREEN_DIM)
 	UI.label(self, "内部邮件 · 第 %d 天 · %s %s" % [cfg.day, GameState.today, DateUtil.weekday(GameState.today)], Vector2(66, 26), UI.BLACK)
 	UI.label(self, "发件人：王总　主题：今日招聘规范", Vector2(72, 50), UI.GREEN)
-	UI.label(self, cfg.boss_mail, Vector2(72, 72), UI.TEXT, 340)
+	var mail := cfg.boss_mail
+	var ps: String = GameState.story_echo().get("mail_ps", "")
+	if ps != "":
+		mail += "\n\n" + ps
+	UI.label(self, mail, Vector2(72, 72), UI.TEXT, 340)
+	# 便签高度跟着字数走：先放字，再按行数撑开底下的黄纸
 	var sticky := UI.panel(self, Rect2(418, 150, 148, 118), UI.YELLOW)
 	sticky.rotation = 0.03
-	UI.label(self, cfg.coworker_note, Vector2(426, 156), UI.INK, 132).rotation = 0.03
+	var note := UI.label(self, cfg.coworker_note, Vector2(426, 156), UI.INK, 132)
+	note.rotation = 0.03
+	sticky.size.y = maxf(118.0, note.size.y + 12.0)
 	if cfg.morning_push != "":
 		_show_push(cfg.morning_push)
 	UI.button(self, "开始筛简历", Rect2(250, 298, 140, 24), finished.emit)

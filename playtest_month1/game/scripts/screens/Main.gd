@@ -1,5 +1,5 @@
 extends Control
-## 流程控制：晨会邮件 → [老板对质] → 筛简历 → 面试 → 日结 → 报纸 → 第二天。
+## 流程控制：晨会邮件 → [老板对质] → 筛简历 → 面试 → 日结 → 报纸 → 回家 → 第二天。
 
 ## 标题和结尾没有暂停菜单。
 const NO_MENU := ["res://scenes/Title.tscn", "res://scenes/SliceEnd.tscn"]
@@ -84,7 +84,15 @@ func show_report() -> void:
 
 
 func show_news() -> void:
-	_swap("res://scenes/Newspaper.tscn", next_day)
+	_swap("res://scenes/Newspaper.tscn", show_home)
+
+
+## 最后一天回家写在月底结尾里；破产也直接去结尾。
+func show_home() -> void:
+	if GameState.is_bankrupt() or GameState.day >= GameState.LAST_DAY or GameState.config.home_scene.is_empty():
+		next_day()
+	else:
+		_swap("res://scenes/HomeScreen.tscn", next_day)
 
 
 func next_day() -> void:

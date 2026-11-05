@@ -5,14 +5,18 @@ var active_rules: Array[Rule] = []
 ## 简历之外桌上有的材料，以及它们之间会出现的矛盾。
 var active_docs := PackedStringArray()
 var active_discrepancies: Array[Discrepancy] = []
+## 到今天为止开着的岗位，按开的先后排。
+var active_postings: Array[JobPosting] = []
 
 
 func set_day(day: int) -> void:
 	active_rules.clear()
 	active_docs.clear()
 	active_discrepancies.clear()
+	active_postings.clear()
 	for d in range(1, day + 1):
 		var cfg := load_day(d)
+		active_postings.append_array(cfg.new_postings)
 		active_rules.append_array(cfg.new_rules)
 		active_docs.append_array(cfg.new_docs)
 		active_discrepancies.append_array(cfg.discrepancies)
@@ -22,11 +26,10 @@ func load_day(day: int) -> DayConfig:
 	return load("res://data/days/day_%02d.tres" % day)
 
 
-## 往前找最近一次设置的职位描述。
-func job_posting(day: int) -> JobPosting:
-	for d in range(day, 0, -1):
-		var posting := load_day(d).job_posting
-		if posting:
+## 简历上“应聘”的那个岗位；对不上任何一个开着的岗位时返回 null。
+func posting_for(title: String) -> JobPosting:
+	for posting in active_postings:
+		if posting.title == title:
 			return posting
 	return null
 

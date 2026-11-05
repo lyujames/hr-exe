@@ -29,3 +29,4 @@ pressure = 80
 performance = 100
 event_override = &"embezzle"
 is_story = true
+epilogue = {"hired": "录用了。三天后，他带着项目备用金失联。", "pass": "你放了他，面试后没录用。", "reject": "你拒了他：“{reason}”。他哪条规则都没违反。"}

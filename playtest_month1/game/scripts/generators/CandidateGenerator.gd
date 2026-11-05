@@ -7,6 +7,7 @@ const MAX_JOBS := 4
 const FAIL_DENSITY := 0.25
 ## 先教后考：规则加入当天被抽中的权重，以及当天不出边界陷阱，第二天起才出。
 const NEW_RULE_WEIGHT := 3
+const NEW_POSTING_WEIGHT := 2
 
 const SURNAMES := ["李", "王", "张", "刘", "陈", "杨", "赵", "黄", "周", "吴", "徐", "孙", "马", "朱", "胡", "林", "郭", "何", "高", "罗"]
 const GIVEN := ["伟", "芳", "娜", "敏", "静", "强", "磊", "洋", "勇", "杰", "娟", "涛", "明", "超", "秀英", "晓东", "雅婷", "子轩", "思远", "浩然", "欣怡", "建国", "文博", "梦瑶"]
@@ -32,7 +33,7 @@ const FRESH_EVALS := [
 	"在校期间担任学生会干部，组织能力强。",
 	"做过几个课题项目，动手能力强。",
 ]
-## 实习生：没有工作经历，看学校、专业和在校参加的项目。
+## 实习生：没有工作经历，看学校、专业和在校参加的项目。专业先从所投岗位的名单里抽，没有岗位时用这份。
 const MAJORS := ["计算机科学与技术", "软件工程", "市场营销", "统计学"]
 const PROJECTS := [
 	"校园二手交易小程序", "大学生创新创业训练计划", "“挑战杯”课外学术作品赛", "全国大学生数学建模竞赛",
@@ -137,9 +138,7 @@ static func _base(rng: RandomNumberGenerator, id: String) -> Candidate:
 	var pick := func(list: Array) -> Variant: return list[rng.randi_range(0, list.size() - 1)]
 	c.id = id
 	c.display_name = pick.call(SURNAMES) + pick.call(GIVEN)
-	c.applied_position = pick.call(POSITIONS)
-	if GameState.job_posting:
-		c.applied_position = GameState.job_posting.title
+	c.applied_position = _pick_position(rng)
 	c.birth_date = DateUtil.years_before(GameState.today, rng.randi_range(24, 44), -rng.randi_range(0, 360))
 	c.degree = Candidate.Degree.BACHELOR if rng.randf() < 0.7 else Candidate.Degree.MASTER
 	c.school = pick.call(SCHOOLS)
@@ -168,13 +167,32 @@ static func _base(rng: RandomNumberGenerator, id: String) -> Candidate:
 	return c
 
 
+## 今天新开的岗位多投几份，让玩家翻到新的那页 JD。
+static func _pick_position(rng: RandomNumberGenerator) -> String:
+	var postings := RuleEngine.active_postings
+	if postings.is_empty():
+		return POSITIONS[rng.randi_range(0, POSITIONS.size() - 1)]
+	var fresh: Array = RuleEngine.load_day(GameState.day).new_postings if GameState.day > 0 else []
+	var total := 0
+	for posting in postings:
+		total += NEW_POSTING_WEIGHT if posting in fresh else 1
+	var roll := rng.randi_range(0, total - 1)
+	for posting in postings:
+		roll -= NEW_POSTING_WEIGHT if posting in fresh else 1
+		if roll < 0:
+			return posting.title
+	return postings.back().title
+
+
 static func _apply_background(c: Candidate, background: String, rng: RandomNumberGenerator) -> void:
 	c.background = background
 	match background:
 		"fresh":
 			c.is_intern = true
 			c.birth_date = DateUtil.years_before(GameState.today, rng.randi_range(22, 24), -rng.randi_range(0, 360))
-			c.major = MAJORS[rng.randi_range(0, MAJORS.size() - 1)]
+			var posting := RuleEngine.posting_for(c.applied_position)
+			var majors: Array = Array(posting.majors) if posting else MAJORS
+			c.major = majors[rng.randi_range(0, majors.size() - 1)]
 			c.degree = Candidate.Degree.BACHELOR
 			# 绩点跟能力只是松松地挂钩：会考试不等于会干活
 			c.gpa = snappedf(clampf(2.4 + c.ability / 100.0 * 1.2 + rng.randf_range(-0.4, 0.4), 2.0, 3.96), 0.01)

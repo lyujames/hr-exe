@@ -7,7 +7,7 @@ const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
 	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story",
-	"docs", "doc_overrides",
+	"docs", "doc_overrides", "answers", "call_line", "envelope",
 ]
 ## 公民身份号码的校验位。
 const ID_WEIGHTS := [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
@@ -27,7 +27,7 @@ const ID_CHECK := "10X98765432"
 @export var major: String
 ## 专业后面的小字（辅修、转专业……）；规则只看主修。
 @export var major_note: String
-## 绩点（满分 4.0）。不进规则，只给玩家和赵主管一个看起来很重要的数。
+## 绩点（满分 4.0）。第 2 天起进规则（`RuleGpa`，3.0 以下不要），但跟能力只松松地挂钩。
 @export var gpa := 0.0
 ## 每段 {name, role, start: "YYYY-MM", end: "YYYY-MM"}，从新到旧。
 @export var projects: Array = []
@@ -49,6 +49,16 @@ const ID_CHECK := "10X98765432"
 @export var docs: PackedStringArray
 ## 材料上和事实不一样的地方 {材料: {字段: 写的值}}：一处矛盾就是一条覆盖。上面的字段永远是事实。
 @export var doc_overrides: Dictionary = {}
+
+@export_group("手写人物")
+## 手写的面试回答 {问题卡 id: 原话}，盖过按属性抽的回答。没写的卡照常按属性答。
+@export var answers: Dictionary = {}
+## 质询打电话时的原话；空串表示按矛盾的通用解释说。
+@export var call_line: String
+## 简历里夹着的信封 {from, text, amount}：收不收由玩家定，见 GameState.kickbacks。
+@export var envelope: Dictionary = {}
+## 月底回顾里这个人的结局 {hired, pass, reject: 一句话}，“{reason}”换成玩家拒绝 TA 时选的那句。
+@export var epilogue: Dictionary = {}
 
 @export_group("隐藏属性")
 @export_range(0, 100) var ability := 50

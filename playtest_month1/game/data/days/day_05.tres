@@ -1,36 +1,42 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
-[ext_resource type="Resource" path="res://data/rules/rule_salary.tres" id="4"]
-[ext_resource type="Resource" path="res://data/jobs/job_month1_social.tres" id="job"]
+[ext_resource type="Resource" path="res://data/rules/rule_internship.tres" id="4"]
 [ext_resource type="Resource" path="res://data/chief/question_day5.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day5.tres" id="chief_a"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/story/candidate_caregiver.tres" id="story"]
 
 [resource]
 script = ExtResource("1")
 day = 5
 date = "2026-03-16"
-resume_count = 6
+resume_count = 5
 screening_seconds = 165.0
 new_rules = Array[ExtResource("2")]([ExtResource("4")])
-job_posting = ExtResource("job")
-candidate_mix = {"regular": 40, "changer": 25, "laid_off": 35}
-morning_push = "互联网公司社招回暖？“只招能直接上手的”"
+story_candidates = Array[ExtResource("3")]([ExtResource("story")])
+story_slot = 3
+candidate_mix = {"fresh": 100}
+morning_push = "实习生“干三个月就走”成企业痛点"
 boss_mail = "各位家人：
-实习生招够了。从今天起招社招，岗位换成内容运营，看桌上新的 JD。
-社招要谈钱：期望月薪超过 18k 的一律不要。
-本科及以上照旧。今天面的是最后一个实习生。
+实习生要能长期干：每周到岗至少 4 天，能实习至少 6 个月，两条都要够。
+两个岗都一样。手册上的规则照旧，一条都不能松。
 —— 王总"
 coworker_note = "老周的便签：
-社招的简历有期望月薪那一行，实习生没有。
-昨天的规则还在。"
+简历第一页有“可实习”那一行。
+昨天的规则还在，规则只增不减。"
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
-headline = "30 岁硕士投递实习岗：“先进门再说”"
-news_body = "某招聘平台称，今年实习岗的投递者里，“非应届”的越来越多。"
+headline = "AI 招聘工具宣称“提升效率 300%”"
+news_body = "HireBot 母公司完成新一轮融资。CEO：“HR 的未来，是不再需要 HR 的未来。”"
 news_by_event = {"embezzle": ["本市一互联网公司实习生卷走活动经费失联", "公司负责人称“面试时表现完美”。警方提醒：备用金审批需谨慎。"]}
 family_sms = "老婆：你爸出院了，医生让下个月复查。
-孩子：班上同学都去学编程了，我也想去。"
-chief_opener = "最后一个实习生了。问快点，我还要开会。"
+老婆：孩子说班上同学都去学编程了，他也想去。"
+chief_opener = "今天面的有写东西的，也有做运营的。我不管，进来都归我带。"
+chief_need = {"item": "狼性", "note": "考试周也得在。"}
 chief_question = ExtResource("chief_q")
 candidate_ask = ExtResource("chief_a")
+desk_texts = [{"id": "t5_1", "at": 570, "text": "老婆：今天接你爸出院，我请了半天假。", "replies": [{"key": "warm", "label": "这阵子辛苦你了。", "marriage": 1}, {"key": "curt", "label": "好。", "marriage": 0}]}, {"id": "t5_2", "at": 800, "text": "老婆：孩子早上出门前还在说编程班的事。", "replies": [{"key": "warm", "label": "周末带他去试听。", "marriage": 1}, {"key": "curt", "label": "先别报，太贵。", "marriage": 0}]}]
+sms_flag = "d5_eve"
+sms_replies = [{"key": "warm", "label": "编程班周末咱们去看看。", "marriage": 1}, {"key": "curt", "label": "编程班太贵了，再说。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+home_scene = [{"text": "到家 18:45。你爸也在，老婆把他接过来住几天。他坐在沙发上，比上次见瘦了一圈。"}, {"text": "你爸：你们公司还招人吗？老单位小刘的儿子，研究生毕业半年了还在家待着。"}, {"ask": "h5_dad", "options": [{"key": "try", "label": "让他投个简历试试。", "then": [{"text": "你爸：我就说嘛，你在里面，好说话。"}, {"text": "你爸：小刘说了，不让你白忙。他们家懂规矩，该表示的会表示。"}, {"text": "你没接话。"}]}, {"key": "hard", "label": "现在不好进，我也说不上话。", "then": [{"text": "你爸：你都管招聘了，还说不上话？"}, {"text": "你爸：人家也不是空着手求人。过年那两条烟，小刘还记着呢。"}, {"text": "老婆：爸，吃菜。"}]}]}, {"text": "孩子：妈妈说周末去看编程班，是真的吗？", "when": "d5_eve:warm"}, {"text": "你：真的。", "when": "d5_eve:warm"}, {"text": "孩子跑去给爷爷看他在平板上拼的小游戏，一只猫追一条鱼。", "when": "d5_eve:warm"}, {"text": "孩子没提编程班。吃完饭，他把平板上那个试听课的广告划掉了。", "when": "d5_eve:curt"}, {"text": "孩子：爸爸，妈妈说帮我给你发短信了，你看到了吗？", "when": "d5_eve:silent"}, {"text": "你：……还没来得及。", "when": "d5_eve:silent"}, {"text": "孩子：哦。", "when": "d5_eve:silent"}, {"text": "夜里，你爸在客厅咳了好几声。老婆起来给他倒了杯水。"}, {"ask": "h5_night", "options": [{"key": "thanks", "label": "等她回来，跟她说：这阵子多亏你了。", "marriage": 1, "then": [{"text": "老婆：你爸也是我爸。睡吧。"}], "say": "她回来躺下，你说：这阵子多亏你了。"}, {"key": "sleep", "label": "装睡。", "then": [{"text": "她躺下的时候，动作很轻。"}], "say": "你闭着眼，没出声。"}]}]

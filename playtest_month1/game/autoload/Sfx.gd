@@ -8,6 +8,7 @@ var _stamp: AudioStreamWAV
 var _paper: AudioStreamWAV
 var _key: AudioStreamWAV
 var _printer: AudioStreamWAV
+var _buzz: AudioStreamWAV
 
 
 func _ready() -> void:
@@ -25,6 +26,11 @@ func _ready() -> void:
 		var gate := 1.0 if fmod(t * 14.0, 1.0) < 0.6 else 0.15
 		return (n * 0.25 + signf(sin(TAU * 190.0 * t)) * 0.08) * gate * minf(1.0, (0.55 - t) * 20.0))
 
+	# 手机扣在桌上震：低频“嗡、嗡”
+	_buzz = _synth(0.7, func(t: float, n: float) -> float:
+		var gate := 1.0 if fmod(t, 0.35) < 0.22 else 0.0
+		return (sin(TAU * 120.0 * t) * 0.5 + n * 0.08) * gate)
+
 
 func stamp() -> void:
 	_play(_stamp)
@@ -36,6 +42,10 @@ func paper() -> void:
 
 func printer() -> void:
 	_play(_printer)
+
+
+func buzz() -> void:
+	_play(_buzz)
 
 
 func key() -> void:

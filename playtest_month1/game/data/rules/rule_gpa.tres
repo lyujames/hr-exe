@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleGpa" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleGpa.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_gpa"
+day_added = 2
+title_key = "绩点要求"
+text_key = "实习生绩点要 3.0 及以上（满分 4.0），3.0 正好也算。2.99 不算。"
+reject_reason_key = "您的在校成绩未达到岗位要求。"
+is_absurd = false
+min_gpa = 3.0

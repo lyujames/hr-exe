@@ -11,4 +11,4 @@ rule_ids = PackedStringArray("rule_age")
 density = 0.15
 liar_density = 0.7
 trap_density = 0.12
-pivot_year = 1990
+pivot_year = 2000
