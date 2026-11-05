@@ -4,6 +4,9 @@ class_name InterviewRoom extends Control
 ## 实习生和社招各有一套问题卡：实习生问的是 TA 知不知道来干什么、项目里做了什么、能来多久。
 ## 在读研究生多问 2 问，还多一套问题卡：导师放不放人、读不读博、研究方向和岗位的关系。
 ## 每个回答刚说完可以追问一次（占一问）：背的接不上，说实话的越说越具体，露破绽的越问越慌。
+## 招程序员（第 8 天）起，主管抢的第一问总是一道尖锐题（DayConfig.chief_sharp），玩家手里也混着尖锐题卡。
+## 当天没有剧情候选人进面试，抽中的普通人可能是个奇葩（DayConfig.quirk）：简历正常，一开口才知道。
+## 剧情候选人进了面试、今天又有奇葩，就面两场：剧情候选人 15:00–16:30，奇葩 16:30–18:00。
 ## 第 3 天起主管开场拍一张便签（DayConfig.chief_need），录用的人在他自己心里那一项够了，发主管推荐奖。
 ##
 ## 画面学《Papers, Please》：上半屏是对面坐着的人，下半屏是桌面。
@@ -18,6 +21,7 @@ const QUESTION_PATHS := [
 	"q_intern_role", "q_project", "q_our_app", "q_data_test", "q_chores", "q_schedule", "q_return_offer",
 	"q_grad_advisor", "q_grad_phd", "q_grad_why_ops", "q_grad_research",
 	"q_tech_depth", "q_code_review", "q_oncall",
+	"q_sharp_slow_sql", "q_sharp_cache", "q_sharp_banyan", "q_sharp_numbers", "q_sharp_incident", "q_sharp_whiteboard",
 ]
 # q_ai_tool（用不用 AI 编程助手）留着给下个月：第二个月 AI 只在新闻里出现。
 ## 含主管抢走的那几问。
@@ -91,12 +95,25 @@ var _transcript_scroll: ScrollContainer
 var _side: Control
 var _hand_open := false
 ## 15:00 开始面试，18:00 下班：问题按份平分 15:00–17:30，候选人反问和填评分表占最后半小时。
+## 两场的日子各占一个半小时，每场的反问和评分表压到最后十五分钟。
 const START_MINUTES := 15 * 60
 const QUESTIONS_END := 17 * 60 + 30
+const SLOT_MINUTES := 90
+## 这一场是今天第几场（0 起），以及这一场的钟：开场、问完、填表。
+var slot := 0
+var _start := START_MINUTES
+var _questions_end := QUESTIONS_END
+var _scorecard_at := 17 * 60 + 45
 
 
 func _ready() -> void:
+	slot = GameState.interviewed_today.size()
 	candidate = pick_candidate()
+	GameState.interviewed_today.append(candidate.display_name)
+	if slot > 0 or second_candidate():
+		_start = START_MINUTES + slot * SLOT_MINUTES
+		_scorecard_at = _start + SLOT_MINUTES - 8
+		_questions_end = _scorecard_at - 7
 	if candidate.is_grad():
 		questions_allowed = GRAD_QUESTIONS_ALLOWED
 	for item in SCORE_ITEMS:
@@ -106,7 +123,7 @@ func _ready() -> void:
 	_build_deck()
 	_build_wall()
 	_build_desk()
-	_tick(START_MINUTES)
+	_tick(_start)
 	_draw_hand()
 	_show_hand()
 
@@ -143,7 +160,8 @@ func _build_wall() -> void:
 	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_portrait)
 	UI.panel(self, SPEECH_RECT, UI.PAPER, UI.BLACK)
-	_speech = UI.label(self, "（%s 坐下，等你提问。）" % candidate.display_name, SPEECH_RECT.position + Vector2(10, 8), UI.INK, SPEECH_RECT.size.x - 20)
+	var opening := candidate.entrance if candidate.entrance != "" else "（%s 坐下，等你提问。）" % candidate.display_name
+	_speech = UI.label(self, opening, SPEECH_RECT.position + Vector2(10, 8), UI.INK, SPEECH_RECT.size.x - 20)
 	_action = Control.new()
 	_action.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_action)
@@ -204,7 +222,8 @@ func _build_chief() -> void:
 	UI.label(self, "赵主管", r.position + Vector2(70, 4), UI.INK_SOFT)
 	UI.label(self, "创始员工", r.position + Vector2(70, 20), UI.INK_SOFT)
 	_chief_mark = UI.label(self, "", r.position + Vector2(70, 44), UI.INK)
-	_chief_line = UI.label(self, "“%s”" % GameState.config.chief_opener, r.position + Vector2(6, 70), UI.INK, r.size.x - 12)
+	var opener := GameState.config.chief_opener if slot == 0 else "下一个。抓紧，六点我还有会。"
+	_chief_line = UI.label(self, "“%s”" % opener, r.position + Vector2(6, 70), UI.INK, r.size.x - 12)
 
 
 ## 主管开场拍在桌上的便签：今天他要什么样的人。
@@ -226,30 +245,65 @@ func is_chief_pick() -> bool:
 	return not need.is_empty() and int(chief_marks.get(need.item, 0)) >= CHIEF_PICK_MARK
 
 
-## 优先剧情候选人，否则从昨天通过的人里随机抽。
+## 第一场优先剧情候选人，否则从昨天通过的人里随机抽，今天有奇葩就是这个人；第二场就是奇葩。
 func pick_candidate() -> Candidate:
-	var passed := GameState.interviewees
-	for c in passed:
+	if slot > 0:
+		return second_candidate()
+	for c in GameState.interviewees:
 		if c.is_story:
 			return c
+	return _plain_pick()
+
+
+## 第二场的人：第一场是剧情候选人、今天有奇葩、昨天还过了别的普通人才有，否则 null。
+static func second_candidate() -> Candidate:
+	if GameState.config.quirk == null:
+		return null
+	if not GameState.interviewees.any(func(c: Candidate) -> bool: return c.is_story):
+		return null
+	return _plain_pick()
+
+
+## 从昨天通过的普通人里抽一个，种子跟着这一天走；今天有奇葩就套上。没有普通人返回 null。
+static func _plain_pick() -> Candidate:
+	var plain := GameState.interviewees.filter(func(c: Candidate) -> bool: return not c.is_story)
+	if plain.is_empty():
+		return null
 	var rng := RandomNumberGenerator.new()
 	rng.seed = GameState.day_seed()
-	return passed[rng.randi_range(0, passed.size() - 1)]
+	var c: Candidate = plain[rng.randi_range(0, plain.size() - 1)]
+	var quirk := GameState.config.quirk
+	if quirk and c.quirk == &"":
+		quirk.apply(c)
+	return c
 
 
 ## 种子跟着这一局和这一天走：读档重来同一天，主管还是那样插话。
 func _plan_chief() -> void:
-	_rng.seed = hash([GameState.day_seed(), "chief"])
+	_rng.seed = hash([GameState.day_seed(), "chief", slot])
 	var pool: Array[QuestionCard] = []
+	var sharp: Array[QuestionCard] = []
 	for d in range(1, GameState.day + 1):
-		var card := RuleEngine.load_day(d).chief_question
+		var cfg := RuleEngine.load_day(d)
+		var card := cfg.chief_question
 		if card and card not in pool and card.available_for(candidate):
 			pool.append(card)
+		card = cfg.chief_sharp
+		if card and card not in sharp and card.available_for(candidate):
+			sharp.append(card)
 	var slots := range(1, questions_allowed)
-	var count := mini(_rng.randi_range(CHIEF_ASKS_MIN, CHIEF_ASKS_MAX), pool.size())
+	var count := mini(_rng.randi_range(CHIEF_ASKS_MIN, CHIEF_ASKS_MAX), pool.size() + sharp.size())
 	for i in count:
 		chief_slots.append(slots.pop_at(_rng.randi_range(0, slots.size() - 1)))
-		chief_cards.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+		# 第一问先拿尖锐题，今天新写的那张最常被抽到；剩下的和老问题混着抽
+		if i == 0 and not sharp.is_empty():
+			var today := sharp.size() - 1
+			chief_cards.append(sharp.pop_at(today if _rng.randf() < 0.6 else _rng.randi_range(0, today)))
+			pool.append_array(sharp)
+		else:
+			if i == 0:
+				pool.append_array(sharp)
+			chief_cards.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
 	chief_slots.sort()
 
 
@@ -309,11 +363,21 @@ func ask(card: QuestionCard) -> void:
 	_draw_hand()
 	asked += 1
 	_tick()
-	var reply := card.answer(candidate)
+	var reply := _flavor(card.answer(candidate), String(card.id))
 	_say("你", card.text_key, reply)
 	_chief_react(card, card.chief_reaction(reply.kind))
 	_last = {"card": card, "reply": reply}
 	_next()
+
+
+## 奇葩没手写的那几问照常按属性答，前面贴一句 TA 的小动作；轮着贴，读档重来也一样。
+func _flavor(reply: Dictionary, key: String) -> Dictionary:
+	if candidate.asides.is_empty() or candidate.answers.has(key):
+		return reply
+	var aside := candidate.asides[transcript.size() % candidate.asides.size()]
+	var out := reply.duplicate()
+	out.text = "%s%s" % [aside, reply.text]
+	return out
 
 
 func _say(who: String, question: String, reply: Dictionary) -> void:
@@ -382,7 +446,7 @@ func follow_up() -> void:
 	_tick()
 	# 顺着主管的违法问题往下问，你也算问了
 	GameState.lawsuit_risk += card.lawsuit_risk
-	var reply := card.follow_up(candidate, first)
+	var reply := _flavor(card.follow_up(candidate, first), String(card.id) + "+")
 	_say("追问", card.followup_text, reply)
 	_chief_react(card, card.chief_followup_reaction(reply, _followups))
 	_next()
@@ -423,7 +487,7 @@ func chief_ask() -> void:
 	asked += 1
 	_tick()
 	GameState.lawsuit_risk += card.lawsuit_risk
-	var reply := card.answer(candidate)
+	var reply := _flavor(card.answer(candidate), String(card.id))
 	_say("赵主管", card.text_key, reply)
 	var reaction := card.chief_reaction(reply.kind)
 	_chief_react(card, reaction)
@@ -443,7 +507,7 @@ func _clear_hand() -> void:
 
 func _show_candidate_ask() -> void:
 	var question := GameState.config.candidate_ask
-	_tick(QUESTIONS_END)
+	_tick(_questions_end)
 	_chief_mark.text = ""
 	_clear_hand()
 	UI.clear(_side)
@@ -493,7 +557,7 @@ func _show_walk_out() -> void:
 
 
 func _show_scorecard() -> void:
-	_tick(17 * 60 + 45)
+	_tick(_scorecard_at)
 	UI.clear(_side)
 	var top := 150.0
 	UI.panel(_side, Rect2(END_X, top, END_WIDTH, 204), UI.PAPER, UI.BLACK)
@@ -530,7 +594,7 @@ func decide(hire: bool) -> void:
 ## 右上角的方块是问题额度：问掉一问亮一格。
 func _tick(minutes := -1) -> void:
 	if minutes < 0:
-		minutes = START_MINUTES + int(float(QUESTIONS_END - START_MINUTES) * asked / questions_allowed)
+		minutes = _start + int(float(_questions_end - _start) * asked / questions_allowed)
 	_header.text = "%02d:%02d 面试 · %s · %s" % [minutes / 60, minutes % 60, candidate.display_name, candidate.applied_position]
 	UI.clear(_quota)
 	var x := 630.0 - questions_allowed * 10.0

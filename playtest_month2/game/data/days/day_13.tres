@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
 [ext_resource type="Resource" path="res://data/chief/question_day13.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day13.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day13.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_fan_mian.tres" id="quirk"]
 [ext_resource type="Resource" path="res://data/rules/rule_age_90.tres" id="r_rule_age_90"]
 [ext_resource type="Resource" path="res://data/discrepancies/birth_resume_90.tres" id="d_birth_resume_90"]
 [ext_resource type="Resource" path="res://data/story/candidate_lizhe_cousin.tres" id="s_candidate_lizhe_cousin"]
@@ -37,4 +39,6 @@ home_scene = [{"text": "你把李哲表哥那个信封塞进公文包最里层�
 chief_opener = "90 后好，有冲劲。我 85 年的，我当年也有。"
 chief_need = {"item": "格局", "note": "要懂新东西的，别守着老一套。"}
 chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
 candidate_ask = ExtResource("chief_a")

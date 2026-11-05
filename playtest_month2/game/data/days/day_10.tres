@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
 [ext_resource type="Resource" path="res://data/chief/question_day10.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day10.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day10.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_hei_hua.tres" id="quirk"]
 [ext_resource type="Resource" path="res://data/rules/rule_keywords.tres" id="r_rule_keywords"]
 [ext_resource type="Resource" path="res://data/story/candidate_chenmo_2.tres" id="s_candidate_chenmo_2"]
 [ext_resource type="Resource" path="res://data/jobs/job_backend_v2.tres" id="j_job_backend_v2"]
@@ -38,4 +40,6 @@ home_scene = [{"text": "到家 18:50。你爸也在。茶几上摆着两条烟�
 chief_opener = "关键词？我们那时候招人看眼缘。现在都看机器了。"
 chief_need = {"item": "格局", "note": "要懂新东西的。"}
 chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
 candidate_ask = ExtResource("chief_a")

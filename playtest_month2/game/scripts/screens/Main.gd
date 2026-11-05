@@ -80,7 +80,15 @@ func show_interview() -> void:
 	if GameState.interviewees.is_empty():
 		show_report()
 	else:
+		_swap("res://scenes/InterviewRoom.tscn", _after_interview)
+
+
+## 剧情候选人那场面完，今天要是有奇葩，接着面第二场。
+func _after_interview() -> void:
+	if GameState.interviewed_today.size() == 1 and InterviewRoom.second_candidate():
 		_swap("res://scenes/InterviewRoom.tscn", show_report)
+	else:
+		show_report()
 
 
 func show_report() -> void:

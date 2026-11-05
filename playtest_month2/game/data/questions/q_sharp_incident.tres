@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_sharp_incident"
+text_key = "你自己搞出来的最大一次线上事故？别说别人的。"
+probes = PackedStringArray("pressure")
+audience = "regular"
+sharp = true
+honest = "改配置没走灰度，直接全量推了，支付挂了二十分钟。复盘会上我自己站起来认的。"
+honest_low = "……有一次。我到现在都不太敢想。（TA 没往下说。）"
+standard = "我一直严格遵守上线规范，没有出过重大事故。"
+flaw = "我、我没出过事故。都是别人……不是，没有事故。"
+followup_text = "定级几级？复盘是谁写的？"
+honest_followup = "P1。复盘我写的，九页，最后一条是“配置变更也要灰度”。组里现在管这条叫我的名字。"
+honest_low_followup = "P2。复盘……是组长替我写的。"
+standard_followup = "没、没定级。我说了，我没出过事故。"
+flaw_followup = "定、定什么级？……我没听懂。"
+chief_item = "稳定性"
+chief_standard = "不出事，稳。"
+chief_honest = "支付都敢搞挂？"
+chief_flaw = "……"

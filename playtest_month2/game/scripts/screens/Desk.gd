@@ -293,7 +293,7 @@ func _finish() -> void:
 		_leave_button.disabled = true
 	GameState.stats.unprocessed = queue.size()
 	var interview := not GameState.interviewees.is_empty()
-	var note := "15:00，该去面试了。" if interview else "15:00。今天没有面试，你整理材料到六点下班。"
+	var note := ("15:00，该去面试了。今天两场。" if InterviewRoom.second_candidate() else "15:00，该去面试了。") if interview else "15:00。今天没有面试，你整理材料到六点下班。"
 	if not queue.is_empty():
 		note += "还有 %d 份简历没看，计件没了。" % queue.size()
 	if GameState.stats.left_early:

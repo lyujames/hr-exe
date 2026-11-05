@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_sharp_day14"
+text_key = "简历上非要你删一行，你删哪行？"
+probes = PackedStringArray("honesty")
+audience = "regular"
+sharp = true
+honest = "删“精通”。剩下的，每一行我都能讲二十分钟。"
+honest_low = "……删工作年限那一行吧。那行我自己看着都心虚。"
+standard = "每一行都很重要，我觉得我的简历已经非常精炼了。"
+flaw = "删、删……都不删行吗？"
+followup_text = "那就讲最上面那行。从头讲，我掐表。"
+honest_followup = "（TA 讲了十八分钟。中间赵主管看了三次表，最后一次放下了手机。）"
+honest_low_followup = "（TA 讲了四分钟，后面开始重复前面的话。）"
+standard_followup = "这一行……主要体现了我的综合能力。"
+flaw_followup = "最、最上面……是我名字。"
+chief_item = "格局"
+chief_standard = "精炼，好。"
+chief_honest = "自己删“精通”？傻。"
+chief_flaw = "……"

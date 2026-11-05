@@ -7,7 +7,7 @@ const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
 	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story",
-	"docs", "doc_overrides", "answers", "call_line", "envelope",
+	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind",
 ]
 ## 公民身份号码的校验位。
 const ID_WEIGHTS := [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
@@ -64,6 +64,12 @@ const ID_CHECK := "10X98765432"
 @export var skip_when: String
 ## 月底回顾里这个人的结局 {hired, pass, reject: 一句话}，“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var epilogue: Dictionary = {}
+## 套上了哪个奇葩面试者（Quirk），空表示没有；进门的旁白和没手写的回答前面那句小动作。
+@export var quirk: StringName
+@export var entrance: String
+@export var asides: PackedStringArray
+## 手写回答在主管耳朵里算什么：“honest”（默认）还是“standard”（黑话、表忠心，他爱听的那种）。
+@export var answer_kind := "honest"
 
 @export_group("隐藏属性")
 @export_range(0, 100) var ability := 50
@@ -159,6 +165,8 @@ func to_dict() -> Dictionary:
 	data.event_override = String(event_override)
 	data.skills = Array(skills)
 	data.docs = Array(docs)
+	data.quirk = String(quirk)
+	data.asides = Array(asides)
 	return data
 
 
@@ -171,4 +179,6 @@ static func from_dict(data: Dictionary) -> Candidate:
 	c.skills = PackedStringArray(data.skills)
 	c.projects = Array(data.get("projects", []))
 	c.docs = PackedStringArray(data.get("docs", []))
+	c.quirk = StringName(data.get("quirk", ""))
+	c.asides = PackedStringArray(data.get("asides", []))
 	return c

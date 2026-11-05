@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
 [ext_resource type="Resource" path="res://data/chief/question_day8.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day8.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day8.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_hai_tou.tres" id="quirk"]
 [ext_resource type="Resource" path="res://data/rules/rule_degree_pro.tres" id="r_rule_degree_pro"]
 [ext_resource type="Resource" path="res://data/rules/rule_salary.tres" id="r_rule_salary"]
 [ext_resource type="Resource" path="res://data/story/candidate_chenmo_1.tres" id="s_candidate_chenmo_1"]
@@ -39,4 +41,6 @@ home_scene = [{"text": "到家 18:50。你一进门，孩子就躲到沙发后�
 chief_opener = "程序员我面过几百个了。会写代码的不稀奇，能扛事的稀奇。"
 chief_need = {}
 chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
 candidate_ask = ExtResource("chief_a")

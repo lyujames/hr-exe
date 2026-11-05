@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
 [ext_resource type="Resource" path="res://data/chief/question_day14.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day14.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day14.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_xuan_xue.tres" id="quirk"]
 [ext_resource type="Resource" path="res://data/rules/rule_banyan.tres" id="r_rule_banyan"]
 [ext_resource type="Resource" path="res://data/story/candidate_banyan_liar.tres" id="s_candidate_banyan_liar"]
 [ext_resource type="Resource" path="res://data/jobs/job_backend_v3.tres" id="j_job_backend_v3"]
@@ -37,4 +39,6 @@ desk_texts = [{"id": "t14_1", "at": 540, "text": "老婆：今天扣房贷。卡
 chief_opener = "Banyan 8 年？我也不知道它出了几年。王总说要，就要。"
 chief_need = {"item": "狼性", "note": "月底了，要能冲的。"}
 chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
 candidate_ask = ExtResource("chief_a")

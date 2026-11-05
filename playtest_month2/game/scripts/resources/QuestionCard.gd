@@ -12,6 +12,9 @@ class_name QuestionCard extends Resource
 @export var flaw: String        # 破绽
 ## 现场测试：表演不出来，只看属性。
 @export var always_truthful := false
+## 尖锐题：问的是细节和数字，模板接不住。表演力要到 SHARP_BLUFF 才背得下来，
+## 平时能背过去的人（70–84）在这里只能说实话或露破绽；背下来的人追问时直接冒汗。
+@export var sharp := false
 ## 问谁："all"、"intern"（实习生）、"grad"（在读研究生实习生）、"regular"（社招）。
 @export var audience := "all"
 ## 只对有空窗期的人可用。
@@ -33,6 +36,11 @@ class_name QuestionCard extends Resource
 @export var chief_flaw: String
 
 
+## 平时表演力到这个数就背标准答案。
+const BLUFF := 70
+const SHARP_BLUFF := 85
+
+
 func for_audience(c: Candidate) -> bool:
 	match audience:
 		"all":
@@ -50,10 +58,10 @@ func available_for(c: Candidate) -> bool:
 func answer(c: Candidate) -> Dictionary:
 	var strong := is_strong(c)
 	if c.answers.has(String(id)):
-		return {"text": c.answers[String(id)], "tic": "none", "kind": "honest", "strong": strong}
+		return {"text": c.answers[String(id)], "tic": "none", "kind": c.answer_kind, "strong": strong}
 	if always_truthful:
 		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
-	if c.performance >= 70:
+	if c.performance >= (SHARP_BLUFF if sharp else BLUFF):
 		return {"text": standard, "tic": "none", "kind": "standard", "strong": strong}
 	if c.honesty >= 55:
 		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
@@ -76,13 +84,13 @@ func can_follow_up() -> bool:
 func follow_up(c: Candidate, first: Dictionary) -> Dictionary:
 	var key := String(id) + "+"
 	if c.answers.has(key):
-		return {"text": c.answers[key], "tic": "none", "kind": "honest", "strong": first.strong}
+		return {"text": c.answers[key], "tic": "none", "kind": c.answer_kind, "strong": first.strong}
 	match first.kind:
 		"standard":
-			return {"text": standard_followup, "tic": "eyes", "kind": "standard", "strong": first.strong}
+			return {"text": standard_followup, "tic": "sweat" if sharp else "eyes", "kind": "standard", "strong": first.strong}
 		"flaw":
 			return {"text": flaw_followup, "tic": escalate(first.tic), "kind": "flaw", "strong": first.strong}
-	if c.answers.has(String(id)):
+	if c.answers.has(String(id)) and first.kind == "honest":
 		var told := "（TA 想了想，一条一条往下说：什么时候、几个人、多少数字，前后都对得上。）" if first.strong \
 			else "（TA 说得很细，细到连自己没做好的地方也一起说了。）"
 		return {"text": told, "tic": "none", "kind": "honest", "strong": first.strong}

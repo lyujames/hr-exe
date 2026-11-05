@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
 [ext_resource type="Resource" path="res://data/chief/question_day12.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day12.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day12.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_ma_ma.tres" id="quirk"]
 [ext_resource type="Resource" path="res://data/rules/rule_self_eval.tres" id="r_rule_self_eval"]
 [ext_resource type="Resource" path="res://data/story/candidate_mother.tres" id="s_candidate_mother"]
 
@@ -34,4 +36,6 @@ home_scene = [{"text": "到家 19:00。老婆在给孩子检查编程作业，�
 chief_opener = "奋斗者文化，这个好。我们那时候没人提平衡。"
 chief_need = {"item": "狼性", "note": "要能拼的，别跟我谈平衡。"}
 chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
 candidate_ask = ExtResource("chief_a")

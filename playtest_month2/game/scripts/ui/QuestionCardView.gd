@@ -1,6 +1,7 @@
 class_name QuestionCardView extends Control
 ## 桌上的一张问题卡：拖到候选人身上就是问这一句。
 ## 左上角的小标签按这张卡探的属性上色，玩家一眼看出是问能力、诚信、忠诚还是抗压。
+## 尖锐题旁边再贴一个红色“尖锐”。
 
 const SIZE := Vector2(100, 92)
 const TAGS := {
@@ -42,6 +43,9 @@ func _draw_face(parent: Control) -> StyleBoxFlat:
 	var tag_width := 30.0
 	UI.panel(parent, Rect2(5, 5, tag_width, 14), tag[1])
 	UI.label(parent, tag[0], Vector2(8, 4), UI.PAPER)
+	if card.sharp:
+		UI.panel(parent, Rect2(5 + tag_width + 3, 5, 30, 14), UI.RED)
+		UI.label(parent, "尖锐", Vector2(8 + tag_width + 3, 4), UI.PAPER)
 	if card.lawsuit_risk > 0:
 		UI.label(parent, "!", Vector2(SIZE.x - 12, 4), UI.RED)
 	var text := UI.label(parent, card.text_key, Vector2(5, 22), UI.INK, SIZE.x - 10)

@@ -65,4 +65,8 @@ class_name DayConfig extends Resource
 ## 赵主管开场拍在桌上的便签 {item: 评分项, note: 便签上的话}：录用的人在他心里这一项够了，发主管推荐奖（pay.chief_bonus）。空表示今天没有。
 @export var chief_need: Dictionary = {}
 @export var chief_question: QuestionCard
+## 招程序员起主管每场先问一道尖锐题，从今天及之前每天的这一张里抽（见 InterviewRoom._plan_chief）。
+@export var chief_sharp: QuestionCard
+## 今天的奇葩面试者：没有剧情候选人进面试时，套在抽中的普通人身上。
+@export var quirk: Quirk
 @export var candidate_ask: CandidateAsk

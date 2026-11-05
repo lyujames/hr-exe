@@ -42,6 +42,8 @@ var lawsuit_risk := 0
 var reply_log: Array = []
 ## 昨天筛简历通过、今天来面试的人：当天通过的人第二天才面试。
 var interviewees: Array[Candidate] = []
+## 今天已经面过的人（display_name）：剧情候选人那场面完，有奇葩的日子再加一场（见 InterviewRoom.second_candidate）。
+var interviewed_today: PackedStringArray = []
 ## 夹在简历里的信封 {day, from, amount, candidate_id, taken}：第一个月只收不追，下个月有人来“惦记”。
 var kickbacks: Array = []
 ## 当天清晨的状态快照：手动存档存的是它，今天做到一半的进度不进存档。
@@ -131,6 +133,7 @@ func begin_day() -> void:
 	# retained：今天满期、人还在的 {name, day_hired, days}
 	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "paid_bills": [], "left_early": false, "texts": [], "called": false}
 	passed_today = []
+	interviewed_today = []
 	event_today = {}
 	morning = to_dict().duplicate(true)
 
@@ -491,6 +494,7 @@ func load_dict(data: Dictionary) -> void:
 	deferred_bonus = int(data.get("deferred_bonus", 0))
 	kickbacks = data.get("kickbacks", [])
 	interviewees = []
+	interviewed_today = []
 	for c: Dictionary in data.get("interviewees", []):
 		interviewees.append(Candidate.from_dict(c))
 	begin_day()
