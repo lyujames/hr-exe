@@ -3,9 +3,7 @@ class_name Desk extends Control
 
 signal finished
 
-const DOC_POS := Vector2(100, 24)
-## 身份证落在规则手册下面，从桌子下沿推上来，不挡简历。
-const ID_POS := Vector2(350, 246)
+## 简历、身份证、手册、印章等摆在哪由玩家布置（DeskLayout），默认身份证落在规则手册下面，从桌子下沿推上来，不挡简历。
 ## 信封从简历底下露出来，和身份证同一个位置；这份简历也带着身份证时，竖着放在桌子左边那条空地上。
 const ENVELOPE_POS := Vector2(350, 232)
 const ENVELOPE_POS_WITH_ID := Vector2(2, 176)
@@ -21,9 +19,8 @@ const MISMATCH_REASON := "您提交的材料信息前后不一致。"
 const WRONG_PICK_MINUTES := 5
 const CALL_MINUTES := 10
 ## 桌角的全家福和扣着的手机；家里来消息时手机翻过来亮一下。
-const PHOTO_POS := Vector2(16, 48)
-const PHONE_POS := Vector2(32, 112)
-const BUBBLE_POS := Vector2(70, 110)
+## 消息气泡贴在手机右边。
+const BUBBLE_OFFSET := Vector2(38, -2)
 ## 翻消息的面板从上面开始往下长，不压住印章。
 const INBOX_POS := Vector2(70, 30)
 const FamilyPhoto := preload("res://scripts/ui/FamilyPhoto.gd")
@@ -66,6 +63,13 @@ var _inbox_panel: Control
 var _called := false
 var _leave_button: Button
 var _leave_confirm: Control
+## 布置桌面：能挪的东西，和布置时停钟。
+var _book: Rulebook
+var _posting: JobPostingDoc
+var _photo: Control
+var _stamps := {}
+var _arranger: DeskArranger
+var arranging := false
 
 
 func _ready() -> void:
@@ -97,16 +101,16 @@ func _build_room() -> void:
 
 	_build_family()
 
-	var book: Rulebook = load("res://scenes/Rulebook.tscn").instantiate()
-	book.position = Vector2(344, 24)
-	add_child(book)
-	book.setup()
+	_book = load("res://scenes/Rulebook.tscn").instantiate()
+	_book.position = DeskLayout.pos("rulebook")
+	add_child(_book)
+	_book.setup()
 
 	if not RuleEngine.active_postings.is_empty():
-		var posting := JobPostingDoc.new()
-		posting.position = Vector2(532, 24)
-		add_child(posting)
-		posting.setup(RuleEngine.active_postings)
+		_posting = JobPostingDoc.new()
+		_posting.position = DeskLayout.pos("posting")
+		add_child(_posting)
+		_posting.setup(RuleEngine.active_postings)
 
 	_doc_layer = Control.new()
 	_doc_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -115,19 +119,21 @@ func _build_room() -> void:
 	add_child(_lines)
 	_toast = UI.label(self, "", Vector2(150, 1), UI.YELLOW)
 	if "id_card" in RuleEngine.active_docs:
-		_inspect_button = UI.button(self, "质询", Rect2(536, 296, 60, 22), toggle_inspect)
-		_call_button = UI.button(self, "打电话", Rect2(536, 322, 60, 22), call_candidate)
+		var at := DeskLayout.pos("inspect")
+		_inspect_button = UI.button(self, "质询", Rect2(at, Vector2(60, 22)), toggle_inspect)
+		_call_button = UI.button(self, "打电话", Rect2(at + Vector2(0, 26), Vector2(60, 22)), call_candidate)
 		_call_button.visible = false
 
 	for verdict: String in ["pass", "reject"]:
 		var stamp := StampTool.new()
-		stamp.position = Vector2(112 if verdict == "pass" else 216, 306)
+		stamp.position = DeskLayout.pos(verdict)
 		add_child(stamp)
 		stamp.setup(verdict)
+		_stamps[verdict] = stamp
 
 
 func _process(delta: float) -> void:
-	if closing:
+	if closing or arranging:
 		return
 	elapsed += delta
 	var ratio := elapsed / GameState.config.screening_seconds
@@ -146,19 +152,21 @@ func _next() -> void:
 		_close_day()
 		return
 	doc = load("res://scenes/ResumeDoc.tscn").instantiate()
-	doc.position = Vector2(-240, DOC_POS.y)
+	var doc_pos := DeskLayout.pos("resume")
+	doc.position = Vector2(-240, doc_pos.y)
 	_doc_layer.add_child(doc)
 	doc.setup(queue.pop_front())
 	doc.stamped.connect(_on_stamped)
 	Sfx.paper()
 	var tween := create_tween().set_parallel()
-	tween.tween_property(doc, "position", DOC_POS, 0.16).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(doc, "position", doc_pos, 0.16).set_trans(Tween.TRANS_QUAD)
 	if "id_card" in doc.candidate.docs:
 		id_card = IdCardDoc.new()
-		id_card.position = Vector2(ID_POS.x, 370)
+		var id_pos := DeskLayout.pos("id_card")
+		id_card.position = Vector2(id_pos.x, 370)
 		_doc_layer.add_child(id_card)
 		id_card.setup(doc.candidate)
-		tween.tween_property(id_card, "position", ID_POS, 0.2).set_trans(Tween.TRANS_QUAD)
+		tween.tween_property(id_card, "position", id_pos, 0.2).set_trans(Tween.TRANS_QUAD)
 	if not doc.candidate.envelope.is_empty():
 		_show_envelope(doc.candidate)
 		tween.tween_property(_envelope, "position", _envelope_pos(doc.candidate), 0.25).set_trans(Tween.TRANS_QUAD)
@@ -460,10 +468,11 @@ func _answer_envelope(taken: bool) -> void:
 ## 全家福：你、老婆、孩子、你爸。
 func _build_family() -> void:
 	var photo: Control = FamilyPhoto.new()
-	photo.position = PHOTO_POS
+	photo.position = DeskLayout.pos("photo")
 	add_child(photo)
+	_photo = photo
 	_home_phone = DeskPhone.new()
-	_home_phone.position = PHONE_POS
+	_home_phone.position = DeskLayout.pos("phone")
 	_home_phone.mouse_filter = Control.MOUSE_FILTER_STOP
 	_home_phone.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_home_phone.gui_input.connect(func(event: InputEvent) -> void:
@@ -498,14 +507,15 @@ func _check_home(minutes: int) -> void:
 func _ring(text: String, is_call: bool) -> void:
 	Sfx.buzz()
 	_close_inbox()
+	var home_x := DeskLayout.pos("phone").x
 	var shake := create_tween()
 	for i in 6:
-		shake.tween_property(_home_phone, "position:x", PHONE_POS.x + (2.0 if i % 2 == 0 else -2.0), 0.05)
-	shake.tween_property(_home_phone, "position:x", PHONE_POS.x, 0.05)
+		shake.tween_property(_home_phone, "position:x", home_x + (2.0 if i % 2 == 0 else -2.0), 0.05)
+	shake.tween_property(_home_phone, "position:x", home_x, 0.05)
 	_close_bubble()
 	_home_phone.set_lit(true, _clock.text)
 	_bubble = Control.new()
-	_bubble.position = BUBBLE_POS
+	_bubble.position = _bubble_pos()
 	_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bubble)
 	var height := 64.0 if is_call else 40.0
@@ -632,3 +642,56 @@ func _leave() -> void:
 	_leave_confirm = null
 	GameState.leave_early()
 	_close_day()
+
+
+## 气泡贴在手机右边；手机放在桌子右半边时改贴左边，别伸出屏幕。
+func _bubble_pos() -> Vector2:
+	var phone := DeskLayout.pos("phone")
+	var at := phone + BUBBLE_OFFSET
+	if at.x + 210 > 640:
+		at.x = phone.x - 214
+	return at.clamp(Vector2(0, DeskLayout.TOP), Vector2(430, 360 - 64))
+
+
+## 布置桌面（从菜单进）：钟停着，拖占位框摆东西，存下来以后每天都这么摆。
+func start_arrange() -> void:
+	if closing or arranging or _picker or _leave_confirm:
+		return
+	arranging = true
+	_close_bubble()
+	_close_inbox()
+	_hang_up()
+	var keys := ["resume", "rulebook", "photo", "phone", "pass", "reject"]
+	if _posting:
+		keys.append("posting")
+	if "id_card" in RuleEngine.active_docs:
+		keys.append_array(["id_card", "inspect"])
+	_arranger = DeskArranger.new()
+	add_child(_arranger)
+	_arranger.setup(keys, _place)
+	_arranger.closed.connect(func() -> void:
+		arranging = false
+		_arranger = null)
+
+
+func _place(key: String, at: Vector2) -> void:
+	match key:
+		"resume":
+			if doc:
+				doc.position = at
+		"id_card":
+			if id_card:
+				id_card.position = at
+		"rulebook":
+			_book.position = at
+		"posting":
+			_posting.position = at
+		"photo":
+			_photo.position = at
+		"phone":
+			_home_phone.position = at
+		"pass", "reject":
+			_stamps[key].position = at
+		"inspect":
+			_inspect_button.position = at
+			_call_button.position = at + Vector2(0, 26)

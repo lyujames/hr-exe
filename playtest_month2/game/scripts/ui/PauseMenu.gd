@@ -2,6 +2,10 @@ class_name PauseMenu extends Control
 ## 暂停菜单（Esc 或右下角“菜单”）：存档、退出到主菜单。打开时整棵树暂停，桌上的钟也停。
 
 signal quit_to_title
+## 在筛简历的桌上才有“布置桌面”。
+signal arrange_desk
+
+var can_arrange := false
 
 var _box: Control
 var _status: Label
@@ -17,7 +21,7 @@ func _ready() -> void:
 	_box = Control.new()
 	_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_box)
-	_status = UI.label(self, "", Vector2(222, 226), UI.TEXT_DIM, 196)
+	_status = UI.label(self, "", Vector2(222, 230), UI.TEXT_DIM, 196)
 	_show_main()
 	get_tree().paused = true
 
@@ -35,9 +39,16 @@ func close() -> void:
 
 func _show_main() -> void:
 	UI.clear(_box)
-	UI.button(_box, "继续上班", Rect2(260, 124, 120, 24), close)
-	UI.button(_box, "存档", Rect2(260, 156, 120, 24), save)
-	UI.button(_box, "退出到主菜单", Rect2(260, 188, 120, 24), _confirm_quit)
+	var y := 118.0 if can_arrange else 124.0
+	var step := 28.0 if can_arrange else 32.0
+	UI.button(_box, "继续上班", Rect2(260, y, 120, 24), close)
+	if can_arrange:
+		y += step
+		UI.button(_box, "布置桌面", Rect2(260, y, 120, 24), func() -> void:
+			close()
+			arrange_desk.emit())
+	UI.button(_box, "存档", Rect2(260, y + step, 120, 24), save)
+	UI.button(_box, "退出到主菜单", Rect2(260, y + step * 2, 120, 24), _confirm_quit)
 
 
 func save() -> void:

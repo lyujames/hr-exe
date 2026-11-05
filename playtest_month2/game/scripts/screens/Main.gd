@@ -36,8 +36,12 @@ func open_menu() -> void:
 	if is_instance_valid(menu):
 		return
 	menu = PauseMenu.new()
+	var desk := current as Desk
+	menu.can_arrange = desk != null and not desk.closing and not desk.arranging
 	_overlay.add_child(menu)
 	menu.quit_to_title.connect(show_title)
+	if menu.can_arrange:
+		menu.arrange_desk.connect(desk.start_arrange)
 
 
 func _swap(path: String, next: Callable) -> Control:
