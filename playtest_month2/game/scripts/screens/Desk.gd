@@ -101,20 +101,22 @@ func _build_room() -> void:
 
 	_build_family()
 
+	# 桌上所有纸都在同一层：按下哪张哪张置顶，新递上来的简历、身份证压在最上面；
+	# 这一层整个在印章、质询按钮下面，手册点得再多也盖不住它们。
+	_doc_layer = Control.new()
+	_doc_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_doc_layer)
+
 	_book = load("res://scenes/Rulebook.tscn").instantiate()
 	_book.position = DeskLayout.pos("rulebook")
-	add_child(_book)
+	_doc_layer.add_child(_book)
 	_book.setup()
 
 	if not RuleEngine.active_postings.is_empty():
 		_posting = JobPostingDoc.new()
 		_posting.position = DeskLayout.pos("posting")
-		add_child(_posting)
+		_doc_layer.add_child(_posting)
 		_posting.setup(RuleEngine.active_postings)
-
-	_doc_layer = Control.new()
-	_doc_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_doc_layer)
 	_lines = InspectLines.new()
 	add_child(_lines)
 	_toast = UI.label(self, "", Vector2(150, 1), UI.YELLOW)
