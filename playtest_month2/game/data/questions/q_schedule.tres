@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_schedule"
+text_key = "学校课多吗？每周真能来几天？"
+probes = PackedStringArray("honesty")
+honest = "周三上午有课，其他时间都能来。六月要回去答辩一周。"
+honest_low = "导师那边……可能不太放人，我还没跟他说。"
+standard = "课都修完了，全职到岗没问题。"
+flaw = "能、能来五天……课的话，我跟老师请假。"
+audience = "intern"
+chief_item = "稳定性"
+chief_standard = "全职的实习生最省心。"
+chief_honest = "答辩还要走一周？记一下。"
+chief_flaw = "请假你自己搞定，别让导师打电话来。"
+followup_text = "具体哪天有课？课表给我看看。"
+honest_followup = "（TA 当场翻出课表截图）就这两节，其他都空着。"
+honest_low_followup = "课表……其实还没排，我也不确定。"
+standard_followup = "课表……没带。反正能来。"
+flaw_followup = "课、课表在宿舍……我、我回去发您。"

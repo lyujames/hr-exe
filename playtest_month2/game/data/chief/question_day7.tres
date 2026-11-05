@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_month_end"
+audience = "intern"
+text_key = "月底冲业绩，这阵子可能天天加班，能接受吗？"
+probes = PackedStringArray("pressure")
+honest = "可以加，但希望有加班费或者调休。"
+honest_low = "天天……我身体可能吃不消。"
+standard = "加班是成长最快的方式。"
+flaw = "天、天天吗？……可以的，可以。"
+followup_text = "上一次连着熬夜是什么时候？熬了几天？"
+honest_followup = "期末周，连着四天两点睡。熬完我睡了一整天，我知道自己的底在哪。"
+honest_low_followup = "我……一熬夜就生病。"
+standard_followup = "我精力一直很旺盛，没觉得熬过。"
+flaw_followup = "熬、熬夜？……我、我不困的。"
+chief_item = "狼性"
+chief_standard = "这就对了。"
+chief_honest = "加班费？实习生要什么加班费。"
+chief_flaw = ""

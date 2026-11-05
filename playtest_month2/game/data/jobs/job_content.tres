@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "内容运营实习生"
+pay_text = "补贴 ¥150/天"
+majors = PackedStringArray("汉语言文学", "新闻学", "网络与新媒体")
+lookalikes = PackedStringArray("汉语国际教育", "广播电视编导", "编辑出版学")
+requirements = PackedStringArray("文字功底好", "能日更")

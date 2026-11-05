@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+applied_position = "后端开发工程师"
+is_intern = false
+is_story = true
+docs = PackedStringArray("id_card")
+display_name = "王凯"
+birth_date = "1989-11-20"
+degree = 2
+school = "云岭大学"
+skills = PackedStringArray("Java", "MySQL", "Redis", "Docker")
+salary_k = 17
+salary_low_k = 14
+exp_months = 96
+jobs = [{"company": "万象网络", "title": "后端开发", "start": "2018-03", "end": ""}, {"company": "恒远软件", "title": "外包驻场开发", "start": "2015-07", "end": "2018-02"}]
+self_eval = "八年后端，能扛事，随叫随到。"
+attachment = "推荐人：李建华（电话已留）"
+doc_overrides = {"resume": {"birth_date": "1990-03-02"}}
+call_line = "……身份证是 89 年的，差三个多月。我表弟说，你们只看简历上那一栏。"
+envelope = {"from": "李哲的爸爸", "amount": 500, "text": "孩子他表哥，干了八年后端。一点心意。—— 李哲爸爸"}
+portrait_seed = 19891120
+ability = 55
+honesty = 25
+loyalty = 30
+pressure = 55
+performance = 85
+event_override = &"jump"
+answers = {"q_leaving": "我表弟在你们这儿实习过，说你们这儿人好说话。"}
+epilogue = {"hired": "你录用了他。他爸给王总也送了一盒茶，王总说你会办事。", "pass": "你放了他。违规单上写着：应拒绝：年龄要求。", "reject": "你回他：“{reason}”。他身份证上是 1989 年。"}
+id = &"story_lizhe_cousin"

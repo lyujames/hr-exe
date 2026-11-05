@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_chores"
+text_key = "前期要拿快递、订会议室、点奶茶，能接受吗？"
+probes = PackedStringArray("loyalty")
+honest = "能，但希望每周也能碰一点真活。"
+honest_low = "我是来学东西的。只打杂的话，我再考虑一下。"
+standard = "没有小事，杂事也是成长。"
+flaw = "能、能的，奶茶我都会点。"
+audience = "intern"
+chief_item = "狼性"
+chief_standard = "这个态度对。"
+chief_honest = "真活？先把奶茶点明白。"
+chief_flaw = "会点就行。记住，我的少冰。"
+followup_text = "要是一个月都只打杂呢？"
+honest_followup = "那我会主动去要一个小需求。要不到，我也会跟你说实话。"
+honest_low_followup = "一个月都打杂……那我可能就走了。"
+standard_followup = "……那也是一种锻炼吧。"
+flaw_followup = "一、一个月？……也、也行吧。"

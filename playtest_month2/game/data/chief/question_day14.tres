@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_day14"
+text_key = "Banyan 用了几年了？"
+probes = PackedStringArray("ability")
+honest = "它 2023 年才开源，满打满算三年。我从 1.0 用到现在。"
+honest_low = "我……只看过文档，没在生产上用过。"
+standard = "8 年，它刚出来我就开始用。"
+flaw = "七、八年？……挺久了，挺久的。"
+followup_text = "那它 1.0 是哪年出的？"
+honest_followup = "2023 年 3 月。作者一个人写的，GitHub 上叫 silentchen。"
+honest_low_followup = "……不知道。"
+standard_followup = "具体年份记不太清了。"
+flaw_followup = "一、一点零……好多年前了。"
+chief_item = "格局"
+chief_standard = "8 年，好，就要这样的。"
+chief_honest = "三年？JD 上写的 8 年。"
+chief_flaw = ""
+audience = "regular"

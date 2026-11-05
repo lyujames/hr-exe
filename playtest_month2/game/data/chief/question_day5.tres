@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_exam"
+text_key = "期末考试那几周怎么办？我们可不停工。"
+probes = PackedStringArray("loyalty")
+honest = "考试那周要请两三天假，其余时间都能来。"
+honest_low = "那几周……可能都来不了。"
+standard = "学业和工作我都能兼顾。"
+flaw = "考、考试……我可以晚上复习。"
+audience = "intern"
+followup_text = "哪几天考试？现在就说。"
+honest_followup = "六月二十到二十四号，三门。我把日子写下来给您。"
+honest_low_followup = "考试安排还没出……可能有一周都来不了。"
+standard_followup = "日子……还没定，到时候我一定协调好。"
+flaw_followup = "哪、哪几天？……我、我回去看看。"
+chief_item = "狼性"
+chief_standard = "能兼顾就行。"
+chief_honest = "请假？我们考试周也不停。"
+chief_flaw = ""

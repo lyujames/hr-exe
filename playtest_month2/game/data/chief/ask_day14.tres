@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "Banyan 那套系统，现在是谁在维护？"
+lie = "我们有专门的架构团队。"
+safe = "入职后会有交接。"
+truth = "没人。写它的人不在我们公司。"

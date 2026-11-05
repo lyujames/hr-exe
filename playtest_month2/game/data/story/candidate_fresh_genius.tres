@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+applied_position = "后端开发工程师"
+is_intern = false
+is_story = true
+docs = PackedStringArray("id_card")
+display_name = "宋小禾"
+birth_date = "2002-06-03"
+degree = 2
+school = "南山理工大学"
+skills = PackedStringArray("Java", "MySQL", "Redis", "Kafka", "Git")
+salary_k = 14
+salary_low_k = 11
+exp_months = 22
+jobs = [{"company": "拓鼎科技", "title": "后端开发", "start": "2024-07", "end": ""}]
+self_eval = "2024 届，工作一年十个月。给 Banyan 提过 6 个 PR，合进去 4 个。"
+attachment = "在职，需两周交接"
+portrait_seed = 20020603
+ability = 88
+honesty = 80
+loyalty = 75
+pressure = 70
+performance = 45
+answers = {"q_weakness": "经验少。我知道我们组的老代码哪里会出事，但说不出为什么——还没亲眼见它出过事。", "q_future": "五年后？五年后我才够你们的入门岗。", "q_oncall": "我们组我值夜班最多，因为我最年轻。上个月三次。", "q_oncall+": "一次是磁盘满了，一次是证书过期，一次是我自己上线的 bug。第三次我写了复盘，贴在组里。"}
+epilogue = {"hired": "你录用了她。王总看了一眼工作年限，说下不为例。", "pass": "你放了她。违规单上写着：应拒绝：工作年限。", "reject": "你回她：“{reason}”。她把简历上的“1 年 10 个月”改成了“近 2 年”，又投了四十家。"}
+id = &"story_fresh_genius"

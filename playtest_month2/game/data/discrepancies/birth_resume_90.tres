@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscrepancyBirth" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DiscrepancyBirth.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"birth_resume_90"
+doc = "id_card"
+field = "birth_date"
+rule_ids = PackedStringArray("rule_age_90")
+density = 0.15
+liar_density = 0.55
+trap_density = 0.1
+pivot_year = 1990
+lie_lines = PackedStringArray("身份证是当年上户口报错的，我真是 %d 年的，正在走更正。", "简历上那个才对，办身份证的时候派出所录错了。", "差一两年而已嘛，我身体很好，加班绝对不输 90 后。")
+true_lines = PackedStringArray("不好意思，简历模板是同事的，年份忘了改。以身份证为准。", "我手误打错了，身份证上那个才对。", "上户口那年家里报错了，后来一直按身份证来。简历是我按实际生日写的。")

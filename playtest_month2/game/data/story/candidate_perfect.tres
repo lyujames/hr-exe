@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_perfect"
+display_name = "顾全"
+applied_position = "产品运营实习生"
+birth_date = "2003-06-18"
+degree = 2
+school = "东江大学"
+skills = PackedStringArray("项目管理", "沟通协调", "数据分析", "英语六级")
+is_intern = true
+major = "市场营销"
+gpa = 3.92
+projects = [{"name": "“挑战杯”课外学术作品赛", "role": "负责人", "start": "2025-03", "end": "2025-11"}, {"name": "学生会外联部招商", "role": "负责人", "start": "2024-09", "end": "2025-06"}, {"name": "大学生创新创业训练计划", "role": "负责人", "start": "2024-03", "end": "2024-12"}]
+intern_days = 5
+intern_months = 12
+salary_k = 0
+jobs = []
+self_eval = "结果导向，使命必达。把公司当成自己的事业。"
+attachment = "推荐信：三位指导老师联名，措辞一模一样"
+portrait_seed = 20260302
+ability = 35
+honesty = 15
+loyalty = 10
+pressure = 80
+performance = 100
+event_override = &"embezzle"
+is_story = true
+epilogue = {"hired": "录用了。三天后，他带着项目备用金失联。", "pass": "你放了他，面试后没录用。", "reject": "你拒了他：“{reason}”。他哪条规则都没违反。"}

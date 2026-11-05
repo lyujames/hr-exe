@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_intern_job"
+text_key = "知道实习生在我们这儿主要干什么吗？"
+probes = PackedStringArray("honesty")
+honest = "打杂为主，做得好能跟一个需求。"
+honest_low = "JD 上写的是参与核心项目……不是吗？"
+standard = "公司需要什么，我就学什么。"
+flaw = "参、参与核心项目？"
+audience = "intern"
+followup_text = "那你觉得，做得好是什么样？"
+honest_followup = "交代的事当天回，回的时候带上数。做到这样，才有人愿意给我真活。"
+honest_low_followup = "做得好……就是不出错吧。"
+standard_followup = "做得好……就是让领导满意。"
+flaw_followup = "做、做得好？……就是很好。"
+chief_item = "格局"
+chief_standard = "态度可以。"
+chief_honest = "打杂为主？说得这么直。"
+chief_flaw = ""

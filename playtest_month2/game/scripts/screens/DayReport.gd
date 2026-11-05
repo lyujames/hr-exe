@@ -1,0 +1,160 @@
+class_name DayReport extends Control
+## 日结：违规通知单统一在这里出现；可选开销可以不付，代价是家庭状态。
+
+signal finished
+
+var paid := {}
+var _total: Label
+var _mortgage_label: Label
+var _mortgage_bar: Panel
+var settled_net := 0
+
+
+func _ready() -> void:
+	var s := GameState.stats
+	UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK_DARK)
+	UI.panel(self, Rect2(30, 12, 280, 336), UI.PAPER, UI.BLACK)
+	var off := "提前下班" if GameState.stats.left_early else "18:00 下班"
+	UI.label(self, "日结单 · 第 %d 天 · %s" % [GameState.day, off], Vector2(40, 18), UI.INK)
+	var y := 40.0
+	var pay := GameState.pay
+	y = _row("底薪", int(pay.base), y)
+	# 判对的钱并进绩效，日结单上不单列
+	y = _row("绩效 %d 份" % s.processed, GameState.performance_pay() + GameState.judge_bonus(), y)
+	if pay.get("per_reason", 0) > 0:
+		y = _row("理由准确 %d 份 × ¥%d" % [s.reason_ok, pay.per_reason], GameState.reason_bonus(), y)
+	for name: String in s.chief_picks:
+		y = _row("主管推荐奖 %s" % name, int(pay.get("chief_bonus", 0)), y)
+	for r: Dictionary in s.retained:
+		if r.left:
+			y = _row("留任 %s：已离职" % r.name, 0, y)
+		elif pay.retention_deferred:
+			y = _row("留任 %s 满 %d 天（延发）" % [r.name, r.days], 0, y)
+		else:
+			y = _row("留任 %s 满 %d 天" % [r.name, r.days], int(pay.retention), y)
+	if s.wrong > 0:
+		if GameState.fines_on():
+			var free := mini(s.wrong, GameState.FREE_WARNINGS)
+			y = _row("违规 %d 次（%d 次警告）" % [s.wrong, free], -GameState.fines(), y)
+		else:
+			y = _row("违规 %d 次（本月不罚款）" % s.wrong, 0, y)
+	if s.event_fine > 0:
+		y = _row("员工事故", -s.event_fine, y)
+	if s.gray > 0:
+		y = _row("信封（不入账）", s.gray, y)
+	if GameState.is_month_end():
+		y = _row("房贷（月供）", -GameState.MORTGAGE, y)
+	y += 6.0
+	for bill: Dictionary in GameState.config.bills:
+		paid[bill.id] = true
+		var box := CheckBox.new()
+		box.text = "%s  −¥%d" % [bill.label, bill.amount]
+		box.button_pressed = true
+		box.position = Vector2(38, y)
+		box.focus_mode = Control.FOCUS_NONE
+		box.add_theme_color_override("font_color", UI.INK)
+		box.add_theme_color_override("font_pressed_color", UI.INK)
+		box.add_theme_color_override("font_hover_color", UI.INK)
+		box.add_theme_color_override("font_hover_pressed_color", UI.INK)
+		box.toggled.connect(_toggle_bill.bind(bill.id))
+		add_child(box)
+		y += 24.0
+	_mortgage_label = UI.label(self, "", Vector2(40, 244), UI.INK)
+	UI.panel(self, Rect2(40, 262, 260, 10), UI.PAPER_DIM, UI.INK_SOFT)
+	_mortgage_bar = UI.panel(self, Rect2(41, 263, 0, 8), UI.GREEN_DIM)
+	_total = UI.label(self, "", Vector2(40, 284), UI.INK)
+	UI.button(self, "确认", Rect2(40, 316, 260, 24), confirm)
+	_build_notice()
+	_refresh()
+
+
+func _row(text: String, amount: int, y: float) -> float:
+	UI.label(self, text, Vector2(40, y), UI.INK)
+	var prefix := "+" if amount > 0 else ("−" if amount < 0 else "")
+	var value := UI.label(self, "%s¥%d" % [prefix, absi(amount)], Vector2(220, y), UI.RED if amount < 0 else UI.INK)
+	value.size.x = 80
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	return y + 18.0
+
+
+func _build_notice() -> void:
+	var s := GameState.stats
+	UI.panel(self, Rect2(326, 12, 284, 336), UI.PAPER_DIM, UI.BLACK)
+	UI.label(self, "违规通知单", Vector2(336, 18), UI.RED)
+	var y := 40.0
+	if s.errors.is_empty():
+		UI.label(self, "今日无违规。继续保持。", Vector2(336, y), UI.INK)
+		y += 22.0
+	# 底部几行从下往上排：会换行的那行先量高度，违规条目只占剩下的地方
+	var footer: Array = []
+	var pending := GameState.pending_hires()
+	if not pending.is_empty():
+		# 只是让玩家知道，不进今天的收入
+		var due := pending.map(func(h: Dictionary) -> String: return "%s 第 %d 天" % [h.candidate.display_name, GameState.retention_due(h)])
+		footer.append("在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)))
+	if not GameState.passed_today.is_empty() and not GameState.is_month_end():
+		footer.append("今天通过 %d 人，约明天面试。" % GameState.passed_today.size())
+	if s.unprocessed > 0:
+		footer.append("未处理简历 %d 份。" % s.unprocessed)
+	footer.append("正确 %d / 已处理 %d" % [s.correct, s.processed])
+	var labels: Array[Label] = []
+	var footer_h := 0.0
+	for text: String in footer:
+		var l := UI.label(self, text, Vector2(336, 0), UI.INK_SOFT, 266)
+		labels.append(l)
+		footer_h += l.size.y + 1.0
+	var fy := 342.0 - footer_h
+	for l: Label in labels:
+		l.position.y = fy
+		fy += l.size.y + 1.0
+	# 理由不准不算违规，排在违规后面、颜色淡一点；只在有理由奖金的月份提
+	var notes: Array = s.errors.map(func(e: Dictionary) -> Array: return [e, UI.INK])
+	if GameState.pay.get("per_reason", 0) > 0:
+		notes.append_array(s.reason_off.map(func(e: Dictionary) -> Array: return [e, UI.INK_SOFT]))
+	var limit := 342.0 - footer_h - 6.0
+	var shown := 0
+	for note: Array in notes:
+		var l := UI.label(self, note[0].name + " —— " + note[0].why, Vector2(336, y), note[1], 266)
+		var h := l.size.y + 5.0
+		# 给“另有 N 条”留一行
+		var need := h + (16.0 if shown < notes.size() - 1 else 0.0)
+		if y + need > limit:
+			l.free()
+			break
+		y += h
+		shown += 1
+	if shown < notes.size():
+		UI.label(self, "……另有 %d 条" % (notes.size() - shown), Vector2(336, y), UI.INK_SOFT)
+
+
+func _toggle_bill(pressed: bool, id: String) -> void:
+	paid[id] = pressed
+	_refresh()
+
+
+func paid_ids() -> Array:
+	return paid.keys().filter(func(id: String) -> bool: return paid[id])
+
+
+func _refresh() -> void:
+	var net := GameState.income() - GameState.mortgage_today()
+	for bill: Dictionary in GameState.config.bills:
+		if paid[bill.id]:
+			net -= int(bill.amount)
+	var after := GameState.savings + net
+	_total.text = "今日结余 %+d　→　存款 ¥%d" % [net, after]
+	# 进度条：手里的钱够不够这个月的月供
+	var funds := after + GameState.mortgage_today()
+	var short := GameState.MORTGAGE - funds
+	if GameState.is_month_end():
+		_mortgage_label.text = "今天还月供 ¥%d" % GameState.MORTGAGE + ("　还差 ¥%d" % short if short > 0 else "")
+	else:
+		_mortgage_label.text = "距月底还房贷 %d 天　" % GameState.days_to_mortgage() + ("还差 ¥%d" % short if short > 0 else "已够月供")
+	_mortgage_label.add_theme_color_override("font_color", UI.RED if short > 0 else UI.INK)
+	_mortgage_bar.size.x = 258.0 * clampf(float(funds) / GameState.MORTGAGE, 0.0, 1.0)
+	_mortgage_bar.get_theme_stylebox("panel").bg_color = UI.RED if short > 0 else UI.GREEN_DIM
+
+
+func confirm() -> void:
+	settled_net = GameState.settle(paid_ids())
+	finished.emit()

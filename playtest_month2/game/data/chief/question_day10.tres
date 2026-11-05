@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_day10"
+text_key = "上家为什么走？是不是被优化的？"
+probes = PackedStringArray("honesty")
+honest = "部门砍了，我们组整组没了。"
+honest_low = "……是，名单上有我。"
+standard = "寻求更大的发展平台。"
+flaw = "不、不是优化，是我主动……也算主动。"
+followup_text = "名单上几个人？为什么有你？"
+honest_followup = "十二个。我是组里年纪最大的那个。"
+honest_low_followup = "七个。主管说我产出低，我认。"
+standard_followup = "这个……是公司层面的决定，细节我不太清楚。"
+flaw_followup = "几、几个人……我不太记得了。"
+chief_item = "稳定性"
+chief_standard = "嗯，有追求。"
+chief_honest = "被优化的，总有原因。"
+chief_flaw = ""
+audience = "regular"

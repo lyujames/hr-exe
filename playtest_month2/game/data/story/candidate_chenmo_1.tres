@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+applied_position = "后端开发工程师"
+is_intern = false
+is_story = true
+docs = PackedStringArray("id_card")
+display_name = "陈默"
+birth_date = "1996-09-14"
+degree = 0
+school = "东江市第三中学"
+degree_note = "高二肄业，自学编程"
+skills = PackedStringArray("Go", "Java", "Banyan")
+salary_k = 15
+salary_low_k = 0
+exp_months = 120
+jobs = [{"company": "自由职业", "title": "开源维护", "start": "2019-07", "end": ""}, {"company": "东江某外包公司", "title": "程序员", "start": "2016-03", "end": "2019-06"}]
+self_eval = "代码在 GitHub 上。"
+attachment = "GitHub：silentchen　Banyan（榕树）作者"
+portrait_seed = 19960914
+ability = 98
+honesty = 90
+loyalty = 85
+pressure = 70
+performance = 15
+event_override = &"praise"
+answers = {"q_weakness": "不太会说话。面试一般到这一步就没了。", "q_tech_depth": "精通不敢说。Banyan 的调度器我重写过三遍，第一版有个死锁，两万个项目一起挂。", "q_tech_depth+": "有人在 issue 里贴了线程 dump。我那天在医院陪我妈，用手机看的，凌晨四点修完。", "q_leaving": "没离开。一直在维护，只是没人发工资。", "q_ai_tool": "用过。它写 Banyan 的用法比我写的文档还熟。它是拿我的代码学的。", "q_ai_tool+": "上个月有人用它生成了一个 PR，删了我一半的测试。我没合。", "q_company": "你们核心系统跑的是 Banyan 1.4，有个已知的内存泄漏，我在 1.6 修了。你们没升。", "q_company+": "你们日志里每天凌晨两点会有一串 GC 告警。就是那个。", "q_future": "五年后 Banyan 可能没人用了。我还在写别的。", "q_oncall": "Banyan 的 issue 是全世界的时区。我没有凌晨三点。"}
+epilogue = {"hired": "你录用了他。定薪那天王总说：没学历，按 8k 走。他说行。", "pass": "你放了他。违规单上写着：应拒绝：学历要求。", "reject": "你回他：“{reason}”。那个 GitHub 链接，你没点开。"}
+id = &"story_chenmo_1"

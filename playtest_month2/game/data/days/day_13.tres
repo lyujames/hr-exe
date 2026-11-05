@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/chief/question_day13.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day13.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/rules/rule_age_90.tres" id="r_rule_age_90"]
+[ext_resource type="Resource" path="res://data/discrepancies/birth_resume_90.tres" id="d_birth_resume_90"]
+[ext_resource type="Resource" path="res://data/story/candidate_lizhe_cousin.tres" id="s_candidate_lizhe_cousin"]
+
+[resource]
+script = ExtResource("1")
+day = 13
+date = "2026-04-23"
+resume_count = 7
+screening_seconds = 205.0
+new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_age_90")])
+discrepancies = Array[ExtResource("disc")]([ExtResource("d_birth_resume_90")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_lizhe_cousin")])
+story_slot = 2
+candidate_mix = {"regular": 70, "laid_off": 20, "changer": 10}
+morning_push = "“35 岁程序员”话题再上热搜"
+boss_mail = "各位家人：\n新规矩：社招也只要 90 后。年龄看身份证，简历上写的不算。上个月你们查过，这个月照样查。\n公司要保持活力。\n—— 王总"
+coworker_note = "老周的便签：\n身份证上的出生年份，1990 年及以后。89 年 12 月的也不行。\n简历上写 90 年的，对一下身份证。上个月有人改过，这个月也有。\n我今年 47。"
+bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}]
+headline = "35 岁程序员自述：“我把简历上的年份改了”"
+news_body = "受访者：“改小两岁，面试多了三倍。被查出来，就说是户口报错。”"
+story_echoes = [{"when": "story_mother:reject", "mail_ps": "PS：昨天那个写“平衡”的，恒远软件的人说她是他们组最能扛的。跟我们没关系了。"}]
+family_sms = "你爸：复查结果出来了，医生说要按时吃药。药不便宜。\n孩子：爸爸，下周编程班结课展示，你来吗？"
+sms_flag = "d13_eve"
+sms_replies = [{"key": "warm", "label": "来。请假也去。", "marriage": 1}, {"key": "curt", "label": "看那天忙不忙。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "t13_1", "at": 560, "text": "老婆：你爸的药一个月四百多，医保报一半。", "replies": [{"key": "warm", "label": "我来出，你别操心。", "marriage": 1}, {"key": "curt", "label": "知道了。", "marriage": 0}]}, {"id": "t13_2", "at": 830, "text": "老婆：今天公司开会，说下个月可能要“优化”一批人。不知道有没有我。", "replies": [{"key": "warm", "label": "有我在，别怕。", "marriage": 1}, {"key": "curt", "label": "应该不会。", "marriage": 0}]}]
+home_scene = [{"text": "你把李哲表哥那个信封塞进公文包最里层。抽屉里三月那个还在。", "when": "took:story_lizhe_cousin&took:story_headhunter"}, {"text": "你把李哲表哥那个信封塞进了公文包最里层。", "when": "took:story_lizhe_cousin&!took:story_headhunter"}, {"text": "到家 18:50。老婆在阳台收衣服，手机在洗衣机上亮了好几次，她都没看。"}, {"text": "老婆：开会说要优化。主管说以后记账软件都带 AI 了，一个人能顶三个。"}, {"text": "老婆：我三十三了。你们 HR 筛人，三十三的会计还要吗？"}, {"ask": "h13_wife", "options": [{"key": "honest", "label": "不好找。但你不会走到那一步。", "then": [{"text": "老婆：你今天筛了几个三十三的？"}, {"text": "你：……没数。"}], "marriage": 1}, {"key": "comfort", "label": "要的，你干得那么好。", "then": [{"text": "老婆：你们的规则里，有“干得好”这一条吗？"}, {"text": "你没回答。"}]}]}, {"text": "孩子从房间探出头：“爸爸，结课展示是下周四！别忘了！”"}]
+chief_opener = "90 后好，有冲劲。我 85 年的，我当年也有。"
+chief_need = {"item": "格局", "note": "要懂新东西的，会用 AI 的。"}
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")

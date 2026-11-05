@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_ai_tool"
+text_key = "平时写代码用 AI 编程助手吗？"
+probes = PackedStringArray("ability")
+audience = "regular"
+honest = "用，补全和写测试用。它写的我都再看一遍，上周它给我编了个不存在的函数。"
+honest_low = "用……其实大部分是它写的，我改改变量名。"
+standard = "AI 是生产力工具，我会熟练运用 AI 提效。"
+flaw = "用、用得很熟，熟练掌握各种……各种 AI。"
+followup_text = "它上次写错，是你发现的，还是线上发现的？"
+honest_followup = "测试挂了我发现的。从那以后它写的代码，我先写测试再合。"
+honest_low_followup = "……线上报了才知道。"
+standard_followup = "我会对 AI 输出做严格的质量把控。"
+flaw_followup = "线、线上……没出过事。应该没有。"
+chief_item = "格局"
+chief_standard = "会用新东西，好。"
+chief_honest = "被它坑了还用？"
+chief_flaw = "……嗯。"

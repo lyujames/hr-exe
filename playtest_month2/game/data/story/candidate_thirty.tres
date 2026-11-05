@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_thirty"
+display_name = "关越"
+applied_position = "内容运营实习生"
+birth_date = "1995-08-14"
+degree = 3
+school = "北海师范大学"
+undergrad_school = "北海师范大学"
+skills = PackedStringArray("文案写作", "公众号运营", "课程设计", "普通话一甲")
+is_intern = true
+major = "学科教学（语文）"
+major_note = "本科专业：汉语言文学"
+gpa = 3.71
+projects = [{"name": "导师横向课题：中学作文评价量表", "role": "核心成员", "start": "2025-09", "end": "2026-02"}, {"name": "学院公众号运营", "role": "负责人", "start": "2025-03", "end": "2025-12"}]
+intern_days = 5
+intern_months = 12
+salary_k = 0
+jobs = []
+self_eval = "在培训班教了三年语文，培训班关了。考回学校读教育硕士，读完也没有讲台可上。想换个地方写字。"
+attachment = "作品：三条推送标题，写在简历背面"
+portrait_seed = 20260316
+ability = 72
+honesty = 85
+loyalty = 80
+pressure = 75
+performance = 35
+answers = {"q_intern_role": "写推送、起标题、回评论。我当了三年老师，一天批四十篇作文，标题写得好不好我一眼能看出来。", "q_project": "公众号是我一个人做的。学院领导嫌标题太“网感”，阅读量是之前的五倍。", "q_our_app": "用过。我在你们 App 上订过家教课，后来那几个老师都转行了。", "q_data_test": "（算了很久，算对了。）数字我不熟，但我肯学。", "q_chores": "能。当老师的时候，复印、排座位、收班费，都是我。", "q_schedule": "研二了，课都修完了。五天都能来。", "q_return_offer": "那我回去写论文。三十一岁了，我不怕再从头来一次。", "q_friday": "回。当老师的时候，家长半夜十二点也发。", "q_weakness": "专业。我知道“学科教学”四个字，在你们这儿是什么意思。", "q_grad_why_ops": "教培没了，讲台也没了。我会的只有写字，和让人愿意听下去。", "q_grad_research": "研究中学生作文怎么评分。说白了，就是什么样的文字让人想读完。", "q_grad_advisor": "导师知道。她说，能出去就出去，别等。", "q_grad_phd": "不读了。我三十一了，想先挣钱。", "chief_exam": "研二没有期末考试了。", "chief_intern_job": "知道，杂活多。我教过书，杂活我熟。"}
+epilogue = {"hired": "你放了他，王总也点了头。他的第一篇推送，阅读量是号上的第一。", "pass": "你放了他，面试后没录用。他把专业那栏改成了“汉语言文学（本科）”，接着投。", "reject": "你回他：“{reason}”。他本科学的就是汉语言文学，那一行写在小字里。"}
+is_story = true

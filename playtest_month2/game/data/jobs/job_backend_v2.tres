@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "后端开发工程师"
+pay_text = "月薪 12–18k"
+majors = PackedStringArray()
+lookalikes = PackedStringArray()
+requirements = PackedStringArray("5 年以上经验", "会用 AI 编程助手优先", "抗压能力强")
+keywords = PackedStringArray("Java", "MySQL", "Redis")
+keyword_lookalikes = PackedStringArray("JavaScript", "SQL", "Redux")
+skill_pool = PackedStringArray("Java", "MySQL", "Redis", "Spring Boot", "Python", "Go", "Kafka", "Docker", "Linux", "Git", "JavaScript", "SQL", "Vue", "MongoDB")
+job_titles = PackedStringArray("后端开发", "Java 开发工程师", "软件工程师", "外包驻场开发", "服务端开发")

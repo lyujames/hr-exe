@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_weekend"
+text_key = "你能接受偶尔周末吗？"
+probes = PackedStringArray("pressure")
+honest = "偶尔可以，提前说就行。"
+honest_low = "周末要回学校上课，不太行。"
+standard = "周末不重要，项目重要。"
+flaw = "偶、偶尔……是多偶尔？"
+followup_text = "上个周末你在干什么？"
+honest_followup = "在学生会做迎新物料，周六周日都在。"
+honest_low_followup = "回家了。周末我一般都回家。"
+standard_followup = "……休息了一下，充充电。"
+flaw_followup = "上、上个周末？……学习。在学习。"
+chief_item = "狼性"
+chief_standard = "这就对了。"
+chief_honest = "提前说？我们哪有提前。"
+chief_flaw = ""

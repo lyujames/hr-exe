@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/chief/question_day2.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day2.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/story/candidate_zhuanshengben.tres" id="story"]
+[ext_resource type="Resource" path="res://data/rules/rule_gpa.tres" id="gpa"]
+
+[resource]
+script = ExtResource("1")
+day = 2
+date = "2026-03-03"
+resume_count = 4
+screening_seconds = 140.0
+new_rules = Array[ExtResource("2")]([ExtResource("gpa")])
+story_candidates = Array[ExtResource("3")]([ExtResource("story")])
+story_slot = 2
+candidate_mix = {"fresh": 100}
+morning_push = "大厂实习隐形门槛：绩点 3.0"
+boss_mail = "各位家人：
+昨天你筛过的实习生，今天来面试。赵主管是带他们的人，他要问什么你别拦着。
+实习生不谈工资，问问 TA 知不知道来干什么。
+另外，绩点 3.0 以下的不要。书都读不好，活也干不好。
+—— 王总"
+coworker_note = "老周的便签：
+学历后面的小字要看，专升本还没入学的不算。
+绩点在“学历”下面那几行，3.0 正好也算。
+面试 5 问，研究生 7 问。赵主管会抢。"
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "“三十五岁现象”再引热议"
+news_body = "专家：年龄并非能力指标。多家企业回应：我们只看“活力”。"
+family_sms = "老婆：老师在家长群里表扬孩子英语进步了。
+老婆：你爸说这几天胸口闷，不肯去医院。"
+sms_flag = "d2_dad"
+sms_replies = [{"key": "checkup", "label": "让他去查查，别拖。", "marriage": 1}, {"key": "weekend", "label": "我周末回去。"}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+chief_opener = "实习生嘛，招进来归我带。你问，我听着。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")
+desk_texts = [{"id": "t2_1", "at": 555, "text": "老婆：你爸早上打电话来，说话有点喘。我让他去医院，他说没事。", "replies": [{"key": "warm", "label": "我中午给爸打个电话。", "marriage": 1}, {"key": "curt", "label": "他说没事就没事吧。", "marriage": 0}]}, {"id": "t2_2", "at": 840, "text": "老婆：孩子英语听写全对，非让我告诉你。", "replies": [{"key": "warm", "label": "替我夸夸他！", "marriage": 1}, {"key": "curt", "label": "好。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:50。孩子把英语听写本摊在你拖鞋旁边。"}, {"text": "孩子：一百分！老师在上面画了个星星！"}, {"text": "孩子：妈妈说你让她夸我了。她夸得一点都不像。", "when": "t2_2:warm"}, {"ask": "h2_kid", "options": [{"key": "burger", "label": "真棒，周末带你去吃汉堡。", "marriage": 1, "then": [{"text": "孩子：说好了！拉钩！"}, {"text": "你跟他拉了钩。老婆在厨房门口看了你一眼。"}]}, {"key": "keep", "label": "嗯，继续保持。", "then": [{"text": "孩子：……哦。"}, {"text": "他把本子收回书包里了。"}]}]}, {"text": "老婆：你那句话管用，你爸答应去查了。你说话他听。", "when": "d2_dad:checkup"}, {"text": "老婆：周末？你这个月哪个周末不加班。", "when": "d2_dad:weekend"}, {"text": "老婆：算了，我先陪他去，你别管了。", "when": "d2_dad:weekend"}, {"text": "老婆：你爸的事，你短信也不回。", "when": "d2_dad:silent"}, {"text": "老婆：他是你爸。", "when": "d2_dad:silent"}, {"text": "睡前，你翻到你爸的号码。"}, {"ask": "h2_call", "options": [{"key": "call", "label": "给他打过去。", "marriage": 1, "then": [{"text": "你爸：没事没事，人老了都这样。你刚换单位，忙你的。"}, {"text": "电话那头电视开得很大声。他说话的时候，中间要停一下喘口气。"}], "say": "你拨了过去。"}, {"key": "late", "label": "太晚了，明天再说。", "then": [{"text": "你把手机放回床头。老婆翻了个身。"}], "say": "你没拨。"}]}]

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "实习补贴每个月几号发？"
+lie = "每月 10 号，从来没晚过。"
+safe = "按公司规定的发薪日发。"
+truth = "说实话……这个月我也不知道。"

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "公司会用 AI 替代程序员吗？"
+lie = "绝对不会，人是我们最宝贵的财富。"
+safe = "AI 是辅助工具，公司重视每一位员工。"
+truth = "不知道。IT 部在试一个叫“码力”的东西。"

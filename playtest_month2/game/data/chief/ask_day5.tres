@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "实习期结束能转正吗？"
+lie = "表现好一定转正，我们很重视培养。"
+safe = "要看部门的 HC 情况。"
+truth = "去年那批实习生，一个都没留。"
