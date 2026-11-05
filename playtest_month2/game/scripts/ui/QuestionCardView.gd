@@ -3,7 +3,7 @@ class_name QuestionCardView extends Control
 ## 左上角的小标签按这张卡探的属性上色，玩家一眼看出是问能力、诚信、忠诚还是抗压。
 ## 尖锐题旁边再贴一个红色“尖锐”。
 
-const SIZE := Vector2(100, 92)
+const SIZE := Vector2(94, 96)
 const TAGS := {
 	"ability": ["能力", Color("7a5a2a")],
 	"honesty": ["诚信", Color("3a5a7a")],
@@ -36,7 +36,7 @@ func setup(question: QuestionCard) -> void:
 func _draw_face(parent: Control) -> StyleBoxFlat:
 	var bg := UI.panel(parent, Rect2(Vector2.ZERO, SIZE), UI.PAPER, UI.BLACK)
 	var box: StyleBoxFlat = bg.get_theme_stylebox("panel")
-	box.set_border_width_all(2)
+	box.set_border_width_all(1)
 	if parent == self:
 		_box = box
 	var tag: Array = TAGS.get(card.probes[0] if card.probes.size() > 0 else "", ["其他", UI.INK_SOFT])
@@ -48,7 +48,8 @@ func _draw_face(parent: Control) -> StyleBoxFlat:
 		UI.label(parent, "尖锐", Vector2(8 + tag_width + 3, 4), UI.PAPER)
 	if card.lawsuit_risk > 0:
 		UI.label(parent, "!", Vector2(SIZE.x - 12, 4), UI.RED)
-	var text := UI.label(parent, card.text_key, Vector2(5, 22), UI.INK, SIZE.x - 10)
+	var text := UI.label(parent, card.text_key, Vector2(5, 21), UI.INK, SIZE.x - 10)
+	text.add_theme_constant_override("line_spacing", -3)
 	# 卡还没入树时 UI.label 设的宽度会被顶掉，等入树后再压回去才会折行
 	text.set_deferred("size", Vector2(SIZE.x - 10, 0))
 	return box

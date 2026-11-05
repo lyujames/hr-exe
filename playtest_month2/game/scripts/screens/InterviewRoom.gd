@@ -9,9 +9,10 @@ class_name InterviewRoom extends Control
 ## 剧情候选人进了面试、今天又有奇葩，就面两场：剧情候选人 15:00–16:30，奇葩 16:30–18:00。
 ## 第 3 天起主管开场拍一张便签（DayConfig.chief_need），录用的人在他自己心里那一项够了，发主管推荐奖。
 ##
-## 画面学《Papers, Please》：上半屏是对面坐着的人，下半屏是桌面。
-## 问题卡不再一次全摊开：洗成牌堆，手里只有 3 张，问掉一张补一张。把卡拖到候选人身上就是问。
-## 每一问自动打进左边的面试笔录，问过什么、TA 怎么答的都留在纸上。
+## 画面学《Papers, Please》：上半屏是对面坐着的人和赵主管，下半屏是桌面。
+## 桌面左边摊着 TA 的简历（InterviewResume）：点一行就问这一行，尖锐卡拖到行上是把这一行问穿（ResumeQuestions）；
+## 红笔圈出来的行是你的疑点，抄到评分表上。中间是手牌：洗成牌堆，手里 3 张，问掉一张补一张，拖到候选人身上就是问。
+## 右边是面试笔录，每一问自动打一行；问简历问出来的反应（认了、支吾、答不上）也贴回简历那一行上。
 
 signal finished
 
@@ -43,17 +44,27 @@ const WALK_OUT_ABILITY := 60
 const CHIEF_PICK_MARK := 1
 
 ## 画面分区：墙（候选人、对话）在上，桌面在下。
-const DESK_TOP := 196.0
-const SPEECH_RECT := Rect2(196, 26, 432, 116)
-const ACTION_POS := Vector2(196, 148)
+## 墙上不画框：候选人的话是一个对话气泡，追问、主管插话是气泡下面的小签；主管是右上角的小头像加一个小气泡。
+const DESK_TOP := 152.0
+const SPEECH_RECT := Rect2(144, 24, 318, 92)
+const ACTION_POS := Vector2(144, 123)
 const DROP_RECT := Rect2(0, 18, 640, DESK_TOP - 18)
-const PORTRAIT_POS := Vector2(40, 40)
-const TRANSCRIPT_RECT := Rect2(8, 204, 158, 150)
-const HAND_POS := Vector2(176, 222)
-const CHIEF_RECT := Rect2(496, 204, 136, 150)
-## 反问、评分表这些收尾的纸，盖在手牌那一块桌面上。
-const END_X := 176.0
-const END_WIDTH := 312.0
+const PORTRAIT_POS := Vector2(8, 22)
+const CHIEF_POS := Vector2(472, 24)
+const CHIEF_BUBBLE := Rect2(472, 91, 164, 59)
+## 桌面：左边带页签的简历纸（高度随内容），纸边一支红笔；右上一张主管便签，下面一排三张手牌。
+const TAB_POS := Vector2(12, 158)
+const RESUME_POS := Vector2(12, 174)
+const PEN_POS := Vector2(318, 182)
+const NOTE_RECT := Rect2(486, 160, 146, 38)
+const HAND_POS := Vector2(340, 222)
+const HAND_SLOTS := [Vector2(0, 0), Vector2(99, 0), Vector2(198, 0)]
+## 笔录是简历那张纸的背面：点页签翻面。
+const TRANSCRIPT_RECT := Rect2(12, 174, 300, 180)
+## 反问、评分表这些收尾的纸，盖满整张桌面。
+const END_X := 4.0
+const END_WIDTH := 632.0
+const END_TOP := 160.0
 
 var candidate: Candidate
 ## 洗好的牌堆和手牌；卡从牌堆抽到手里，问掉就没了。
@@ -94,6 +105,10 @@ var _transcript_scroll: ScrollContainer
 ## 收尾阶段（反问、评分表）盖在桌上的纸。
 var _side: Control
 var _hand_open := false
+var resume: InterviewResume
+var _transcript_box: Control
+var _tabs: Control
+var _pen: Control
 ## 15:00 开始面试，18:00 下班：问题按份平分 15:00–17:30，候选人反问和填评分表占最后半小时。
 ## 两场的日子各占一个半小时，每场的反问和评分表压到最后十五分钟。
 const START_MINUTES := 15 * 60
@@ -151,7 +166,7 @@ func _build_wall() -> void:
 	_quota = Control.new()
 	_quota.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_quota)
-	_drop_frame = UI.panel(self, Rect2(PORTRAIT_POS - Vector2(6, 6), Vector2(140, 140)), Color.TRANSPARENT, UI.GREEN)
+	_drop_frame = UI.panel(self, Rect2(PORTRAIT_POS - Vector2(3, 3), Vector2(134, 134)), Color.TRANSPARENT, UI.GREEN)
 	(_drop_frame.get_theme_stylebox("panel") as StyleBoxFlat).set_border_width_all(2)
 	_drop_frame.visible = false
 	_portrait = PortraitView.new()
@@ -159,9 +174,11 @@ func _build_wall() -> void:
 	_portrait.position = PORTRAIT_POS
 	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_portrait)
-	UI.panel(self, SPEECH_RECT, UI.PAPER, UI.BLACK)
+	UI.panel(self, SPEECH_RECT, UI.PAPER)
+	_tail(SPEECH_RECT.position + Vector2(-6, 30), UI.PAPER, true)
 	var opening := candidate.entrance if candidate.entrance != "" else "（%s 坐下，等你提问。）" % candidate.display_name
-	_speech = UI.label(self, opening, SPEECH_RECT.position + Vector2(10, 8), UI.INK, SPEECH_RECT.size.x - 20)
+	_speech = UI.label(self, opening, SPEECH_RECT.position + Vector2(9, 5), UI.INK, SPEECH_RECT.size.x - 18)
+	_speech.max_lines_visible = 5
 	_action = Control.new()
 	_action.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_action)
@@ -177,17 +194,21 @@ func _build_wall() -> void:
 
 func _build_desk() -> void:
 	UI.panel(self, Rect2(0, DESK_TOP, 640, 360 - DESK_TOP), UI.DESK)
-	UI.panel(self, Rect2(0, DESK_TOP, 640, 3), UI.DESK_DARK)
+	UI.panel(self, Rect2(0, DESK_TOP, 640, 2), UI.DESK_DARK)
 	_build_transcript()
-	_hand_hint = UI.label(self, "", Vector2(HAND_POS.x, 203), UI.TEXT_DIM)
+	_build_resume()
+	_tabs = Control.new()
+	_tabs.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_tabs)
+	_build_pen()
+	_deck_label = UI.label(self, "", HAND_POS + Vector2(0, -17), UI.TEXT_DIM)
 	_hand_view = Control.new()
 	_hand_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_hand_view)
-	UI.panel(self, Rect2(HAND_POS.x, 322, 92, 32), UI.DESK_DARK, Color("46524d"))
-	UI.panel(self, Rect2(HAND_POS.x + 3, 319, 92, 32), Color("3a4440"), Color("56605b"))
-	_deck_label = UI.label(self, "", Vector2(HAND_POS.x + 10, 327), UI.TEXT_DIM)
-	_build_need_note()
+	_hand_hint = UI.label(self, "", HAND_POS + Vector2(0, QuestionCardView.SIZE.y + 4), UI.TEXT_DIM)
 	_build_chief()
+	_build_need_note()
+	_draw_tabs()
 	_side = Control.new()
 	_side.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_side)
@@ -196,16 +217,17 @@ func _build_desk() -> void:
 ## 左边一张打印纸：每问一句自动打一行。
 func _build_transcript() -> void:
 	var r := TRANSCRIPT_RECT
-	UI.panel(self, r, Color("e2e5df"), UI.BLACK)
-	UI.label(self, "面试笔录 · %s" % candidate.display_name, r.position + Vector2(6, 3), UI.INK)
-	UI.panel(self, Rect2(r.position + Vector2(6, 19), Vector2(r.size.x - 12, 1)), UI.INK_SOFT)
+	_transcript_box = Control.new()
+	_transcript_box.visible = false
+	add_child(_transcript_box)
+	UI.panel(_transcript_box, r, UI.PAPER)
 	_transcript_scroll = ScrollContainer.new()
-	_transcript_scroll.position = r.position + Vector2(6, 23)
-	_transcript_scroll.size = r.size - Vector2(8, 26)
+	_transcript_scroll.position = r.position + Vector2(8, 6)
+	_transcript_scroll.size = r.size - Vector2(10, 10)
 	_transcript_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	add_child(_transcript_scroll)
+	_transcript_box.add_child(_transcript_scroll)
 	_transcript_list = VBoxContainer.new()
-	_transcript_list.custom_minimum_size.x = r.size.x - 20
+	_transcript_list.custom_minimum_size.x = r.size.x - 24
 	_transcript_list.add_theme_constant_override("separation", 4)
 	_transcript_scroll.add_child(_transcript_list)
 	var empty := UI.label(_transcript_list, "（还没问。）", Vector2.ZERO, UI.INK_SOFT)
@@ -213,17 +235,28 @@ func _build_transcript() -> void:
 
 
 func _build_chief() -> void:
-	var r := CHIEF_RECT
-	UI.panel(self, r, UI.PAPER_DIM, UI.BLACK)
 	var chief := PortraitView.new()
 	chief.setup(CHIEF_SEED)
-	chief.position = r.position + Vector2(1, 1)
+	chief.position = CHIEF_POS
 	add_child(chief)
-	UI.label(self, "赵主管", r.position + Vector2(70, 4), UI.INK_SOFT)
-	UI.label(self, "创始员工", r.position + Vector2(70, 20), UI.INK_SOFT)
-	_chief_mark = UI.label(self, "", r.position + Vector2(70, 44), UI.INK)
+	UI.label(self, "赵主管", CHIEF_POS + Vector2(72, 4), UI.TEXT_DIM)
+	_chief_mark = UI.label(self, "", CHIEF_POS + Vector2(72, 22), UI.TEXT)
+	var r := CHIEF_BUBBLE
+	UI.panel(self, r, UI.PAPER_DIM)
+	_tail(r.position + Vector2(14, -6), UI.PAPER_DIM, false)
 	var opener := GameState.config.chief_opener if slot == 0 else "下一个。抓紧，六点我还有会。"
-	_chief_line = UI.label(self, "“%s”" % opener, r.position + Vector2(6, 70), UI.INK, r.size.x - 12)
+	_chief_line = UI.label(self, "“%s”" % opener, r.position + Vector2(5, 0), UI.INK, r.size.x - 8)
+	_chief_line.add_theme_constant_override("line_spacing", -5)
+	_chief_line.max_lines_visible = 3
+
+
+## 气泡的小尖角：一个转了 45° 的小方块，一半藏在气泡后面。left 为真朝左，否则朝上。
+func _tail(at: Vector2, color: Color, left: bool) -> void:
+	var tip := UI.panel(self, Rect2(at + (Vector2(2, 0) if left else Vector2(0, 2)), Vector2(9, 9)), color)
+	tip.pivot_offset = Vector2(4.5, 4.5)
+	tip.rotation = PI / 4
+	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	move_child(tip, tip.get_index() - 1)
 
 
 ## 主管开场拍在桌上的便签：今天他要什么样的人。
@@ -231,8 +264,16 @@ func _build_need_note() -> void:
 	var need := chief_need()
 	if need.is_empty():
 		return
-	UI.panel(self, Rect2(HAND_POS.x + 104, 320, 210, 34), UI.YELLOW, UI.BLACK)
-	UI.label(self, "主管便签：%s" % need.note, Vector2(HAND_POS.x + 110, 323), UI.INK, 198)
+	var sticky := Control.new()
+	sticky.position = NOTE_RECT.position
+	sticky.rotation = -0.035
+	sticky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(sticky)
+	UI.panel(sticky, Rect2(Vector2(2, 2), NOTE_RECT.size), Color(0, 0, 0, 0.3))
+	UI.panel(sticky, Rect2(Vector2.ZERO, NOTE_RECT.size), UI.YELLOW)
+	var note := UI.label(sticky, need.note, Vector2(6, 3), UI.INK, NOTE_RECT.size.x - 12)
+	note.add_theme_constant_override("line_spacing", -3)
+	note.max_lines_visible = 2
 
 
 func chief_need() -> Dictionary:
@@ -333,12 +374,13 @@ func _show_hand(open := true) -> void:
 	for i in hand.size():
 		var view := QuestionCardView.new()
 		view.setup(hand[i])
-		view.position = HAND_POS + Vector2(i * 106, 0 if i == 1 else 4)
+		view.position = HAND_POS + HAND_SLOTS[i]
 		view.enabled = open
 		_hand_view.add_child(view)
-	_deck_label.text = "牌堆 %d 张" % deck.size()
-	_hand_hint.text = "手牌 · 拖到候选人身上提问" if open else "手牌 · 先把这一问说完"
-	_hand_hint.add_theme_color_override("font_color", UI.TEXT if open else UI.TEXT_DIM)
+	_deck_label.text = "手牌 · 牌堆 %d" % deck.size()
+	_hand_hint.text = "拖到人身上问 · 尖锐卡可拖到简历行" if open else "先把这一问说完（追问也算一问）"
+	if resume:
+		resume.set_open(open)
 
 
 func _can_drop_card(_at: Vector2, data: Variant) -> bool:
@@ -370,6 +412,113 @@ func ask(card: QuestionCard) -> void:
 	_next()
 
 
+func _build_resume() -> void:
+	resume = InterviewResume.new()
+	resume.position = RESUME_POS
+	add_child(resume)
+	resume.setup(candidate)
+	resume.line_asked.connect(ask_line)
+	resume.sharp_dropped.connect(ask_line_sharp)
+
+
+## 简历和笔录是同一张纸的两面。
+func _flip_paper() -> void:
+	_transcript_box.visible = not _transcript_box.visible
+	resume.visible = not _transcript_box.visible
+	_pen.visible = resume.visible
+	Sfx.paper()
+	_draw_tabs()
+
+
+## 纸顶上露出的两个页签：当前这一面亮，另一面暗；笔录上写着问了几问。
+func _draw_tabs() -> void:
+	UI.clear(_tabs)
+	var x := TAB_POS.x
+	var showing_log := _transcript_box.visible
+	var h := RESUME_POS.y - TAB_POS.y
+	for tab in [["简历", false], ["笔录 %d" % transcript.size(), true]]:
+		var on: bool = tab[1] == showing_log
+		var label := UI.label(_tabs, tab[0], Vector2(x + 8, TAB_POS.y - 1), UI.INK if on else Color("3a403c"))
+		var w := label.get_combined_minimum_size().x + 16
+		var face := UI.panel(_tabs, Rect2(x, TAB_POS.y, w, h + (1 if on else 0)), UI.PAPER if on else Color("9aa39c"))
+		_tabs.move_child(face, label.get_index())
+		if not on:
+			face.mouse_filter = Control.MOUSE_FILTER_STOP
+			face.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			face.gui_input.connect(func(event: InputEvent) -> void:
+				if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+					_flip_paper())
+		x += w + 2
+
+
+## 纸边斜放着一支红笔：点一下拿起来（笔抬高、亮一点），在简历上点哪行圈哪行；再点放下。
+func _build_pen() -> void:
+	_pen = Control.new()
+	_pen.position = PEN_POS
+	_pen.size = Vector2(18, 56)
+	_pen.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_pen.tooltip_text = "红笔：圈出疑点（不占问）"
+	add_child(_pen)
+	_pen.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			resume.toggle_pen()
+			_draw_pen())
+	_draw_pen()
+
+
+func _draw_pen() -> void:
+	UI.clear(_pen)
+	var up := resume.pen
+	var body := Control.new()
+	body.position = Vector2(6, 2 if up else 8)
+	body.rotation = 0.3
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pen.add_child(body)
+	UI.panel(body, Rect2(2, 2, 7, 42), Color(0, 0, 0, 0.35))
+	UI.panel(body, Rect2(0, 0, 7, 40), UI.RED.lightened(0.15) if up else UI.RED)
+	UI.panel(body, Rect2(0, 40, 7, 6), UI.BLACK)
+
+
+## 点简历上的一行：不用卡，照样占一问。
+func ask_line(line: Dictionary) -> void:
+	_ask_about(line, ResumeQuestions.card_for(candidate, line))
+
+
+## 尖锐卡拖到简历的一行上：卡用掉，这一行问穿。
+func ask_line_sharp(line: Dictionary, sharp_card: QuestionCard) -> void:
+	hand.erase(sharp_card)
+	deck.erase(sharp_card)
+	_draw_hand()
+	_ask_about(line, ResumeQuestions.card_for(candidate, line, true))
+
+
+func _ask_about(line: Dictionary, card: QuestionCard) -> void:
+	asked += 1
+	_tick()
+	var reply := _flavor(card.answer(candidate), String(card.id))
+	var tag := _line_tag(line, card, reply, false)
+	_say("你·简历", card.text_key, reply, tag)
+	_chief_react(card, card.chief_reaction(reply.kind))
+	_last = {"card": card, "reply": reply, "line": line}
+	_next()
+
+
+## 问简历问出来的反应，只看得见的：自己认了水分、支支吾吾、一追问就答不上细节。
+## 有没有水分本身看不见，圈不圈由玩家定。手写人物的回答不贴“认了”，露不露馅写在台词里。
+func _line_tag(line: Dictionary, card: QuestionCard, reply: Dictionary, followup: bool) -> String:
+	var key := String(card.id) + ("+" if followup else "")
+	var tag := ""
+	if reply.kind == "flaw":
+		tag = "支吾"
+	elif followup and reply.kind == "standard":
+		tag = "答不上"
+	elif not followup and reply.kind == "honest" and not candidate.answers.has(key) and ResumeQuestions.padded(candidate, line):
+		tag = "认了"
+	if tag != "":
+		resume.mark(line.key, tag)
+	return tag
+
+
 ## 奇葩没手写的那几问照常按属性答，前面贴一句 TA 的小动作；轮着贴，读档重来也一样。
 func _flavor(reply: Dictionary, key: String) -> Dictionary:
 	if candidate.asides.is_empty() or candidate.answers.has(key):
@@ -380,27 +529,31 @@ func _flavor(reply: Dictionary, key: String) -> Dictionary:
 	return out
 
 
-func _say(who: String, question: String, reply: Dictionary) -> void:
-	_speech.text = "%s：%s\n\n%s：%s" % [who, question, candidate.display_name, reply.text]
+func _say(who: String, question: String, reply: Dictionary, tag := "") -> void:
+	var speaker := "你" if who.begins_with("你") else who
+	_speech.text = "%s：%s\n%s：%s" % [speaker, question, candidate.display_name, reply.text]
 	_portrait.tic = reply.tic
 	Sfx.key()
-	_log(who, question, reply.text)
+	_log(who, question, reply.text, tag)
 
 
 ## 笔录上打一行；纸满了往上卷，新的一行总在眼前。
-func _log(who: String, question: String, said: String) -> void:
+func _log(who: String, question: String, said: String, tag := "") -> void:
 	transcript.append({"who": who, "question": question, "reply": said})
 	var empty := _transcript_list.get_node_or_null("Empty")
 	if empty:
 		empty.queue_free()
-	var width := TRANSCRIPT_RECT.size.x - 20
+	var width := TRANSCRIPT_RECT.size.x - 24
 	var entry := VBoxContainer.new()
 	entry.add_theme_constant_override("separation", 0)
 	_transcript_list.add_child(entry)
-	var q := UI.label(entry, "Q%d %s：%s" % [transcript.size(), who, _clip(question, 18)], Vector2.ZERO, UI.INK_SOFT, width)
+	var q := UI.label(entry, "Q%d %s：%s" % [transcript.size(), who, _clip(question, 40)], Vector2.ZERO, UI.INK_SOFT, width)
 	q.custom_minimum_size.x = width
-	var a := UI.label(entry, "“%s”" % _clip(said, 26), Vector2.ZERO, UI.INK, width)
+	var a := UI.label(entry, "“%s”" % _clip(said, 60), Vector2.ZERO, UI.INK, width)
 	a.custom_minimum_size.x = width
+	if tag != "":
+		UI.label(entry, "▲ " + tag, Vector2.ZERO, InterviewResume.MARK_COLORS[tag], width)
+	_draw_tabs()
 	await get_tree().process_frame
 	_transcript_scroll.scroll_vertical = int(_transcript_scroll.get_v_scroll_bar().max_value)
 
@@ -427,9 +580,44 @@ func _next() -> void:
 func _show_follow_up_choice() -> void:
 	var card: QuestionCard = _last.card
 	_show_hand(false)
-	var b := UI.text_button(_action, "追问：“%s”（也算一问）" % card.followup_text, Rect2(ACTION_POS, Vector2(316, 26)), follow_up)
-	b.add_theme_color_override("font_color", UI.YELLOW)
-	UI.button(_action, "不追问", Rect2(ACTION_POS + Vector2(324, 0), Vector2(108, 26)), _skip_follow_up)
+	var x := _chip("追问：" + _clip(card.followup_text, 17), UI.YELLOW, UI.INK, follow_up, ACTION_POS.x)
+	_actions_tip(card.followup_text)
+	_chip("不追问", Color.TRANSPARENT, UI.TEXT_DIM, _skip_follow_up, x + 6)
+
+
+## 气泡下面的小签：一块底色加字，返回右边界，下一个签接着往右排。
+func _chip(text: String, bg: Color, fg: Color, on_press: Callable, x: float) -> float:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var box := StyleBoxFlat.new()
+	box.bg_color = bg
+	box.content_margin_left = 7
+	box.content_margin_right = 7
+	box.content_margin_top = 1
+	box.content_margin_bottom = 1
+	var hover := box.duplicate()
+	hover.bg_color = bg.lightened(0.2) if bg.a > 0 else Color(1, 1, 1, 0.08)
+	b.add_theme_stylebox_override("normal", box)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", hover)
+	b.add_theme_color_override("font_color", fg)
+	b.add_theme_color_override("font_hover_color", fg if bg.a > 0 else UI.TEXT)
+	b.add_theme_color_override("font_pressed_color", fg)
+	b.position = Vector2(x, ACTION_POS.y)
+	b.pressed.connect(on_press)
+	_action.add_child(b)
+	b.size = b.get_combined_minimum_size()
+	return x + b.size.x
+
+
+## 追问签上写不下的，鼠标停上去看全句。
+func _actions_tip(full: String) -> void:
+	for child in _action.get_children():
+		if child is Button:
+			child.tooltip_text = full
+			return
 
 
 func _skip_follow_up() -> void:
@@ -440,6 +628,7 @@ func _skip_follow_up() -> void:
 func follow_up() -> void:
 	var card: QuestionCard = _last.card
 	var first: Dictionary = _last.reply
+	var line: Dictionary = _last.get("line", {})
 	_last = {}
 	asked += 1
 	_followups += 1
@@ -447,7 +636,8 @@ func follow_up() -> void:
 	# 顺着主管的违法问题往下问，你也算问了
 	GameState.lawsuit_risk += card.lawsuit_risk
 	var reply := _flavor(card.follow_up(candidate, first), String(card.id) + "+")
-	_say("追问", card.followup_text, reply)
+	var tag := "" if line.is_empty() else _line_tag(line, card, reply, true)
+	_say("追问", card.followup_text, reply, tag)
 	_chief_react(card, card.chief_followup_reaction(reply, _followups))
 	_next()
 
@@ -474,9 +664,8 @@ func _show_chief_cut_in() -> void:
 	var again := _chief_asked > 0
 	var line: String = "还有一个。" if again else CHIEF_CUT_IN_LINES[_rng.randi_range(0, CHIEF_CUT_IN_LINES.size() - 1)]
 	_chief_line.text = "“%s”" % line
-	UI.panel(_action, Rect2(ACTION_POS, Vector2(316, 26)), UI.YELLOW, UI.BLACK)
-	UI.label(_action, "%s“%s”" % ["赵主管又抬起头：" if again else "赵主管放下手机：", line], ACTION_POS + Vector2(6, 6), UI.INK)
-	UI.button(_action, "让主管问", Rect2(ACTION_POS + Vector2(324, 0), Vector2(108, 26)), chief_ask)
+	var said := UI.label(_action, "赵主管又抬起头：" if again else "赵主管放下手机：", ACTION_POS + Vector2(0, 3), UI.TEXT_DIM)
+	_chip("让主管问", UI.YELLOW, UI.INK, chief_ask, ACTION_POS.x + said.get_combined_minimum_size().x + 6)
 
 
 ## 主管的问题照样占名额，玩家拦不住；他自己问的，他也当场打分。问完你可以接着追问。
@@ -500,6 +689,7 @@ func chief_ask() -> void:
 ## 问完了，手牌收起来，桌上换成反问。
 func _clear_hand() -> void:
 	_hand_open = false
+	resume.set_open(false)
 	UI.clear(_action)
 	UI.clear(_hand_view)
 	_hand_hint.text = ""
@@ -511,7 +701,7 @@ func _show_candidate_ask() -> void:
 	_chief_mark.text = ""
 	_clear_hand()
 	UI.clear(_side)
-	var top := 150.0
+	var top := END_TOP
 	var box := UI.panel(_side, Rect2(END_X, top, END_WIDTH, 0), UI.PAPER, UI.BLACK)
 	UI.label(_side, "你：“你有什么想问我们的？”", Vector2(END_X + 10, top + 6), UI.INK_SOFT)
 	var asked_line := UI.label(_side, "%s：%s" % [candidate.display_name, question.question], Vector2(END_X + 10, top + 24), UI.INK, END_WIDTH - 20)
@@ -559,8 +749,8 @@ func _show_walk_out() -> void:
 func _show_scorecard() -> void:
 	_tick(_scorecard_at)
 	UI.clear(_side)
-	var top := 150.0
-	UI.panel(_side, Rect2(END_X, top, END_WIDTH, 204), UI.PAPER, UI.BLACK)
+	var top := END_TOP
+	UI.panel(_side, Rect2(END_X, top, END_WIDTH, 196), UI.PAPER, UI.BLACK)
 	UI.label(_side, "老板评分表（主管已动过）", Vector2(END_X + 10, top + 6), UI.INK)
 	var need: String = chief_need().get("item", "")
 	var y := top + 26.0
@@ -571,8 +761,25 @@ func _show_scorecard() -> void:
 			b.toggle_mode = true
 			b.button_pressed = scorecard[item] == score
 		y += 30.0
-	UI.button(_side, "录用", Rect2(END_X + 10, top + 162, 140, 34), decide.bind(true))
-	UI.button(_side, "不录用", Rect2(END_X + 162, top + 162, 140, 34), decide.bind(false))
+	_draw_doubts(top)
+	UI.button(_side, "录用", Rect2(END_X + 10, top + 156, 140, 34), decide.bind(true))
+	UI.button(_side, "不录用", Rect2(END_X + 162, top + 156, 140, 34), decide.bind(false))
+
+
+## 评分表右边一栏：简历上红笔圈过的行，原样抄过来。
+func _draw_doubts(top: float) -> void:
+	var x := END_X + 330
+	UI.label(_side, "疑点（红笔）", Vector2(x, top + 26), UI.RED)
+	var doubts := resume.doubt_texts()
+	if doubts.is_empty():
+		UI.label(_side, "没圈。", Vector2(x, top + 44), UI.INK_SOFT)
+		return
+	var y := top + 44.0
+	for text in doubts:
+		var l := UI.label(_side, "○ " + _clip(text, 24), Vector2(x, y), UI.INK, END_WIDTH - 340)
+		y += 15.0 * l.get_line_count()
+		if y > top + 150:
+			break
 
 
 func set_score(item: String, score: int) -> void:

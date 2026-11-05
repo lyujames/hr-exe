@@ -15,6 +15,8 @@ class_name QuestionCard extends Resource
 ## 尖锐题：问的是细节和数字，模板接不住。表演力要到 SHARP_BLUFF 才背得下来，
 ## 平时能背过去的人（70–84）在这里只能说实话或露破绽；背下来的人追问时直接冒汗。
 @export var sharp := false
+## 表演力到多少就背标准答案；0 表示按 sharp 取 BLUFF / SHARP_BLUFF。简历行的卡按有没有水分另算（见 ResumeQuestions）。
+@export var bluff_at := 0
 ## 问谁："all"、"intern"（实习生）、"grad"（在读研究生实习生）、"regular"（社招）。
 @export var audience := "all"
 ## 只对有空窗期的人可用。
@@ -61,11 +63,17 @@ func answer(c: Candidate) -> Dictionary:
 		return {"text": c.answers[String(id)], "tic": "none", "kind": c.answer_kind, "strong": strong}
 	if always_truthful:
 		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
-	if c.performance >= (SHARP_BLUFF if sharp else BLUFF):
+	if c.performance >= bluff_threshold():
 		return {"text": standard, "tic": "none", "kind": "standard", "strong": strong}
 	if c.honesty >= 55:
 		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
 	return {"text": flaw, "tic": "sweat" if c.honesty < 30 else "eyes", "kind": "flaw", "strong": strong}
+
+
+func bluff_threshold() -> int:
+	if bluff_at > 0:
+		return bluff_at
+	return SHARP_BLUFF if sharp else BLUFF
 
 
 func is_strong(c: Candidate) -> bool:

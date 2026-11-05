@@ -35,6 +35,14 @@ static func clamp_pos(key: String, at: Vector2) -> Vector2:
 	return at.clamp(Vector2(0, TOP), limit.max(Vector2(0, TOP))).round()
 
 
+## 平时拖文件松手时记一样东西；别的照旧。
+static func set_pos(key: String, at: Vector2) -> void:
+	_load()
+	var layout := _cache.duplicate()
+	layout[key] = clamp_pos(key, at)
+	save(layout)
+
+
 static func save(layout: Dictionary) -> void:
 	_cache = layout.duplicate()
 	_loaded = true

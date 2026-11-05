@@ -27,4 +27,7 @@ pressure = 50
 performance = 90
 event_override = &"delay"
 epilogue = {"hired": "你录用了他。", "pass": "你放了他。规则上他全对。Banyan 是 2023 年开源的。", "reject": "你拒了他：“{reason}”。他一条规则都没违反，包括那个“8 年”。"}
+answers = {"r_skill:Banyan（8 年）": "最早……0.9 吧，那时候还没几个人用。", "r_skill:Banyan（8 年）+": "1.0 是……2017 年？差不多那时候。"}
 id = &"story_banyan_liar"
+padded_lines = PackedStringArray("skill:Banyan（8 年）", "self_eval", "exp")
+answer_kind = "standard"

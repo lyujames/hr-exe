@@ -3,7 +3,7 @@ class_name Desk extends Control
 
 signal finished
 
-## 简历、身份证、手册、印章等摆在哪由玩家布置（DeskLayout），默认身份证落在规则手册下面，从桌子下沿推上来，不挡简历。
+## 东西摆在哪由玩家定（DeskLayout）：平时拖文件、全家福、手机、质询按钮，松手就记住；印章只能在“布置桌面”里挪。默认身份证落在规则手册下面，从桌子下沿推上来，不挡简历。
 ## 信封从简历底下露出来，和身份证同一个位置；这份简历也带着身份证时，竖着放在桌子左边那条空地上。
 const ENVELOPE_POS := Vector2(350, 232)
 const ENVELOPE_POS_WITH_ID := Vector2(2, 176)
@@ -109,12 +109,14 @@ func _build_room() -> void:
 
 	_book = load("res://scenes/Rulebook.tscn").instantiate()
 	_book.position = DeskLayout.pos("rulebook")
+	_book.layout_key = "rulebook"
 	_doc_layer.add_child(_book)
 	_book.setup()
 
 	if not RuleEngine.active_postings.is_empty():
 		_posting = JobPostingDoc.new()
 		_posting.position = DeskLayout.pos("posting")
+		_posting.layout_key = "posting"
 		_doc_layer.add_child(_posting)
 		_posting.setup(RuleEngine.active_postings)
 	_lines = InspectLines.new()
@@ -125,6 +127,9 @@ func _build_room() -> void:
 		_inspect_button = UI.button(self, "质询", Rect2(at, Vector2(60, 22)), toggle_inspect)
 		_call_button = UI.button(self, "打电话", Rect2(at + Vector2(0, 26), Vector2(60, 22)), call_candidate)
 		_call_button.visible = false
+		# 质询按钮能拖着挪（打电话跟着走）；点一下才是质询
+		_inspect_button.pressed.disconnect(toggle_inspect)
+		DeskDrag.attach(_inspect_button, "inspect", toggle_inspect, [_call_button])
 
 	for verdict: String in ["pass", "reject"]:
 		var stamp := StampTool.new()
@@ -155,6 +160,7 @@ func _next() -> void:
 		return
 	doc = load("res://scenes/ResumeDoc.tscn").instantiate()
 	var doc_pos := DeskLayout.pos("resume")
+	doc.layout_key = "resume"
 	doc.position = Vector2(-240, doc_pos.y)
 	_doc_layer.add_child(doc)
 	doc.setup(queue.pop_front())
@@ -165,6 +171,7 @@ func _next() -> void:
 	if "id_card" in doc.candidate.docs:
 		id_card = IdCardDoc.new()
 		var id_pos := DeskLayout.pos("id_card")
+		id_card.layout_key = "id_card"
 		id_card.position = Vector2(id_pos.x, 370)
 		_doc_layer.add_child(id_card)
 		id_card.setup(doc.candidate)
@@ -473,14 +480,15 @@ func _build_family() -> void:
 	photo.position = DeskLayout.pos("photo")
 	add_child(photo)
 	_photo = photo
+	DeskDrag.attach(photo, "photo")
 	_home_phone = DeskPhone.new()
 	_home_phone.position = DeskLayout.pos("phone")
-	_home_phone.mouse_filter = Control.MOUSE_FILTER_STOP
 	_home_phone.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_home_phone.gui_input.connect(func(event: InputEvent) -> void:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			_toggle_inbox())
 	add_child(_home_phone)
+	# 点一下翻消息；拖开就是挪手机，挪完把弹出来的消息收起来，下回贴着新位置弹
+	DeskDrag.attach(_home_phone, "phone", _toggle_inbox).on_moved = func() -> void:
+		_close_bubble()
+		_close_inbox()
 	_unread = UI.panel(_home_phone, Rect2(22, -3, 8, 8), UI.RED, UI.BLACK)
 	_unread.visible = false
 

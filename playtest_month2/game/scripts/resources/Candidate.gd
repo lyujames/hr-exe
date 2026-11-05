@@ -7,7 +7,7 @@ const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
 	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story",
-	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind",
+	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines",
 ]
 ## 公民身份号码的校验位。
 const ID_WEIGHTS := [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
@@ -70,6 +70,9 @@ const ID_CHECK := "10X98765432"
 @export var asides: PackedStringArray
 ## 手写回答在主管耳朵里算什么：“honest”（默认）还是“standard”（黑话、表忠心，他爱听的那种）。
 @export var answer_kind := "honest"
+## 简历上掺了水的行（ResumeQuestions 的 key，如“skill:Banyan（8 年）”“job:0”“self_eval”）。
+## 手写人物只认这里；普通人按诚信另抽，这里写了的也算。
+@export var padded_lines: PackedStringArray
 
 @export_group("隐藏属性")
 @export_range(0, 100) var ability := 50
@@ -167,6 +170,7 @@ func to_dict() -> Dictionary:
 	data.docs = Array(docs)
 	data.quirk = String(quirk)
 	data.asides = Array(asides)
+	data.padded_lines = Array(padded_lines)
 	return data
 
 
@@ -181,4 +185,5 @@ static func from_dict(data: Dictionary) -> Candidate:
 	c.docs = PackedStringArray(data.get("docs", []))
 	c.quirk = StringName(data.get("quirk", ""))
 	c.asides = PackedStringArray(data.get("asides", []))
+	c.padded_lines = PackedStringArray(data.get("padded_lines", []))
 	return c
