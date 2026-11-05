@@ -24,7 +24,7 @@ func _ready() -> void:
 	if pay.get("per_reason", 0) > 0:
 		y = _row("理由准确 %d 份 × ¥%d" % [s.reason_ok, pay.per_reason], GameState.reason_bonus(), y)
 	for name: String in s.chief_picks:
-		y = _row("主管推荐奖 %s" % name, int(pay.get("chief_bonus", 0)), y)
+		y = _row("%s %s" % [GameState.config.interviewer.get("bonus", "主管推荐奖"), name], int(pay.get("chief_bonus", 0)), y)
 	for r: Dictionary in s.retained:
 		if r.left:
 			y = _row("留任 %s：已离职" % r.name, 0, y)
@@ -32,6 +32,10 @@ func _ready() -> void:
 			y = _row("留任 %s 满 %d 天（延发）" % [r.name, r.days], 0, y)
 		else:
 			y = _row("留任 %s 满 %d 天" % [r.name, r.days], int(pay.retention), y)
+	# 识人：评分表上你改的那一处，满期这天对账；明细（主管填几、你改几、实际几）写在右边那张单子底下
+	for e: Dictionary in s.edits:
+		var verdict: String = {"right": "准", "wrong": "看走眼", "even": "白改", "blank": "%s不算数" % e.item}[e.verdict]
+		y = _row("识人 %s：%s" % [e.name, verdict], int(pay.get("edit_bonus", 0)) if e.verdict == "right" else 0, y)
 	if s.wrong > 0:
 		if GameState.fines_on():
 			var free := mini(s.wrong, GameState.FREE_WARNINGS)
@@ -87,6 +91,11 @@ func _build_notice() -> void:
 		y += 22.0
 	# 底部几行从下往上排：会换行的那行先量高度，违规条目只占剩下的地方
 	var footer: Array = []
+	for e: Dictionary in s.edits:
+		if e.verdict == "blank":
+			footer.append("%s 的%s：主管 %d，你改 %d。这一项对不上任何账。" % [e.name, e.item, e.from, e.to])
+		else:
+			footer.append("%s 的%s：主管 %d，你改 %d，实际 %d。" % [e.name, e.item, e.from, e.to, e.truth])
 	var pending := GameState.pending_hires()
 	if not pending.is_empty():
 		# 只是让玩家知道，不进今天的收入

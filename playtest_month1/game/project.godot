@@ -21,6 +21,7 @@ GameState="*res://autoload/GameState.gd"
 RuleEngine="*res://autoload/RuleEngine.gd"
 SaveManager="*res://autoload/SaveManager.gd"
 Sfx="*res://autoload/Sfx.gd"
+Cheat="*res://autoload/Cheat.gd"
 
 [display]
 

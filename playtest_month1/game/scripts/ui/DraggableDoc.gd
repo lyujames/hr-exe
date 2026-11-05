@@ -1,5 +1,6 @@
 class_name DraggableDoc extends Control
 ## 可在桌面上自由拖动的物件，按下时置顶。
+## 有 layout_key 的（简历、身份证、手册、JD）松手就记进桌面布置：下一份简历、明天的手册都摆在你放的地方。
 
 ## 质询时点了这份材料上的某一行。
 signal field_picked(doc: DraggableDoc, key: String)
@@ -10,6 +11,9 @@ var inspecting := false
 var _grab_offset := Vector2.ZERO
 var _dragging := false
 var _hot: Control
+## DeskLayout 里的名字；空的不记位置。
+var layout_key := ""
+var _press_pos := Vector2.ZERO
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -17,7 +21,10 @@ func _gui_input(event: InputEvent) -> void:
 		_dragging = event.pressed
 		if event.pressed:
 			_grab_offset = position - event.global_position
+			_press_pos = position
 			move_to_front()
+		elif layout_key != "" and position != _press_pos:
+			DeskLayout.set_pos(layout_key, position)
 	elif event is InputEventMouseMotion and _dragging:
 		var limit := get_viewport_rect().size - size
 		position = (event.global_position + _grab_offset).clamp(Vector2(0, 16), limit.max(Vector2(0, 16)))

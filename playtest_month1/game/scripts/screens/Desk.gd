@@ -3,11 +3,10 @@ class_name Desk extends Control
 
 signal finished
 
-const DOC_POS := Vector2(100, 24)
-## 身份证落在规则手册下面，从桌子下沿推上来，不挡简历。
-const ID_POS := Vector2(350, 246)
-## 信封从简历底下露出来，和身份证同一个位置（有信封的那天没有身份证）。
+## 东西摆在哪由玩家定（DeskLayout）：平时拖文件、全家福、手机、质询按钮，松手就记住；印章只能在“布置桌面”里挪。默认身份证落在规则手册下面，从桌子下沿推上来，不挡简历。
+## 信封从简历底下露出来，和身份证同一个位置；这份简历也带着身份证时，竖着放在桌子左边那条空地上。
 const ENVELOPE_POS := Vector2(350, 232)
+const ENVELOPE_POS_WITH_ID := Vector2(2, 176)
 const ENVELOPE_COLOR := Color("c9b48a")
 ## 08:00 上班筛简历，15:00 去面试，18:00 下班（当天没人面试就整理材料到下班）。
 const DAY_START := 8 * 60
@@ -20,13 +19,13 @@ const MISMATCH_REASON := "您提交的材料信息前后不一致。"
 const WRONG_PICK_MINUTES := 5
 const CALL_MINUTES := 10
 ## 桌角的全家福和扣着的手机；家里来消息时手机翻过来亮一下。
-const PHOTO_POS := Vector2(16, 48)
-const PHONE_POS := Vector2(32, 112)
-const BUBBLE_POS := Vector2(70, 110)
+## 消息气泡贴在手机右边。
+const BUBBLE_OFFSET := Vector2(38, -2)
 ## 翻消息的面板从上面开始往下长，不压住印章。
 const INBOX_POS := Vector2(70, 30)
 const FamilyPhoto := preload("res://scripts/ui/FamilyPhoto.gd")
 const DeskPhone := preload("res://scripts/ui/DeskPhone.gd")
+const DeskPrinter := preload("res://scripts/ui/DeskPrinter.gd")
 
 var queue: Array[Candidate] = []
 var doc: ResumeDoc
@@ -52,6 +51,7 @@ var _phone: Control
 var _toast: Label
 var _toast_tween: Tween
 var _slip: Control
+var _printer: Control
 ## 夹在这份简历里的信封；玩家没表态就盖章，算原样退回。
 var _envelope: Control
 var _envelope_answered := false
@@ -65,6 +65,13 @@ var _inbox_panel: Control
 var _called := false
 var _leave_button: Button
 var _leave_confirm: Control
+## 布置桌面：能挪的东西，和布置时停钟。
+var _book: Rulebook
+var _posting: JobPostingDoc
+var _photo: Control
+var _stamps := {}
+var _arranger: DeskArranger
+var arranging := false
 
 
 func _ready() -> void:
@@ -90,43 +97,52 @@ func _build_room() -> void:
 	_hint = UI.label(self, "已处理 0", Vector2(352, 326), UI.TEXT_DIM)
 
 	# 咖啡杯：隐形的时间流逝提示
-	for i in GameState.day:
+	for i in GameState.day_in_month():
 		UI.panel(self, Rect2(14 + i * 22, 318, 16, 18), UI.PAPER_DIM, UI.BLACK)
 		UI.panel(self, Rect2(16 + i * 22, 320, 12, 4), Color("3a2f2a"))
 
 	_build_family()
 
-	var book: Rulebook = load("res://scenes/Rulebook.tscn").instantiate()
-	book.position = Vector2(344, 24)
-	add_child(book)
-	book.setup()
-
-	if not RuleEngine.active_postings.is_empty():
-		var posting := JobPostingDoc.new()
-		posting.position = Vector2(532, 24)
-		add_child(posting)
-		posting.setup(RuleEngine.active_postings)
-
+	# 桌上所有纸都在同一层：按下哪张哪张置顶，新递上来的简历、身份证压在最上面；
+	# 这一层整个在印章、质询按钮下面，手册点得再多也盖不住它们。
 	_doc_layer = Control.new()
 	_doc_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_doc_layer)
+
+	_book = load("res://scenes/Rulebook.tscn").instantiate()
+	_book.position = DeskLayout.pos("rulebook")
+	_book.layout_key = "rulebook"
+	_doc_layer.add_child(_book)
+	_book.setup()
+
+	if not RuleEngine.active_postings.is_empty():
+		_posting = JobPostingDoc.new()
+		_posting.position = DeskLayout.pos("posting")
+		_posting.layout_key = "posting"
+		_doc_layer.add_child(_posting)
+		_posting.setup(RuleEngine.active_postings)
 	_lines = InspectLines.new()
 	add_child(_lines)
 	_toast = UI.label(self, "", Vector2(150, 1), UI.YELLOW)
 	if "id_card" in RuleEngine.active_docs:
-		_inspect_button = UI.button(self, "质询", Rect2(536, 296, 60, 22), toggle_inspect)
-		_call_button = UI.button(self, "打电话", Rect2(536, 322, 60, 22), call_candidate)
+		var at := DeskLayout.pos("inspect")
+		_inspect_button = UI.button(self, "质询", Rect2(at, Vector2(60, 22)), toggle_inspect)
+		_call_button = UI.button(self, "打电话", Rect2(at + Vector2(0, 26), Vector2(60, 22)), call_candidate)
 		_call_button.visible = false
+		# 质询按钮能拖着挪（打电话跟着走）；点一下才是质询
+		_inspect_button.pressed.disconnect(toggle_inspect)
+		DeskDrag.attach(_inspect_button, "inspect", toggle_inspect, [_call_button])
 
 	for verdict: String in ["pass", "reject"]:
 		var stamp := StampTool.new()
-		stamp.position = Vector2(112 if verdict == "pass" else 216, 306)
+		stamp.position = DeskLayout.pos(verdict)
 		add_child(stamp)
 		stamp.setup(verdict)
+		_stamps[verdict] = stamp
 
 
 func _process(delta: float) -> void:
-	if closing:
+	if closing or arranging:
 		return
 	elapsed += delta
 	var ratio := elapsed / GameState.config.screening_seconds
@@ -145,22 +161,26 @@ func _next() -> void:
 		_close_day()
 		return
 	doc = load("res://scenes/ResumeDoc.tscn").instantiate()
-	doc.position = Vector2(-240, DOC_POS.y)
+	var doc_pos := DeskLayout.pos("resume")
+	doc.layout_key = "resume"
+	doc.position = Vector2(-240, doc_pos.y)
 	_doc_layer.add_child(doc)
 	doc.setup(queue.pop_front())
 	doc.stamped.connect(_on_stamped)
 	Sfx.paper()
 	var tween := create_tween().set_parallel()
-	tween.tween_property(doc, "position", DOC_POS, 0.16).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(doc, "position", doc_pos, 0.16).set_trans(Tween.TRANS_QUAD)
 	if "id_card" in doc.candidate.docs:
 		id_card = IdCardDoc.new()
-		id_card.position = Vector2(ID_POS.x, 370)
+		var id_pos := DeskLayout.pos("id_card")
+		id_card.layout_key = "id_card"
+		id_card.position = Vector2(id_pos.x, 370)
 		_doc_layer.add_child(id_card)
 		id_card.setup(doc.candidate)
-		tween.tween_property(id_card, "position", ID_POS, 0.2).set_trans(Tween.TRANS_QUAD)
+		tween.tween_property(id_card, "position", id_pos, 0.2).set_trans(Tween.TRANS_QUAD)
 	if not doc.candidate.envelope.is_empty():
 		_show_envelope(doc.candidate)
-		tween.tween_property(_envelope, "position", ENVELOPE_POS, 0.25).set_trans(Tween.TRANS_QUAD)
+		tween.tween_property(_envelope, "position", _envelope_pos(doc.candidate), 0.25).set_trans(Tween.TRANS_QUAD)
 	for d: DraggableDoc in [doc, id_card]:
 		if d:
 			d.field_picked.connect(pick_field)
@@ -233,7 +253,7 @@ func commit(verdict: String, reason_rule: StringName, reason_text: String) -> vo
 	if _envelope and not _envelope_answered:
 		GameState.answer_envelope(doc.candidate, false)
 	var why := GameState.record_decision(doc.candidate, verdict, reason_rule, reason_text, extra)
-	if why != "" and GameState.instant_notice():
+	if why != "":
 		_print_slip(doc.candidate.display_name, why)
 	_reset_inspect()
 	_done_count += 1
@@ -284,7 +304,7 @@ func _finish() -> void:
 		_leave_button.disabled = true
 	GameState.stats.unprocessed = queue.size()
 	var interview := not GameState.interviewees.is_empty()
-	var note := "15:00，该去面试了。" if interview else "15:00。今天没有面试，你整理材料到六点下班。"
+	var note := ("15:00，该去面试了。今天两场。" if InterviewRoom.second_candidate() else "15:00，该去面试了。") if interview else "15:00。今天没有面试，你整理材料到六点下班。"
 	if not queue.is_empty():
 		note += "还有 %d 份简历没看，计件没了。" % queue.size()
 	if GameState.stats.left_early:
@@ -294,34 +314,77 @@ func _finish() -> void:
 	UI.button(self, "去面试" if interview and not GameState.stats.left_early else "继续", Rect2(280, 194, 80, 20), finished.emit)
 
 
-## 教学期：盖错章，打印机当场从桌边吐一张违规单。点一下扔掉；下一张来了旧的就收走。
+## 盖错章，桌角的打印机当场吐一张违规单。点一下扔掉；下一张来了旧的就收走。
+## 第一个月只扣这份的判断奖金；第二个月单子带编号，一天第 3 次起罚款。
 func _print_slip(who: String, why: String) -> void:
 	if _slip:
 		_slip.queue_free()
+	var fined := GameState.fines_on()
+	var n: int = GameState.stats.wrong
 	var slip := Control.new()
-	slip.size = Vector2(106, 104)
-	slip.position = Vector2(640, 182)
+	slip.size.x = 92
 	slip.mouse_filter = Control.MOUSE_FILTER_STOP
 	slip.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	add_child(slip)  # 先入树，换行宽度才生效
-	UI.panel(slip, Rect2(Vector2(2, 2), slip.size), UI.BLACK)
-	UI.panel(slip, Rect2(Vector2.ZERO, slip.size), UI.PAPER, UI.INK_SOFT)
+	var shadow := UI.panel(slip, Rect2(2, 2, slip.size.x, 0), UI.BLACK)
+	var paper := UI.panel(slip, Rect2(0, 0, slip.size.x, 0), UI.PAPER, UI.INK_SOFT)
 	UI.panel(slip, Rect2(0, 0, slip.size.x, 16), UI.RED)
-	UI.label(slip, "违规通知", Vector2(6, 1), UI.PAPER)
-	UI.label(slip, who, Vector2(6, 20), UI.INK)
-	UI.label(slip, why, Vector2(6, 36), UI.INK, 96)
-	var cost := "第 3 次起罚款" if GameState.fines_on() else "本月不扣钱，这份绩效少拿 ¥%d" % int(GameState.pay.per_correct)
-	UI.label(slip, cost, Vector2(6, 68), UI.INK_SOFT, 96)
+	UI.label(slip, "违规通知 #%d" % n if fined else "违规通知", Vector2(5, 1), UI.PAPER)
+	# 先放进一个临时容器入树，换行宽度才生效，好量出单子多长
+	add_child(slip)
+	var y := 20.0
+	for line: Array in [
+		[who, UI.INK],
+		[why, UI.INK],
+		[_slip_cost(fined, n), UI.RED if fined and n > GameState.FREE_WARNINGS else UI.INK_SOFT],
+	]:
+		var l := UI.label(slip, line[0], Vector2(5, y), line[1], slip.size.x - 10)
+		y += l.get_line_count() * (l.get_line_height() + 1) + 4
+	slip.size.y = y + 2
+	shadow.size.y = slip.size.y
+	paper.size.y = slip.size.y
+	remove_child(slip)
+
+	# 单子从出纸口往上冒；打印机被挪到顶上、上面放不下，就从底下吐
+	var at := _printer.position
+	var mouth := at + DeskPrinter.SLOT.position + Vector2((DeskPrinter.SLOT.size.x - slip.size.x) / 2.0, 0)
+	var up := mouth.y - slip.size.y >= DeskLayout.TOP
+	var feed := Control.new()
+	feed.clip_contents = true
+	feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if up:
+		feed.position = Vector2(mouth.x, mouth.y - slip.size.y)
+	else:
+		feed.position = Vector2(mouth.x, at.y + DeskPrinter.H)
+	feed.size = slip.size + Vector2(2, 2)
+	add_child(feed)
+	feed.add_child(slip)
+	slip.position.y = slip.size.y if up else -slip.size.y
 	slip.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
+			Sfx.paper()
 			var away := create_tween()
-			away.tween_property(slip, "position:x", 660.0, 0.15)
-			away.tween_callback(slip.queue_free))
-	_slip = slip
+			away.tween_property(feed, "modulate:a", 0.0, 0.15)
+			away.tween_callback(feed.queue_free))
+	_slip = feed
+
 	var tween := create_tween()
 	tween.tween_interval(0.2)  # 让盖章声先响完
-	tween.tween_callback(Sfx.printer)
-	tween.tween_property(slip, "position:x", 532.0, 0.5)
+	tween.tween_callback(func() -> void:
+		Sfx.printer()
+		_printer.print_for(0.6))
+	# 针式打印机一截一截往外走
+	var steps := 5
+	for i in steps:
+		tween.tween_property(slip, "position:y", slip.size.y * (1.0 - float(i + 1) / steps) * (1 if up else -1), 0.08)
+		tween.tween_interval(0.04)
+
+
+func _slip_cost(fined: bool, n: int) -> String:
+	if not fined:
+		return "本月不扣钱，这份绩效少拿 ¥%d" % int(GameState.pay.per_correct)
+	if n > GameState.FREE_WARNINGS:
+		return "今天第 %d 次，罚款 ¥%d" % [n, GameState.VIOLATION_FINE]
+	return "今天第 %d 次。第 %d 次起每次罚 ¥%d" % [n, GameState.FREE_WARNINGS + 1, GameState.VIOLATION_FINE]
 
 
 func toggle_inspect() -> void:
@@ -418,19 +481,28 @@ func _show_toast(text: String, color: Color) -> void:
 
 
 ## 信封：写着谁塞的、塞多少。收进抽屉当晚进存款；退回去就什么都没发生——至少这个月。
+func _envelope_pos(c: Candidate) -> Vector2:
+	return ENVELOPE_POS_WITH_ID if "id_card" in c.docs else ENVELOPE_POS
+
+
 func _show_envelope(c: Candidate) -> void:
 	_envelope_answered = false
 	_envelope = Control.new()
-	_envelope.size = Vector2(180, 86)
-	_envelope.position = Vector2(ENVELOPE_POS.x, 370)
+	var narrow := "id_card" in c.docs
+	_envelope.size = Vector2(96, 148) if narrow else Vector2(180, 86)
+	_envelope.position = Vector2(_envelope_pos(c).x, 370)
 	_envelope.mouse_filter = Control.MOUSE_FILTER_STOP
 	_doc_layer.add_child(_envelope)
 	UI.panel(_envelope, Rect2(Vector2(2, 2), _envelope.size), UI.BLACK)
 	UI.panel(_envelope, Rect2(Vector2.ZERO, _envelope.size), ENVELOPE_COLOR, UI.INK_SOFT)
-	UI.label(_envelope, "信封（夹在简历里）", Vector2(6, 2), UI.INK_SOFT)
-	UI.label(_envelope, c.envelope.text, Vector2(6, 18), UI.INK, 168)
-	UI.button(_envelope, "收进抽屉", Rect2(6, 62, 80, 20), _answer_envelope.bind(true))
-	UI.button(_envelope, "退回去", Rect2(94, 62, 80, 20), _answer_envelope.bind(false))
+	UI.label(_envelope, "信封（夹在简历里）" if not narrow else "信封", Vector2(6, 2), UI.INK_SOFT)
+	UI.label(_envelope, c.envelope.text, Vector2(6, 18), UI.INK, _envelope.size.x - 12)
+	if narrow:
+		UI.button(_envelope, "收进抽屉", Rect2(6, 104, 84, 18), _answer_envelope.bind(true))
+		UI.button(_envelope, "退回去", Rect2(6, 126, 84, 18), _answer_envelope.bind(false))
+	else:
+		UI.button(_envelope, "收进抽屉", Rect2(6, 62, 80, 20), _answer_envelope.bind(true))
+		UI.button(_envelope, "退回去", Rect2(94, 62, 80, 20), _answer_envelope.bind(false))
 
 
 func _answer_envelope(taken: bool) -> void:
@@ -443,22 +515,29 @@ func _answer_envelope(taken: bool) -> void:
 		if child is Button:
 			child.queue_free()
 	var amount := int(doc.candidate.envelope.get("amount", 0))
-	UI.label(_envelope, "（¥%d 进了抽屉。）" % amount if taken else "（原样塞回简历里了。）", Vector2(6, 64), UI.INK_SOFT)
+	var narrow := _envelope.size.x < 120
+	UI.label(_envelope, "（¥%d 进了抽屉。）" % amount if taken else "（原样塞回简历里了。）", Vector2(6, 104 if narrow else 64), UI.INK_SOFT, _envelope.size.x - 12)
 
 
 ## 全家福：你、老婆、孩子、你爸。
 func _build_family() -> void:
 	var photo: Control = FamilyPhoto.new()
-	photo.position = PHOTO_POS
+	photo.position = DeskLayout.pos("photo")
 	add_child(photo)
+	_photo = photo
+	DeskDrag.attach(photo, "photo")
+	_printer = DeskPrinter.new()
+	_printer.position = DeskLayout.pos("printer")
+	add_child(_printer)
+	DeskDrag.attach(_printer, "printer")
 	_home_phone = DeskPhone.new()
-	_home_phone.position = PHONE_POS
-	_home_phone.mouse_filter = Control.MOUSE_FILTER_STOP
+	_home_phone.position = DeskLayout.pos("phone")
 	_home_phone.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_home_phone.gui_input.connect(func(event: InputEvent) -> void:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			_toggle_inbox())
 	add_child(_home_phone)
+	# 点一下翻消息；拖开就是挪手机，挪完把弹出来的消息收起来，下回贴着新位置弹
+	DeskDrag.attach(_home_phone, "phone", _toggle_inbox).on_moved = func() -> void:
+		_close_bubble()
+		_close_inbox()
 	_unread = UI.panel(_home_phone, Rect2(22, -3, 8, 8), UI.RED, UI.BLACK)
 	_unread.visible = false
 
@@ -487,14 +566,15 @@ func _check_home(minutes: int) -> void:
 func _ring(text: String, is_call: bool) -> void:
 	Sfx.buzz()
 	_close_inbox()
+	var home_x := DeskLayout.pos("phone").x
 	var shake := create_tween()
 	for i in 6:
-		shake.tween_property(_home_phone, "position:x", PHONE_POS.x + (2.0 if i % 2 == 0 else -2.0), 0.05)
-	shake.tween_property(_home_phone, "position:x", PHONE_POS.x, 0.05)
+		shake.tween_property(_home_phone, "position:x", home_x + (2.0 if i % 2 == 0 else -2.0), 0.05)
+	shake.tween_property(_home_phone, "position:x", home_x, 0.05)
 	_close_bubble()
 	_home_phone.set_lit(true, _clock.text)
 	_bubble = Control.new()
-	_bubble.position = BUBBLE_POS
+	_bubble.position = _bubble_pos()
 	_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bubble)
 	var height := 64.0 if is_call else 40.0
@@ -621,3 +701,56 @@ func _leave() -> void:
 	_leave_confirm = null
 	GameState.leave_early()
 	_close_day()
+
+
+## 气泡贴在手机右边；手机放在桌子右半边时改贴左边，别伸出屏幕。
+func _bubble_pos() -> Vector2:
+	var phone := DeskLayout.pos("phone")
+	var at := phone + BUBBLE_OFFSET
+	if at.x + 210 > 640:
+		at.x = phone.x - 214
+	return at.clamp(Vector2(0, DeskLayout.TOP), Vector2(430, 360 - 64))
+
+
+## 布置桌面（从菜单进）：钟停着，拖占位框摆东西，存下来以后每天都这么摆。
+func start_arrange() -> void:
+	if closing or arranging or _picker or _leave_confirm:
+		return
+	arranging = true
+	_close_bubble()
+	_close_inbox()
+	_hang_up()
+	var keys := ["resume", "rulebook", "photo", "phone", "pass", "reject"]
+	if _posting:
+		keys.append("posting")
+	if "id_card" in RuleEngine.active_docs:
+		keys.append_array(["id_card", "inspect"])
+	_arranger = DeskArranger.new()
+	add_child(_arranger)
+	_arranger.setup(keys, _place)
+	_arranger.closed.connect(func() -> void:
+		arranging = false
+		_arranger = null)
+
+
+func _place(key: String, at: Vector2) -> void:
+	match key:
+		"resume":
+			if doc:
+				doc.position = at
+		"id_card":
+			if id_card:
+				id_card.position = at
+		"rulebook":
+			_book.position = at
+		"posting":
+			_posting.position = at
+		"photo":
+			_photo.position = at
+		"phone":
+			_home_phone.position = at
+		"pass", "reject":
+			_stamps[key].position = at
+		"inspect":
+			_inspect_button.position = at
+			_call_button.position = at + Vector2(0, 26)

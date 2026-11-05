@@ -7,6 +7,8 @@ class_name DayConfig extends Resource
 ## 08:00–15:00 筛简历对应的真实秒数；15:00 去面试，18:00 下班。
 @export var screening_seconds := 240.0
 @export var new_rules: Array[Rule] = []
+## 今天收起来的东西：规则 id、材料矛盾 id、岗位名（比如月初实习岗招满，实习那几条规矩不再生效）。先收后加。
+@export var retire: PackedStringArray
 ## 今天起简历之外多带的材料，和规则一样只增不减。
 @export var new_docs: PackedStringArray
 ## 今天起出现的材料矛盾，桌上有对应材料才生效。
@@ -21,11 +23,11 @@ class_name DayConfig extends Resource
 @export var morning_push: String
 @export_multiline var boss_mail: String
 @export_multiline var coworker_note: String
-## 本月工资标准 {base, per_resume, per_correct, per_reason, chief_bonus, retention, retention_days, retention_deferred, fines, instant_notice}
+## 本月工资标准 {base, per_resume, per_correct, per_reason, chief_bonus, edit_bonus, retention, retention_days, retention_deferred, fines}
 ## chief_bonus：主管推荐奖，录用的人是赵主管要的（见 chief_need），当天发；没写算 0。，只在月初设置，之后沿用。
 ## fines 为 false 时不扣钱：违规只是拿不到判断奖金，老板对质也不罚款；没写算 true。
+## edit_bonus：识人奖，评分表上你改的那一处，留任期满对账时比主管填的准，每人发一次；没写算 0。
 ## per_reason：拒对且理由选中违反的那条，再加的钱；只有经济好的第 1 月有，没写算 0。
-## instant_notice 为 true 时盖错章当场吐一张违规单（教学期）；没写算 false，对错只在日结揭晓。
 ## 员工事件不再按天配置：每个录用的人在留任期满那天早上结算。
 @export var pay: Dictionary = {}
 ## 可选开销 [{id, label, amount, unpaid_note}]：可以不付，家庭状态会恶化。
@@ -63,4 +65,15 @@ class_name DayConfig extends Resource
 ## 赵主管开场拍在桌上的便签 {item: 评分项, note: 便签上的话}：录用的人在他心里这一项够了，发主管推荐奖（pay.chief_bonus）。空表示今天没有。
 @export var chief_need: Dictionary = {}
 @export var chief_question: QuestionCard
+## 招程序员起主管每场先问一道尖锐题，从今天及之前每天的这一张里抽（见 InterviewRoom._plan_chief）。
+@export var chief_sharp: QuestionCard
+## 今天的奇葩面试者：没有剧情候选人进面试时，套在抽中的普通人身上。
+## 第 11 天起程序员按组招：面试的人换成用人那个组的组长，空表示还是赵主管。
+## {name: 头像旁的名字, seed: 头像种子, cut_in / cut_in_again: 插话前那句旁白, next_line: 第二场开场, bonus: 日结单上推荐奖的叫法}
+## 组长和赵主管反着来：说实话、说得出细节的加分，背标准答案、露破绽的扣分（QuestionCard.lead_reaction）。
+## 他不碰老板评分表，只记自己心里的“技术 / 协作”，填表时直接告诉你要不要（chief_need 的 item 写这两项之一）。
+@export var interviewer: Dictionary = {}
+## 组长自己带来的问题，第一张是尖锐题，每场抢两问；只在 interviewer 不空时用。
+@export var lead_cards: Array[QuestionCard] = []
+@export var quirk: Quirk
 @export var candidate_ask: CandidateAsk

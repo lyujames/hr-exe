@@ -5,9 +5,9 @@ enum Degree { HIGH_SCHOOL, COLLEGE, BACHELOR, MASTER, DOCTOR }
 const DEGREE_NAMES := ["高中", "大专", "本科", "硕士", "博士"]
 const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
-	"is_intern", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
+	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
 	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story",
-	"docs", "doc_overrides", "answers", "call_line", "envelope",
+	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines",
 ]
 ## 公民身份号码的校验位。
 const ID_WEIGHTS := [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
@@ -35,6 +35,9 @@ const ID_CHECK := "10X98765432"
 @export var intern_days := 0
 @export var intern_months := 0
 @export var skills: PackedStringArray
+## 社招：简历上写的工作年限（月）和后面的小字（“含实习 1 年”“含外包”）；0 表示写的是“无”。
+@export var exp_months := 0
+@export var exp_note: String
 ## 期望月薪上限（k）；salary_low_k 非 0 时写成区间。
 @export var salary_k: int = 12
 @export var salary_low_k: int = 0
@@ -57,8 +60,19 @@ const ID_CHECK := "10X98765432"
 @export var call_line: String
 ## 简历里夹着的信封 {from, text, amount}：收不收由玩家定，见 GameState.kickbacks。
 @export var envelope: Dictionary = {}
+## 这一条对上就不出现（写法同 story_echoes 的 when，比如“story_chenmo_1:hired”：上回已经录用了，不会再投）。
+@export var skip_when: String
 ## 月底回顾里这个人的结局 {hired, pass, reject: 一句话}，“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var epilogue: Dictionary = {}
+## 套上了哪个奇葩面试者（Quirk），空表示没有；进门的旁白和没手写的回答前面那句小动作。
+@export var quirk: StringName
+@export var entrance: String
+@export var asides: PackedStringArray
+## 手写回答在主管耳朵里算什么：“honest”（默认）还是“standard”（黑话、表忠心，他爱听的那种）。
+@export var answer_kind := "honest"
+## 简历上掺了水的行（ResumeQuestions 的 key，如“skill:Banyan（8 年）”“job:0”“self_eval”）。
+## 手写人物只认这里；普通人按诚信另抽，这里写了的也算。
+@export var padded_lines: PackedStringArray
 
 @export_group("隐藏属性")
 @export_range(0, 100) var ability := 50
@@ -106,6 +120,16 @@ func get_age(today: String) -> int:
 	return DateUtil.age_on(birth_date, today)
 
 
+func exp_text() -> String:
+	if exp_months <= 0:
+		return "无"
+	var years := exp_months / 12
+	var months := exp_months % 12
+	if years == 0:
+		return "%d 个月" % months
+	return "%d 年" % years if months == 0 else "%d 年 %d 个月" % [years, months]
+
+
 func salary_text() -> String:
 	return "%dk" % salary_k if salary_low_k == 0 else "%d–%dk" % [salary_low_k, salary_k]
 
@@ -144,6 +168,9 @@ func to_dict() -> Dictionary:
 	data.event_override = String(event_override)
 	data.skills = Array(skills)
 	data.docs = Array(docs)
+	data.quirk = String(quirk)
+	data.asides = Array(asides)
+	data.padded_lines = Array(padded_lines)
 	return data
 
 
@@ -156,4 +183,7 @@ static func from_dict(data: Dictionary) -> Candidate:
 	c.skills = PackedStringArray(data.skills)
 	c.projects = Array(data.get("projects", []))
 	c.docs = PackedStringArray(data.get("docs", []))
+	c.quirk = StringName(data.get("quirk", ""))
+	c.asides = PackedStringArray(data.get("asides", []))
+	c.padded_lines = PackedStringArray(data.get("padded_lines", []))
 	return c
