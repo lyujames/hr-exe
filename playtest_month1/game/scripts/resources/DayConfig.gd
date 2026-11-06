@@ -23,11 +23,11 @@ class_name DayConfig extends Resource
 @export var morning_push: String
 @export_multiline var boss_mail: String
 @export_multiline var coworker_note: String
-## 本月工资标准 {base, per_resume, per_correct, per_reason, chief_bonus, retention, retention_days, retention_deferred, fines, instant_notice}
+## 本月工资标准 {base, per_resume, per_correct, per_reason, chief_bonus, edit_bonus, retention, retention_days, retention_deferred, fines}
 ## chief_bonus：主管推荐奖，录用的人是赵主管要的（见 chief_need），当天发；没写算 0。，只在月初设置，之后沿用。
 ## fines 为 false 时不扣钱：违规只是拿不到判断奖金，老板对质也不罚款；没写算 true。
+## edit_bonus：识人奖，评分表上你改的那一处，留任期满对账时比主管填的准，每人发一次；没写算 0。
 ## per_reason：拒对且理由选中违反的那条，再加的钱；只有经济好的第 1 月有，没写算 0。
-## instant_notice 为 true 时盖错章当场吐一张违规单（教学期）；没写算 false，对错只在日结揭晓。
 ## 员工事件不再按天配置：每个录用的人在留任期满那天早上结算。
 @export var pay: Dictionary = {}
 ## 可选开销 [{id, label, amount, unpaid_note}]：可以不付，家庭状态会恶化。
@@ -37,7 +37,7 @@ class_name DayConfig extends Resource
 ## 按当天员工事件 id 替换报纸头条：{event_id: [标题, 正文]}。
 @export var news_by_event: Dictionary = {}
 ## 之前那些手写人物的回响 [{when, headline, body, mail_ps, sms}]，when 是“候选人 id:pass/reject/hired”。
-## 第一条对上的生效；headline 让位给 news_by_event。文字里的“{reason}”换成玩家拒绝 TA 时选的那句。
+## 第一条对上的生效；headline 让位给 news_by_event。bonus {label, amount}：对上了，今天日结单多一行老板发的钱。文字里的“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var story_echoes: Array = []
 @export_multiline var family_sms: String
 ## 按之前的家里事换掉 family_sms [{when, sms}]，when 是“标记:选项”（见 GameState.family），第一条对上的生效。

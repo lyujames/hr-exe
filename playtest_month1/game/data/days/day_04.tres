@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
@@ -8,16 +8,17 @@
 [ext_resource type="Resource" path="res://data/chief/question_day4.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day4.tres" id="chief_a"]
 [ext_resource type="Resource" path="res://data/story/candidate_thirty.tres" id="story"]
+[ext_resource type="Resource" path="res://data/story/candidate_philosophy.tres" id="story2"]
 
 [resource]
 script = ExtResource("1")
 day = 4
 date = "2026-03-05"
 resume_count = 5
-screening_seconds = 155.0
+screening_seconds = 170.0
 new_rules = Array[ExtResource("2")]([])
 new_postings = Array[ExtResource("jp")]([ExtResource("job")])
-story_candidates = Array[ExtResource("3")]([ExtResource("story")])
+story_candidates = Array[ExtResource("3")]([ExtResource("story"), ExtResource("story2")])
 story_slot = 2
 candidate_mix = {"fresh": 100}
 morning_push = "内容岗实习“卷”出新高度：一个岗位上千份简历"
@@ -38,10 +39,9 @@ family_sms = "老婆：手续我一个人办完了。押金要交。\n老婆：�
 family_sms_by = [{"when": "d4_left:yes", "sms": "老婆：你来了，你爸就踏实了，刚睡着。\n老婆：押金要交。医生说先观察几天。"}]
 midday_call = {"at": 720, "text": "老婆：你爸住院了。你能早点回来吗？", "flag": "d4_left"}
 chief_opener = "实习生我见多了，干两个月就回去写论文。你把把关。"
-chief_need = {"item": "稳定性", "note": "别招干两个月就跑的。"}
 chief_question = ExtResource("chief_q")
 candidate_ask = ExtResource("chief_a")
-desk_texts = [{"id": "t4_1", "at": 520, "text": "老婆：我陪你爸在医院排队，心电图要等。", "replies": [{"key": "warm", "label": "辛苦了，有事马上打给我。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}, {"id": "t4_2", "at": 820, "text": "老婆：医生说要住几天。我回家拿点东西，晚上再来。", "replies": [{"key": "warm", "label": "晚上我去医院守着。", "marriage": 1}, {"key": "curt", "label": "好。", "marriage": 0}]}]
+desk_texts = [{"id": "t4_1", "at": 520, "when": "!h3_dad:both", "text": "老婆：我陪你爸在医院排队，心电图要等。", "replies": [{"key": "warm", "label": "辛苦了，有事马上打给我。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}, {"id": "t4_1", "at": 660, "when": "h3_dad:both", "text": "老婆：你刚走，医生又叫他去做个 CT。", "replies": [{"key": "warm", "label": "结果出来马上告诉我。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}, {"id": "t4_2", "at": 820, "text": "老婆：医生说要住几天。我回家拿点东西，晚上再来。", "replies": [{"key": "warm", "label": "晚上我去医院守着。", "marriage": 1}, {"key": "curt", "label": "好。", "marriage": 0}]}]
 sms_flag = "d4_eve"
 sms_replies = [{"key": "warm", "label": "今晚我守着，你回去歇歇。", "marriage": 1}, {"key": "curt", "label": "押金我明天交。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
-home_scene = [{"text": "你在医院走廊的折叠椅上坐了一夜。你爸睡着了，呼吸声很重。", "when": "d4_eve:warm"}, {"text": "十一点，老婆发来一张照片：孩子趴在桌上写作业，旁边是一张画，画的是爷爷和一个很大的太阳。", "when": "d4_eve:warm"}, {"ask": "h4_photo", "options": [{"key": "reply", "label": "回她：画得真好。替我亲他一下。", "marriage": 1, "then": [{"text": "老婆：亲了。他嫌我口水多。"}], "say": "你回她：画得真好。替我亲他一下。"}, {"key": "look", "label": "看了很久，没回。", "then": [{"text": "护士推着车从你面前过去。你把手机屏幕按灭了。"}], "say": "你看了很久，没回。"}], "when": "d4_eve:warm"}, {"text": "你从医院回来，到家八点多。孩子还没睡，在等你。", "when": "!d4_eve:warm&d4_left:yes"}, {"text": "老婆：今天你来了，你爸挺高兴的。嘴上还在说你不该请假。", "when": "!d4_eve:warm&d4_left:yes"}, {"text": "你到家 18:55。老婆刚从医院回来，外套还没脱。", "when": "!d4_eve:warm&d4_left:"}, {"text": "老婆：你爸一下午都在问你来不来。我说你在开会。", "when": "!d4_eve:warm&d4_left:"}, {"text": "老婆：押金我先垫上了。你明天记得把钱转我。", "when": "d4_eve:curt"}, {"text": "孩子：爸爸，爷爷会死吗？", "when": "!d4_eve:warm"}, {"ask": "h4_kid", "options": [{"key": "no", "label": "不会，爷爷就是住几天院。", "then": [{"text": "孩子：那我能去看他吗？"}, {"text": "你：周末去。"}]}, {"key": "honest", "label": "爸爸也不知道。医生在想办法。", "marriage": 1, "then": [{"text": "他想了一会儿，把一张画塞到你手里：“那你明天带给他。”"}, {"text": "画上是爷爷，还有一个很大的太阳。"}, {"text": "老婆站在门口听见了，没说话，过来拍了拍你的背。"}]}], "when": "!d4_eve:warm"}]
+home_scene = [{"text": "你在医院走廊的折叠椅上坐了一夜。你爸睡着了，呼吸声很重。", "when": "d4_eve:warm"}, {"text": "十一点，老婆发来一张照片：孩子趴在桌上写作业，旁边是一张画，画的是爷爷和一个很大的太阳。", "when": "d4_eve:warm"}, {"ask": "h4_photo", "options": [{"key": "reply", "label": "回她：画得真好。替我亲他一下。", "marriage": 1, "then": [{"text": "老婆：亲了。他嫌我口水多。"}], "say": "你回她：画得真好。替我亲他一下。"}, {"key": "look", "label": "看了很久，没回。", "then": [{"text": "护士推着车从你面前过去。你把手机屏幕按灭了。"}], "say": "你看了很久，没回。"}], "when": "d4_eve:warm"}, {"text": "你从医院回来，到家八点多。孩子还没睡，在等你。", "when": "!d4_eve:warm&d4_left:yes"}, {"text": "老婆：今天你来了，你爸挺高兴的。嘴上还在说你不该请假。", "when": "!d4_eve:warm&d4_left:yes"}, {"text": "你到家 18:55。老婆刚从医院回来，外套还没脱。", "when": "!d4_eve:warm&d4_left:"}, {"text": "老婆：你爸一下午都在问你来不来。我说你在开会。", "when": "!d4_eve:warm&d4_left:&!h3_dad:both"}, {"text": "老婆：上午你在，他踏实多了。下午一直盯着门口，问你还来不来。", "when": "!d4_eve:warm&d4_left:&h3_dad:both"}, {"text": "老婆：押金我先垫上了。你明天记得把钱转我。", "when": "d4_eve:curt"}, {"text": "孩子：爸爸，爷爷会死吗？", "when": "!d4_eve:warm"}, {"ask": "h4_kid", "options": [{"key": "no", "label": "不会，爷爷就是住几天院。", "then": [{"text": "孩子：那我能去看他吗？"}, {"text": "你：周末去。"}]}, {"key": "honest", "label": "爸爸也不知道。医生在想办法。", "marriage": 1, "then": [{"text": "他想了一会儿，把一张画塞到你手里：“那你明天带给他。”"}, {"text": "画上是爷爷，还有一个很大的太阳。"}, {"text": "老婆站在门口听见了，没说话，过来拍了拍你的背。"}]}], "when": "!d4_eve:warm"}]

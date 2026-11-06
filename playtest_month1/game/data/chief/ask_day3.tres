@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1")
 question = "加班多吗？"
+student_question = "请问……会经常加班吗？我晚上还想回学校上自习。"
 lie = "我们是弹性工作制。"
 safe = "看项目阶段。"
 truth = "上个月主管的孩子在工位写作业。"

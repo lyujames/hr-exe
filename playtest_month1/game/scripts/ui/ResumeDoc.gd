@@ -128,14 +128,14 @@ func _drop_data(at: Vector2, data: Variant) -> void:
 
 func stamp(verdict: String, at: Vector2) -> void:
 	is_stamped = true
-	var ink := UI.GREEN.darkened(0.3) if verdict == "pass" else UI.RED
+	var ink: Color = {"pass": UI.GREEN.darkened(0.3), "exception": UI.YELLOW.darkened(0.35)}.get(verdict, UI.RED)
 	var mark := Control.new()
 	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mark.position = at.clamp(Vector2(40, 20), SIZE - Vector2(40, 20))
 	mark.rotation = randf_range(-0.2, 0.2)
 	UI.panel(mark, Rect2(-38, -15, 76, 30), Color(ink, 0.12), ink)
 	UI.panel(mark, Rect2(-36, -13, 72, 26), Color.TRANSPARENT, ink)
-	var text := UI.label(mark, "通 过" if verdict == "pass" else "拒 绝", Vector2(-36, -8), ink)
+	var text := UI.label(mark, {"pass": "通 过", "exception": "破 格"}.get(verdict, "拒 绝"), Vector2(-36, -8), ink)
 	text.size.x = 72
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(mark)

@@ -8,6 +8,8 @@ const BOSS_SEED := 1984
 var event: Dictionary
 var _options: Control
 var _reply: Label
+## 正文超过四行时纸多出来的高度。
+var _extra := 0.0
 
 
 func setup(data: Dictionary) -> void:
@@ -20,12 +22,16 @@ func setup(data: Dictionary) -> void:
 	boss.position = Vector2(60, 122)
 	add_child(boss)
 	UI.label(self, "王总", Vector2(108, 254), UI.TEXT_DIM)
-	UI.panel(self, Rect2(214, 40, 390, 118), UI.PAPER, UI.BLACK)
+	var paper := UI.panel(self, Rect2(214, 40, 390, 118), UI.PAPER, UI.BLACK)
 	UI.label(self, event.title, Vector2(226, 48), UI.RED if event.blame else UI.INK)
-	UI.label(self, event.body, Vector2(226, 70), UI.INK, 366)
-	_reply = UI.label(self, "", Vector2(226, 136), UI.INK_SOFT, 366)
+	var body := UI.label(self, event.body, Vector2(226, 70), UI.INK, 366)
+	# 主管、评分表、离职记录各添一行，正文长了纸跟着往下长，回话和按钮一起往下挪
+	_extra = maxf(0.0, body.size.y - 64.0)
+	paper.size.y += _extra
+	_reply = UI.label(self, "", Vector2(226, 136 + _extra), UI.INK_SOFT, 366)
 	_options = Control.new()
 	_options.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_options.position.y = _extra
 	add_child(_options)
 	if event.blame:
 		UI.button(_options, "“这是规则要求的。”", Rect2(214, 170, 390, 24), choose.bind("rule"))

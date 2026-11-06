@@ -32,14 +32,25 @@ func _ready() -> void:
 			y = _row("留任 %s 满 %d 天（延发）" % [r.name, r.days], 0, y)
 		else:
 			y = _row("留任 %s 满 %d 天" % [r.name, r.days], int(pay.retention), y)
+	for b: Dictionary in GameState.echo_bonuses():
+		y = _row(b.label, int(b.amount), y)
+	# 识人：评分表上你改的那一处，满期这天对账；明细（主管填几、你改几、实际几）写在右边那张单子底下
+	for e: Dictionary in s.edits:
+		var verdict: String = {"right": "准", "wrong": "看走眼", "even": "白改", "blank": "%s不算数" % e.item}[e.verdict]
+		y = _row("识人 %s：%s" % [e.name, verdict], int(pay.get("edit_bonus", 0)) if e.verdict == "right" else 0, y)
+	if GameState.late_fine() > 0:
+		y = _row("迟到（%s 到）" % GameState.arrival_time(), -GameState.late_fine(), y)
 	if s.wrong > 0:
 		if GameState.fines_on():
 			var free := mini(s.wrong, GameState.FREE_WARNINGS)
 			y = _row("违规 %d 次（%d 次警告）" % [s.wrong, free], -GameState.fines(), y)
 		else:
 			y = _row("违规 %d 次（本月不罚款）" % s.wrong, 0, y)
-	if s.event_fine > 0:
-		y = _row("员工事故", -s.event_fine, y)
+	var vouch_bad: int = s.vouch.filter(func(v: Dictionary) -> bool: return not v.good).size()
+	for v: Dictionary in s.vouch:
+		y = _row("破格担保 %s：%s" % [v.name, "干得好" if v.good else "出事了"], -GameState.VOUCH_FINE if not v.good else 0, y)
+	if s.event_fine - vouch_bad * GameState.VOUCH_FINE > 0:
+		y = _row("员工事故", -(s.event_fine - vouch_bad * GameState.VOUCH_FINE), y)
 	if s.gray > 0:
 		y = _row("信封（不入账）", s.gray, y)
 	if GameState.is_month_end():
@@ -87,6 +98,11 @@ func _build_notice() -> void:
 		y += 22.0
 	# 底部几行从下往上排：会换行的那行先量高度，违规条目只占剩下的地方
 	var footer: Array = []
+	for e: Dictionary in s.edits:
+		if e.verdict == "blank":
+			footer.append("%s 的%s：主管 %d，你改 %d。这一项对不上任何账。" % [e.name, e.item, e.from, e.to])
+		else:
+			footer.append("%s 的%s：主管 %d，你改 %d，实际 %d。" % [e.name, e.item, e.from, e.to, e.truth])
 	var pending := GameState.pending_hires()
 	if not pending.is_empty():
 		# 只是让玩家知道，不进今天的收入
@@ -94,6 +110,8 @@ func _build_notice() -> void:
 		footer.append("在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)))
 	if not GameState.passed_today.is_empty() and GameState.day < GameState.LAST_DAY:
 		footer.append("今天通过 %d 人，约明天面试。" % GameState.passed_today.size())
+	if s.exception != "" and GameState.day < GameState.LAST_DAY:
+		footer.append("破格：%s，明天 14:00 你单独面。" % s.exception)
 	if s.unprocessed > 0:
 		footer.append("未处理简历 %d 份。" % s.unprocessed)
 	footer.append("正确 %d / 已处理 %d" % [s.correct, s.processed])

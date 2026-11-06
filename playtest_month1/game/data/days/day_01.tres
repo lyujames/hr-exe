@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
 [ext_resource type="Resource" path="res://data/rules/rule_degree.tres" id="4"]
 [ext_resource type="Resource" path="res://data/story/candidate_perfect.tres" id="5"]
+[ext_resource type="Resource" path="res://data/story/candidate_college_d1.tres" id="college"]
 [ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
 [ext_resource type="Resource" path="res://data/jobs/job_ops.tres" id="job_ops"]
 
@@ -15,8 +16,8 @@ date = "2026-03-02"
 resume_count = 4
 screening_seconds = 120.0
 new_rules = Array[ExtResource("2")]([ExtResource("4")])
-story_candidates = Array[ExtResource("3")]([ExtResource("5")])
-story_slot = 3
+story_candidates = Array[ExtResource("3")]([ExtResource("college"), ExtResource("5")])
+story_slot = 1
 candidate_mix = {"fresh": 100}
 new_postings = Array[ExtResource("jp")]([ExtResource("job_ops")])
 morning_push = "互联网公司暑期实习开抢"
@@ -30,7 +31,7 @@ coworker_note = "老周的便签：
 把印章拖到简历上。拒绝要选一句理由，选准是哪条另有奖金。
 工资按份计件，看得越多挣得越多。
 盖错了，打印机当场吐一张违规单。"
-pay = {"base": 170, "per_resume": 15, "per_correct": 5, "per_reason": 5, "chief_bonus": 100, "retention": 150, "retention_days": 3, "retention_deferred": false, "fines": false, "instant_notice": true}
+pay = {"base": 170, "per_resume": 15, "per_correct": 5, "per_reason": 5, "chief_bonus": 100, "edit_bonus": 50, "retention": 150, "retention_days": 3, "retention_deferred": false, "fines": false}
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
 headline = "实习岗“一岗难求”：互联网运营实习投递比达 300:1"
 news_body = "某招聘平台称，大三学生平均投递 60 份简历，才换来一次实习面试。"

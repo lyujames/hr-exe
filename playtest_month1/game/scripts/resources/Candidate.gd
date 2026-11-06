@@ -7,7 +7,7 @@ const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
 	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story",
-	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines",
+	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines", "crack_lines",
 ]
 ## 公民身份号码的校验位。
 const ID_WEIGHTS := [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
@@ -62,7 +62,9 @@ const ID_CHECK := "10X98765432"
 @export var envelope: Dictionary = {}
 ## 这一条对上就不出现（写法同 story_echoes 的 when，比如“story_chenmo_1:hired”：上回已经录用了，不会再投）。
 @export var skip_when: String
-## 月底回顾里这个人的结局 {hired, pass, reject: 一句话}，“{reason}”换成玩家拒绝 TA 时选的那句。
+## 主角看到这份简历心里动了一下（第一次出现破格章的那天用）：桌上弹出的一句内心独白。空表示没有。
+@export var liked_line: String
+## 月底回顾里这个人的结局 {hired, pass, reject, exception: 一句话}；exception 是你破格放进来的（录用了用 hired），“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var epilogue: Dictionary = {}
 ## 套上了哪个奇葩面试者（Quirk），空表示没有；进门的旁白和没手写的回答前面那句小动作。
 @export var quirk: StringName
@@ -70,6 +72,8 @@ const ID_CHECK := "10X98765432"
 @export var asides: PackedStringArray
 ## 手写回答在主管耳朵里算什么：“honest”（默认）还是“standard”（黑话、表忠心，他爱听的那种）。
 @export var answer_kind := "honest"
+## 你追问到第几次就说第几句，不管追的是哪张卡；说完最后一句算问穿了（GameState.expose）。主管听不出来。
+@export var crack_lines: PackedStringArray
 ## 简历上掺了水的行（ResumeQuestions 的 key，如“skill:Banyan（8 年）”“job:0”“self_eval”）。
 ## 手写人物只认这里；普通人按诚信另抽，这里写了的也算。
 @export var padded_lines: PackedStringArray
@@ -171,6 +175,7 @@ func to_dict() -> Dictionary:
 	data.quirk = String(quirk)
 	data.asides = Array(asides)
 	data.padded_lines = Array(padded_lines)
+	data.crack_lines = Array(crack_lines)
 	return data
 
 
@@ -186,4 +191,5 @@ static func from_dict(data: Dictionary) -> Candidate:
 	c.quirk = StringName(data.get("quirk", ""))
 	c.asides = PackedStringArray(data.get("asides", []))
 	c.padded_lines = PackedStringArray(data.get("padded_lines", []))
+	c.crack_lines = PackedStringArray(data.get("crack_lines", []))
 	return c

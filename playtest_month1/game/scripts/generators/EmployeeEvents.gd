@@ -7,6 +7,11 @@ const LIE_FINE := 300
 ## 由重到轻；同一天几个人满期，老板只叫最重的那个，其余的只在日结里一行带过。
 const SEVERITY := ["embezzle", "jump", "burnout", "delay", "praise"]
 const LEAVES := ["embezzle", "jump", "burnout"]
+## 评分表上哪一项对的是哪个隐藏属性：抗压的人不会加班加到哭，留得住的人不跳槽，干得了的人不拖排期。
+## 颜值没有对应的属性，改了也对不上账。
+const EDIT_TRUTH := {"狼性": "pressure", "稳定性": "loyalty", "格局": "ability"}
+## 出了哪种事，对的是评分表哪一项。
+const EVENT_ITEM := {"burnout": "狼性", "jump": "稳定性", "delay": "格局"}
 
 
 static func due_event() -> Dictionary:
@@ -18,6 +23,8 @@ static func due_event() -> Dictionary:
 			var days := GameState.retention_due(hire) - int(hire.day_hired)
 			var entry := {"name": event.name, "days": days, "left": event.id in LEAVES, "title": event.title}
 			GameState.stats.retained.append(entry)
+			settle_edit(hire)
+			_settle_vouch(hire, event)
 			events.append(event)
 	if events.is_empty():
 		return _empty_headcount() if _no_hires_this_month() else {}
@@ -71,10 +78,56 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 	if hire.get("chief_pick", false):
 		var who: String = hire.get("picked_by", "赵主管")
 		event.body += "\n%s在旁边：“%s”" % [who, "我带得好。" if kind == "praise" else "人是你面的。"]
+	# 破格进来的人：你单独面、你签的字。出事扣担保金（第一个月也扣），干得好老板记你一笔。
+	if hire.get("vouched", false):
+		event.vouched = true
+		if kind == "praise":
+			event.body += "\n王总批注：“破格那个是你保的？眼光可以。”"
+		else:
+			event.body += "\n“规则不让进，是你破格放进来的。担保金 ¥%d，自己出。”" % GameState.VOUCH_FINE
+	var edit: Dictionary = hire.get("hr_edit", {})
+	if not edit.is_empty() and EVENT_ITEM.get(kind, "") == edit.item:
+		# 一行写完，别把老板的回话挤出纸
+		var to := int(edit.to)
+		var said := "看出来了还招？" if to <= 2 else ("这一项是你签的字。" if to >= 4 else "改成个 3 分，有什么用？")
+		event.body += "\n评分表上你改了%s %d→%d：“%s”" % [edit.item, int(edit.from), to, said]
 	var promise: String = hire.get("promise", "")
 	if promise != "" and kind in ["jump", "burnout"]:
 		event.body += "\n离职记录：“面试时 HR 说：%s”" % promise
 	return event
+
+
+## 破格担保对账：出事（含跳槽、项目延期）扣担保金，甩锅也甩不掉；干得好老板记你一笔。日结单上单列一行。
+static func _settle_vouch(hire: Dictionary, event: Dictionary) -> void:
+	if not hire.get("vouched", false):
+		return
+	var good: bool = event.id == "praise"
+	GameState.boss_trust += 1 if good else -1
+	if not good:
+		GameState.stats.event_fine += GameState.VOUCH_FINE
+	GameState.stats.vouch.append({"name": hire.candidate.display_name, "good": good})
+
+
+## 属性 0–100 折成评分表的 1–5：0–19 是 1，80 以上是 5。
+static func true_score(attribute: int) -> int:
+	return clampi(1 + attribute / 20, 1, 5)
+
+
+## 留任期满对账：你改的那一处，比主管原来填的离真实情况近就是“准”，远就是“看走眼”，一样远算“白改”。
+## 结果记进 stats.edits，日结单上一行一个，准的发识人奖（GameState.edit_bonus）。
+static func settle_edit(hire: Dictionary) -> void:
+	var edit: Dictionary = hire.get("hr_edit", {})
+	if edit.is_empty():
+		return
+	var entry := {"name": hire.candidate.display_name, "item": edit.item, "from": int(edit.from), "to": int(edit.to), "truth": 0, "verdict": "blank"}
+	var attribute: String = EDIT_TRUTH.get(edit.item, "")
+	if attribute != "":
+		var truth := true_score(int(hire.candidate.get(attribute, 50)))
+		var mine := absi(entry.to - truth)
+		var chief := absi(entry.from - truth)
+		entry.truth = truth
+		entry.verdict = "right" if mine < chief else ("wrong" if mine > chief else "even")
+	GameState.stats.edits.append(entry)
 
 
 static func _empty_headcount() -> Dictionary:

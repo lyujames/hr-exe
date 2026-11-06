@@ -10,8 +10,8 @@ var ink := UI.GREEN
 
 func setup(stamp_verdict: String) -> void:
 	verdict = stamp_verdict
-	title = "通过" if verdict == "pass" else "拒绝"
-	ink = UI.GREEN if verdict == "pass" else UI.RED
+	title = {"pass": "通过", "exception": "破格"}.get(verdict, "拒绝")
+	ink = {"pass": UI.GREEN, "exception": UI.YELLOW}.get(verdict, UI.RED)
 	size = SIZE
 	mouse_default_cursor_shape = Control.CURSOR_DRAG
 	_draw_block(self)

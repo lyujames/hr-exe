@@ -12,7 +12,9 @@ const ITEMS := {
 	"phone": {"name": "手机", "pos": Vector2(32, 112), "size": Vector2(30, 52)},
 	"pass": {"name": "通过章", "pos": Vector2(112, 306), "size": Vector2(92, 40)},
 	"reject": {"name": "拒绝章", "pos": Vector2(216, 306), "size": Vector2(92, 40)},
+	"exception": {"name": "破格章", "pos": Vector2(4, 272), "size": Vector2(92, 40)},
 	"inspect": {"name": "质询", "pos": Vector2(536, 296), "size": Vector2(60, 48)},
+	"printer": {"name": "打印机", "pos": Vector2(536, 262), "size": Vector2(100, 32)},
 }
 ## 顶上那条状态栏不让放。
 const TOP := 18.0
