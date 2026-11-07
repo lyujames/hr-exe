@@ -51,7 +51,7 @@ func _say(text: String) -> void:
 		color = UI.GREEN
 	elif text.begins_with("孩子："):
 		color = UI.YELLOW
-	elif text.begins_with("老婆：") or text.begins_with("你爸："):
+	elif text.begins_with("老婆：") or text.begins_with("你爸：") or text.begins_with("李哲他爸："):
 		color = UI.TEXT
 	var probe := UI.label(_page, text, Vector2(40, _y), color, 560)
 	var h := maxf(16.0, probe.get_line_count() * 15.0)

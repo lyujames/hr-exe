@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-applied_position = "后端开发工程师"
+applied_position = "后端开发工程师（基础架构组）"
 is_intern = false
 is_story = true
 docs = PackedStringArray("id_card")
@@ -26,6 +26,6 @@ loyalty = 70
 pressure = 30
 performance = 50
 event_override = &"burnout"
-answers = {"q_leaving": "我还没上过班……毕业以后考了一次公务员，没考上。", "q_weakness": "我爸说我面试太老实。", "q_tech_depth": "我……主要写过毕业设计。增删改查。", "q_tech_depth+": "最深的坑是答辩前一天数据库密码忘了。我爸托人找的学长帮我弄好的。", "q_future": "我爸说先进来，别的以后再说。", "q_sharp_incident": "我还没上过线……毕业答辩那天服务器挂了，算吗？", "q_sharp_incident+": "没写复盘。我爸说，下回早点找人。"}
+answers = {"q_leaving": "我还没上过班……毕业以后考了一次公务员，没考上。", "q_weakness": "我爸说我面试太老实。", "q_tech_depth": "我……主要写过毕业设计。增删改查。", "q_tech_depth+": "最深的坑是答辩前一天数据库密码忘了。我爸托人找的学长帮我弄好的。", "q_future": "我爸说先进来，别的以后再说。", "q_sharp_incident": "我还没上过线……毕业答辩那天服务器挂了，算吗？", "q_sharp_incident+": "没写复盘。我爸说，下回早点找人。", "lead_infra_sharp": "……我没碰过线上的机器。我爸说，进来以后会有人教。", "lead_infra_sharp+": "不能重启的话……我只能打电话问人。", "lead_infra_doc": "……我没写过运维脚本。毕业设计的部署，是学长帮我弄的。"}
 epilogue = {"hired": "你录用了他。你爸在电话里笑了很久。", "pass": "你放了他。违规单上写着：应拒绝：工作年限。", "reject": "你回他：“{reason}”。这句话他爸会转述给你爸。"}
 id = &"story_xiaoliu"

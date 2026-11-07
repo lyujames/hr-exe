@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-applied_position = "后端开发工程师"
+applied_position = "后端开发工程师（数据组）"
 is_intern = false
 is_story = true
 docs = PackedStringArray("id_card")
@@ -25,6 +25,6 @@ honesty = 85
 loyalty = 90
 pressure = 65
 performance = 40
-answers = {"q_overtime": "能加，但要提前说。我得安排孩子。", "q_future": "五年后我四十。我希望那时候还在写代码。", "q_oncall": "我带着电脑睡。孩子发烧那晚，我一只手抱着她，一只手回滚。", "q_oncall+": "回滚完四点。六点她醒了，问我为什么没睡。", "q_sharp_cache": "先更库再删缓存，删失败丢队列重试。中间会脏一小段，我们认——但库存和余额不走缓存，这条是我定的。", "q_sharp_cache+": "定这条之前超卖过一次，四十单。那天我在开家长会，是在走廊里打电话回滚的。"}
+answers = {"q_overtime": "能加，但要提前说。我得安排孩子。", "q_future": "五年后我四十。我希望那时候还在写代码。", "q_oncall": "我带着电脑睡。孩子发烧那晚，我一只手抱着她，一只手回滚。", "q_oncall+": "回滚完四点。六点她醒了，问我为什么没睡。", "q_sharp_cache": "先更库再删缓存，删失败丢队列重试。中间会脏一小段，我们认——但库存和余额不走缓存，这条是我定的。", "q_sharp_cache+": "定这条之前超卖过一次，四十单。那天我在开家长会，是在走廊里打电话回滚的。", "lead_data_mentor": "“没事，先恢复。”我带过五个，删过库的有两个，现在都是骨干。权限是我给的，我也有份。", "lead_data_mentor+": "收一半。删的权限收回来，查的留着。全收了，他下回连问都不敢问。"}
 epilogue = {"hired": "你录用了她。入职第一周，她把每晚十几条告警降到了两条。", "pass": "你放了她。违规单上写着：应拒绝：奋斗者文化。", "reject": "你回她：“{reason}”。她把“平衡”两个字删了，别的一个字没改，又投了出去。"}
 id = &"story_mother"

@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-title = "后端开发工程师"
+title = "后端开发工程师（新项目组）"
 pay_text = "月薪 12–18k"
 majors = PackedStringArray()
 lookalikes = PackedStringArray()

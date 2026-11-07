@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_new_cut"
+probes = PackedStringArray("loyalty")
+audience = "regular"
+lead_item = "协作"
+text_key = "新项目，做半年可能就砍了。你还来吗？"
+honest = "来。砍了也学到东西。但我想先知道，砍了以后人去哪。"
+honest_low = "……那我得再想想。上一个项目就是这么没的。"
+standard = "我相信公司的战略眼光，愿意与公司共同成长。"
+flaw = "不、不会砍的吧？"
+followup_text = "要是砍了，人就散了。你还来吗？"
+honest_followup = "来。我宁可干半年真东西，也不想再干三年外包。"
+honest_low_followup = "……那我不来了。对不起。"
+standard_followup = "我会服从公司的安排。"
+flaw_followup = "那……那我先来看看。"
+lead_strong = "会问“人去哪”的，靠谱。"
+lead_standard = "公司的战略，我都不知道。"

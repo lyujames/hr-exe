@@ -6,7 +6,7 @@ const DEGREE_NAMES := ["高中", "大专", "本科", "硕士", "博士"]
 const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
-	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story",
+	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story", "broker",
 	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines",
 ]
 ## 公民身份号码的校验位。
@@ -62,7 +62,9 @@ const ID_CHECK := "10X98765432"
 @export var envelope: Dictionary = {}
 ## 这一条对上就不出现（写法同 story_echoes 的 when，比如“story_chenmo_1:hired”：上回已经录用了，不会再投）。
 @export var skip_when: String
-## 月底回顾里这个人的结局 {hired, pass, reject: 一句话}，“{reason}”换成玩家拒绝 TA 时选的那句。
+## 主角看到这份简历心里动了一下（第一次出现破格章的那天用，第一个月第 3 天）：桌上弹出的一句内心独白。空表示没有。
+@export var liked_line: String
+## 月底回顾里这个人的结局 {hired, pass, reject, exception: 一句话}；exception 是你破格放进来的（录用了用 hired），“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var epilogue: Dictionary = {}
 ## 套上了哪个奇葩面试者（Quirk），空表示没有；进门的旁白和没手写的回答前面那句小动作。
 @export var quirk: StringName
@@ -83,6 +85,9 @@ const ID_CHECK := "10X98765432"
 ## 非空时覆盖按属性推导的员工事件（例如剧情候选人）。
 @export var event_override: StringName
 @export var is_story := false
+## 猎头（李哲他爸）推来的人：简历右下角铅笔写着“钱”。都卡在某一条规则边上不合格，能力也差；
+## 放进面试他转 ¥100，录用后满试用期再转 ¥200（GameState.BROKER_PASS / BROKER_RETAIN）。
+@export var broker := false
 
 ## 只供生成器排经历用：空窗月数、几个月前离职（-1 在职）。
 var gap_months := 0

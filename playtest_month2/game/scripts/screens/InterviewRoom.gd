@@ -8,6 +8,8 @@ class_name InterviewRoom extends Control
 ## 当天没有剧情候选人进面试，抽中的普通人可能是个奇葩（DayConfig.quirk）：简历正常，一开口才知道。
 ## 剧情候选人进了面试、今天又有奇葩，就面两场：剧情候选人 15:00–16:30，奇葩 16:30–18:00。
 ## 第 3 天起主管开场拍一张便签（DayConfig.chief_need），录用的人在他自己心里那一项够了，发主管推荐奖。
+## 第 11 天起程序员按组招，坐在主管位置上的换成用人组的组长（DayConfig.interviewer）：他带自己的题、每场抢两问，
+## 听的是真话不是官话（QuestionCard.lead_reaction），不碰老板评分表，填表时直接说这个人他要不要。
 ##
 ## 画面学《Papers, Please》：上半屏是对面坐着的人和赵主管，下半屏是桌面。
 ## 桌面左边摊着 TA 的简历（InterviewResume）：点一行就问这一行，尖锐卡拖到行上是把这一行问穿（ResumeQuestions）；
@@ -30,9 +32,10 @@ const QUESTIONS_ALLOWED := 5
 const GRAD_QUESTIONS_ALLOWED := 7
 ## 手里同时拿几张卡。
 const HAND_SIZE := 3
-## 主管抢几问；第一问总是玩家开场。
+## 主管抢几问；第一问总是玩家开场。组长每场都抢两问。
 const CHIEF_ASKS_MIN := 1
 const CHIEF_ASKS_MAX := 2
+const LEAD_ASKS := 2
 const CHIEF_CUT_IN_LINES := ["等一下，我问一句。", "我插一句。", "这个我来问。", "你先停一下。"]
 const SCORE_ITEMS := ["狼性", "格局", "稳定性", "颜值"]
 const CHIEF_SEED := 4101
@@ -77,12 +80,16 @@ var chief_slots: Array[int] = []
 var chief_cards: Array[QuestionCard] = []
 var _rng := RandomNumberGenerator.new()
 var _chief_asked := 0
+## 今天坐在主管位置上的是组长（DayConfig.interviewer 不空）。
+var lead := false
 var scorecard := {}
 ## 主管自己当场加减的分，-2..+2；评分表上的数是 3 加它，玩家改评分表动不了这里。
 var chief_marks := {}
 ## 刚说完的那一问，可以追问：{card, reply, by_chief}；空表示没得追问。
 var _last := {}
 var _followups := 0
+## 组长这一场有没有被打动过（合上电脑那一下只演一次）。
+var _lead_won := false
 var _promise := ""
 var _loyalty_hit := 0
 ## 笔录：每一问一条 {who, question, reply}。
@@ -119,20 +126,36 @@ var slot := 0
 var _start := START_MINUTES
 var _questions_end := QUESTIONS_END
 var _scorecard_at := 17 * 60 + 45
+## 这一场是破格的单独面试（GameState.vouched）：14:00–15:00，主管 / 组长的椅子空着，没人抢问、没人动表，
+## 评分表是空的 3 分，你自己填；录用了记作你担保（GameState.add_hire 的 vouched_hire）。
+var solo := false
+const SOLO_START := 14 * 60
 
 
 func _ready() -> void:
-	slot = GameState.interviewed_today.size()
-	candidate = pick_candidate()
-	GameState.interviewed_today.append(candidate.display_name)
-	if slot > 0 or second_candidate():
+	var vouched := GameState.next_vouched()
+	if vouched:
+		solo = true
+		candidate = vouched
+		GameState.stats.solo_done.append(candidate.display_name)
+		_start = SOLO_START
+		_scorecard_at = SOLO_START + 55
+		_questions_end = SOLO_START + 48
+	else:
+		slot = GameState.interviewed_today.size()
+		candidate = pick_candidate()
+		GameState.interviewed_today.append(candidate.display_name)
+	if not solo and (slot > 0 or second_candidate()):
 		_start = START_MINUTES + slot * SLOT_MINUTES
 		_scorecard_at = _start + SLOT_MINUTES - 8
 		_questions_end = _scorecard_at - 7
 	if candidate.is_grad():
 		questions_allowed = GRAD_QUESTIONS_ALLOWED
+	lead = not solo and not GameState.config.interviewer.is_empty()
 	for item in SCORE_ITEMS:
 		scorecard[item] = 3
+		chief_marks[item] = 0
+	for item in QuestionCard.LEAD_ITEMS:
 		chief_marks[item] = 0
 	_plan_chief()
 	_build_deck()
@@ -235,19 +258,44 @@ func _build_transcript() -> void:
 
 
 func _build_chief() -> void:
+	if solo:
+		_build_empty_chair()
+		return
 	var chief := PortraitView.new()
-	chief.setup(CHIEF_SEED)
+	chief.setup(int(_who().get("seed", CHIEF_SEED)))
 	chief.position = CHIEF_POS
 	add_child(chief)
-	UI.label(self, "赵主管", CHIEF_POS + Vector2(72, 4), UI.TEXT_DIM)
+	UI.label(self, interviewer_name(), CHIEF_POS + Vector2(72, 4), UI.TEXT_DIM)
 	_chief_mark = UI.label(self, "", CHIEF_POS + Vector2(72, 22), UI.TEXT)
 	var r := CHIEF_BUBBLE
 	UI.panel(self, r, UI.PAPER_DIM)
 	_tail(r.position + Vector2(14, -6), UI.PAPER_DIM, false)
-	var opener := GameState.config.chief_opener if slot == 0 else "下一个。抓紧，六点我还有会。"
+	var opener: String = GameState.config.chief_opener if slot == 0 else _who().get("next_line", "下一个。抓紧，六点我还有会。")
 	_chief_line = UI.label(self, "“%s”" % opener, r.position + Vector2(5, 0), UI.INK, r.size.x - 8)
 	_chief_line.add_theme_constant_override("line_spacing", -5)
 	_chief_line.max_lines_visible = 3
+
+
+## 破格那场：主管的位置上是一把空椅子，小气泡里是旁白。
+func _build_empty_chair() -> void:
+	UI.panel(self, Rect2(CHIEF_POS + Vector2(10, 30), Vector2(44, 36)), UI.DESK_DARK, UI.BLACK)
+	UI.panel(self, Rect2(CHIEF_POS + Vector2(14, 6), Vector2(36, 26)), UI.DESK_DARK, UI.BLACK)
+	UI.label(self, "（空椅子）", CHIEF_POS + Vector2(68, 4), UI.TEXT_DIM)
+	_chief_mark = UI.label(self, "", CHIEF_POS + Vector2(72, 22), UI.TEXT)
+	var r := CHIEF_BUBBLE
+	UI.panel(self, r, UI.PAPER_DIM)
+	_chief_line = UI.label(self, "这一场你自己面。人是你保的。", r.position + Vector2(5, 0), UI.INK_SOFT, r.size.x - 8)
+	_chief_line.add_theme_constant_override("line_spacing", -5)
+	_chief_line.max_lines_visible = 3
+
+
+## 坐在主管位置上的人：赵主管，或者今天这个组的组长。
+func _who() -> Dictionary:
+	return GameState.config.interviewer
+
+
+func interviewer_name() -> String:
+	return _who().get("name", "赵主管")
 
 
 ## 气泡的小尖角：一个转了 45° 的小方块，一半藏在气泡后面。left 为真朝左，否则朝上。
@@ -277,7 +325,7 @@ func _build_need_note() -> void:
 
 
 func chief_need() -> Dictionary:
-	return GameState.config.chief_need
+	return {} if solo else GameState.config.chief_need
 
 
 ## 他要的那一项，他自己心里够了没有。
@@ -322,6 +370,11 @@ static func _plain_pick() -> Candidate:
 ## 种子跟着这一局和这一天走：读档重来同一天，主管还是那样插话。
 func _plan_chief() -> void:
 	_rng.seed = hash([GameState.day_seed(), "chief", slot])
+	if solo:
+		return
+	if lead:
+		_plan_lead()
+		return
 	var pool: Array[QuestionCard] = []
 	var sharp: Array[QuestionCard] = []
 	for d in range(1, GameState.day + 1):
@@ -345,6 +398,16 @@ func _plan_chief() -> void:
 			if i == 0:
 				pool.append_array(sharp)
 			chief_cards.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+	chief_slots.sort()
+
+
+## 组长只问自己带来的题：第一张尖锐题必问，剩下的抽一张；插在哪一问随机。
+func _plan_lead() -> void:
+	var cards := GameState.config.lead_cards.filter(func(c: QuestionCard) -> bool: return c.available_for(candidate))
+	var slots := range(1, questions_allowed)
+	for i in mini(LEAD_ASKS, cards.size()):
+		chief_slots.append(slots.pop_at(_rng.randi_range(0, slots.size() - 1)))
+		chief_cards.append(cards.pop_at(0 if i == 0 else _rng.randi_range(0, cards.size() - 1)))
 	chief_slots.sort()
 
 
@@ -407,7 +470,7 @@ func ask(card: QuestionCard) -> void:
 	_tick()
 	var reply := _flavor(card.answer(candidate), String(card.id))
 	_say("你", card.text_key, reply)
-	_chief_react(card, card.chief_reaction(reply.kind))
+	_chief_react(card, _reaction(card, reply))
 	_last = {"card": card, "reply": reply}
 	_next()
 
@@ -498,7 +561,7 @@ func _ask_about(line: Dictionary, card: QuestionCard) -> void:
 	var reply := _flavor(card.answer(candidate), String(card.id))
 	var tag := _line_tag(line, card, reply, false)
 	_say("你·简历", card.text_key, reply, tag)
-	_chief_react(card, card.chief_reaction(reply.kind))
+	_chief_react(card, _reaction(card, reply))
 	_last = {"card": card, "reply": reply, "line": line}
 	_next()
 
@@ -515,7 +578,12 @@ func _line_tag(line: Dictionary, card: QuestionCard, reply: Dictionary, followup
 	elif not followup and reply.kind == "honest" and not candidate.answers.has(key) and ResumeQuestions.padded(candidate, line):
 		tag = "认了"
 	if tag != "":
+		var fresh: bool = not resume.was_hit(line.key)
 		resume.mark(line.key, tag)
+		# 红笔先圈、后问出来：被你说中。一行只算一次
+		if fresh and resume.was_hit(line.key):
+			GameState.stats.called_out += 1
+			tag += " · 被你说中"
 	return tag
 
 
@@ -552,7 +620,8 @@ func _log(who: String, question: String, said: String, tag := "") -> void:
 	var a := UI.label(entry, "“%s”" % _clip(said, 60), Vector2.ZERO, UI.INK, width)
 	a.custom_minimum_size.x = width
 	if tag != "":
-		UI.label(entry, "▲ " + tag, Vector2.ZERO, InterviewResume.MARK_COLORS[tag], width)
+		var base := tag.get_slice(" · ", 0)
+		UI.label(entry, "▲ " + tag, Vector2.ZERO, InterviewResume.HIT_COLOR if base != tag else InterviewResume.MARK_COLORS[base], width)
 	_draw_tabs()
 	await get_tree().process_frame
 	_transcript_scroll.scroll_vertical = int(_transcript_scroll.get_v_scroll_bar().max_value)
@@ -638,24 +707,36 @@ func follow_up() -> void:
 	var reply := _flavor(card.follow_up(candidate, first), String(card.id) + "+")
 	var tag := "" if line.is_empty() else _line_tag(line, card, reply, true)
 	_say("追问", card.followup_text, reply, tag)
-	_chief_react(card, card.chief_followup_reaction(reply, _followups))
+	_chief_react(card, card.lead_followup_reaction(reply, _followups) if lead else card.chief_followup_reaction(reply, _followups))
 	_next()
 
 
-## 评分表和主管印象一起动：评分表玩家能改，主管印象不能。
+## 第一层回答时主管 / 组长的反应。
+func _reaction(card: QuestionCard, reply: Dictionary) -> Dictionary:
+	return card.lead_reaction(reply, asked) if lead else card.chief_reaction(reply.kind)
+
+
+## 评分表和主管印象一起动：评分表玩家能改，主管印象不能。组长只动自己心里的分，不碰评分表。
 func _chief_react(card: QuestionCard, reaction: Dictionary) -> void:
+	if solo:
+		return
 	var note := ""
-	if card.chief_item != "" and reaction.delta != 0:
-		var item := card.chief_item
+	var item := QuestionCard.lead_item_for(card) if lead else card.chief_item
+	if item != "" and reaction.delta != 0:
 		var before: int = chief_marks[item]
 		chief_marks[item] = clampi(before + reaction.delta, -2, 2)
 		var moved: int = chief_marks[item] - before
-		scorecard[item] = clampi(scorecard[item] + moved, 1, 5)
+		if not lead:
+			scorecard[item] = clampi(scorecard[item] + moved, 1, 5)
 		if moved != 0:
 			note = "%s%+d" % [item, moved]
 			_chief_mark.add_theme_color_override("font_color", UI.GREEN_DIM if moved > 0 else UI.RED)
 	_chief_mark.text = note
 	_chief_line.text = "“%s”" % reaction.line if reaction.line != "" else "（在回消息。）"
+	# 组长心里这一项第一次顶到 +2：真本事被问出来了，他把手上的事放下
+	if lead and item != "" and note != "" and chief_marks[item] == 2 and not _lead_won:
+		_lead_won = true
+		_chief_line.text = "（%s把电脑合上了。）“你继续说。”" % interviewer_name()
 
 
 ## 主管插话：手牌压着，对话框下面只有一个按钮。
@@ -664,8 +745,10 @@ func _show_chief_cut_in() -> void:
 	var again := _chief_asked > 0
 	var line: String = "还有一个。" if again else CHIEF_CUT_IN_LINES[_rng.randi_range(0, CHIEF_CUT_IN_LINES.size() - 1)]
 	_chief_line.text = "“%s”" % line
-	var said := UI.label(_action, "赵主管又抬起头：" if again else "赵主管放下手机：", ACTION_POS + Vector2(0, 3), UI.TEXT_DIM)
-	_chip("让主管问", UI.YELLOW, UI.INK, chief_ask, ACTION_POS.x + said.get_combined_minimum_size().x + 6)
+	var who := _who()
+	var cue: String = who.get("cut_in_again", "赵主管又抬起头：") if again else who.get("cut_in", "赵主管放下手机：")
+	var said := UI.label(_action, cue, ACTION_POS + Vector2(0, 3), UI.TEXT_DIM)
+	_chip("让组长问" if lead else "让主管问", UI.YELLOW, UI.INK, chief_ask, ACTION_POS.x + said.get_combined_minimum_size().x + 6)
 
 
 ## 主管的问题照样占名额，玩家拦不住；他自己问的，他也当场打分。问完你可以接着追问。
@@ -677,8 +760,8 @@ func chief_ask() -> void:
 	_tick()
 	GameState.lawsuit_risk += card.lawsuit_risk
 	var reply := _flavor(card.answer(candidate), String(card.id))
-	_say("赵主管", card.text_key, reply)
-	var reaction := card.chief_reaction(reply.kind)
+	_say(interviewer_name(), card.text_key, reply)
+	var reaction := _reaction(card, reply)
 	_chief_react(card, reaction)
 	if reaction.line == "":
 		_chief_line.text = "（问完，继续看手机。）"
@@ -722,14 +805,17 @@ func answer_candidate(choice: String) -> void:
 			_promise = text
 			_loyalty_hit = LIE_LOYALTY_HIT
 			response = "太好了，这正是我想要的。"
-			_chief_line.text = "（点了点头。）"
+			if not solo:
+				_chief_line.text = "（看了你一眼，没说话。）" if lead else "（点了点头。）"
 		"safe":
 			_loyalty_hit = SAFE_LOYALTY_HIT
 			response = "……明白了。"
-			_chief_line.text = "“滴水不漏。”"
+			if not solo:
+				_chief_line.text = "（低头记了一笔。）" if lead else "“滴水不漏。”"
 		"truth":
-			GameState.boss_trust -= 1
-			_chief_line.text = "“这话，下来我们单独聊。”"
+			if not solo:
+				GameState.boss_trust -= 1
+				_chief_line.text = "“说得对。这话别让赵主管听见。”" if lead else "“这话，下来我们单独聊。”"
 			if candidate.ability >= WALK_OUT_ABILITY:
 				_speech.text = "你：%s\n\n%s：谢谢，我再考虑一下。\n（TA 合上笔记本，走了。）" % [text, candidate.display_name]
 				_show_walk_out()
@@ -751,7 +837,10 @@ func _show_scorecard() -> void:
 	UI.clear(_side)
 	var top := END_TOP
 	UI.panel(_side, Rect2(END_X, top, END_WIDTH, 196), UI.PAPER, UI.BLACK)
-	UI.label(_side, "老板评分表（主管已动过）", Vector2(END_X + 10, top + 6), UI.INK)
+	var who := "老板评分表（赵主管开会，没来）" if lead else "老板评分表（主管已动过）"
+	if solo:
+		who = "老板评分表（你单独面的，表是空的）"
+	UI.label(_side, who, Vector2(END_X + 10, top + 6), UI.INK)
 	var need: String = chief_need().get("item", "")
 	var y := top + 26.0
 	for item: String in SCORE_ITEMS:
@@ -762,6 +851,8 @@ func _show_scorecard() -> void:
 			b.button_pressed = scorecard[item] == score
 		y += 30.0
 	_draw_doubts(top)
+	if lead:
+		_draw_lead_verdict(top)
 	UI.button(_side, "录用", Rect2(END_X + 10, top + 156, 140, 34), decide.bind(true))
 	UI.button(_side, "不录用", Rect2(END_X + 162, top + 156, 140, 34), decide.bind(false))
 
@@ -778,8 +869,17 @@ func _draw_doubts(top: float) -> void:
 	for text in doubts:
 		var l := UI.label(_side, "○ " + _clip(text, 24), Vector2(x, y), UI.INK, END_WIDTH - 340)
 		y += 15.0 * l.get_line_count()
-		if y > top + 150:
+		if y > top + (96 if lead else 150):
 			break
+
+
+## 组长不填表，直说：便签上那一项他心里够了就要。规则让不让过，他不管。
+func _draw_lead_verdict(top: float) -> void:
+	var x := END_X + 330
+	var want := is_chief_pick()
+	UI.panel(_side, Rect2(x - 4, top + 112, END_WIDTH - 334, 1), UI.INK_SOFT)
+	var line := "%s：“%s”" % [interviewer_name(), "这个人我要。" if want else "我们组不要。"]
+	UI.label(_side, line, Vector2(x, top + 118), UI.GREEN_DIM if want else UI.RED, END_WIDTH - 340)
 
 
 func set_score(item: String, score: int) -> void:
@@ -790,7 +890,7 @@ func set_score(item: String, score: int) -> void:
 func decide(hire: bool) -> void:
 	if hire:
 		var pick := is_chief_pick()
-		GameState.add_hire(candidate, scorecard, _promise, _loyalty_hit, pick)
+		GameState.add_hire(candidate, scorecard, _promise, _loyalty_hit, pick, "你" if solo else interviewer_name(), solo)
 		if pick:
 			GameState.stats.chief_picks.append(candidate.display_name)
 		Sfx.stamp()

@@ -11,6 +11,8 @@ const ENVELOPE_COLOR := Color("c9b48a")
 ## 08:00 上班筛简历，15:00 去面试，18:00 下班（当天没人面试就整理材料到下班）。
 const DAY_START := 8 * 60
 const DAY_END := 15 * 60
+## 昨天破格了人，今天 14:00 先去单独面 TA：筛简历少一个钟头（钟走得一样快，只是早收工）。
+const VOUCH_DAY_END := 14 * 60
 ## 最后半小时钟变红。
 const WARN_MINUTES := 30
 const GENERIC_REASON := "综合评估后，您与岗位暂不匹配。"
@@ -18,6 +20,9 @@ const MISMATCH_REASON := "您提交的材料信息前后不一致。"
 ## 质询的代价，扣桌上的钟（分钟）：点了两处其实没问题、打一通电话。
 const WRONG_PICK_MINUTES := 5
 const CALL_MINUTES := 10
+## 入职登记表：核对、签一张扣的钟点。老周被抽走以后，这活归你（DayConfig.intake）。
+const INTAKE_MINUTES := 8
+const INTAKE_POS := Vector2(14, 164)
 ## 桌角的全家福和扣着的手机；家里来消息时手机翻过来亮一下。
 ## 消息气泡贴在手机右边。
 const BUBBLE_OFFSET := Vector2(38, -2)
@@ -25,6 +30,8 @@ const BUBBLE_OFFSET := Vector2(38, -2)
 const INBOX_POS := Vector2(70, 30)
 const FamilyPhoto := preload("res://scripts/ui/FamilyPhoto.gd")
 const DeskPhone := preload("res://scripts/ui/DeskPhone.gd")
+const DeskPrinter := preload("res://scripts/ui/DeskPrinter.gd")
+const PhoneChat := preload("res://scripts/ui/PhoneChat.gd")
 
 var queue: Array[Candidate] = []
 var doc: ResumeDoc
@@ -37,6 +44,9 @@ var _pile: Control
 var _picker: Control
 var _hint: Label
 var _doc_layer: Control
+## 上一份简历、身份证：新的一份插在它们原来那一层，玩家压在上面的手册/JD 继续压着。
+var _last_doc: Control
+var _last_id: Control
 var _done_count := 0
 ## 质询：桌上有身份证以后才有这个开关。
 var inspecting := false
@@ -50,6 +60,7 @@ var _phone: Control
 var _toast: Label
 var _toast_tween: Tween
 var _slip: Control
+var _printer: Control
 ## 夹在这份简历里的信封；玩家没表态就盖章，算原样退回。
 var _envelope: Control
 var _envelope_answered := false
@@ -59,7 +70,9 @@ var _bubble: Control
 ## desk_texts 里处理到第几条（没对上 when 的变体也算处理过）。
 var _texts_sent := 0
 var _unread: Panel
-var _inbox_panel: Control
+var _inbox_panel: PhoneChat
+## 手机里每个对话看过几条，收起再打开还记得。
+var _seen := {}
 var _called := false
 var _leave_button: Button
 var _leave_confirm: Control
@@ -70,9 +83,21 @@ var _photo: Control
 var _stamps := {}
 var _arranger: DeskArranger
 var arranging := false
+## 今天几点收工：平时 15:00，有破格面试 14:00。
+var day_end := DAY_END
+## 破格章：第 3 天起有（第二个月一直在桌上）。第一个月第 3 天要等主角看到那份心动的简历，才从抽屉里拿出来。
+var _exception_stamp: StampTool
+var _reveal: Control
+var _vouch_confirm: Control
+## 今天要签的入职登记表（昨天录用的人），签完的从这里拿掉。
+var _intake: Array = []
+var _intake_button: Button
+var _intake_form: Control
 
 
 func _ready() -> void:
+	if not GameState.vouched.is_empty():
+		day_end = VOUCH_DAY_END
 	queue = CandidateGenerator.generate_day(GameState.config, RuleEngine.active_rules, GameState.day_seed())
 	_build_room()
 	_next()
@@ -101,7 +126,7 @@ func _build_room() -> void:
 
 	_build_family()
 
-	# 桌上所有纸都在同一层：按下哪张哪张置顶，新递上来的简历、身份证压在最上面；
+	# 桌上所有纸都在同一层：按下哪张哪张置顶；新递上来的简历、身份证接替上一份那一层，玩家压上去的不会被盖住；
 	# 这一层整个在印章、质询按钮下面，手册点得再多也盖不住它们。
 	_doc_layer = Control.new()
 	_doc_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -137,20 +162,33 @@ func _build_room() -> void:
 		add_child(stamp)
 		stamp.setup(verdict)
 		_stamps[verdict] = stamp
+	# 第 3 天以后破格章一直在桌上；第 3 天当天等那份简历出现才拿出来
+	if GameState.day > GameState.EXCEPTION_DAY:
+		_add_exception_stamp()
+	if GameState.config.intake:
+		_intake = GameState.hired_on(GameState.day - 1).map(func(h: Dictionary) -> Dictionary: return h.candidate)
+		if not _intake.is_empty():
+			_intake_button = UI.button(self, "", Rect2(INTAKE_POS, Vector2(74, 20)), _open_intake)
+			_refresh_intake()
 
 
 func _process(delta: float) -> void:
-	if closing or arranging:
+	if closing or arranging or _reveal:
 		return
 	elapsed += delta
-	var ratio := elapsed / GameState.config.screening_seconds
-	var minutes := int(lerpf(DAY_START, DAY_END, minf(ratio, 1.0)))
+	# screening_seconds 是 08:00–15:00 的真实秒数；有破格面试的日子钟一样快，14:00 就收工
+	var minutes := mini(int(DAY_START + elapsed / _seconds_per_minute()), day_end)
 	_clock.text = "%02d:%02d" % [minutes / 60, minutes % 60]
 	_check_home(minutes)
-	if minutes >= DAY_END - WARN_MINUTES:
+	_check_transfers(minutes)
+	if minutes >= day_end - WARN_MINUTES:
 		_clock.add_theme_color_override("font_color", UI.RED)
-	if ratio >= 1.0:
+	if minutes >= day_end:
 		_close_day()
+
+
+func _seconds_per_minute() -> float:
+	return GameState.config.screening_seconds / float(DAY_END - DAY_START)
 
 
 func _next() -> void:
@@ -162,7 +200,7 @@ func _next() -> void:
 	var doc_pos := DeskLayout.pos("resume")
 	doc.layout_key = "resume"
 	doc.position = Vector2(-240, doc_pos.y)
-	_doc_layer.add_child(doc)
+	_insert_doc(doc, _last_doc)
 	doc.setup(queue.pop_front())
 	doc.stamped.connect(_on_stamped)
 	Sfx.paper()
@@ -173,7 +211,7 @@ func _next() -> void:
 		var id_pos := DeskLayout.pos("id_card")
 		id_card.layout_key = "id_card"
 		id_card.position = Vector2(id_pos.x, 370)
-		_doc_layer.add_child(id_card)
+		_insert_doc(id_card, _last_id if is_instance_valid(_last_id) else doc)
 		id_card.setup(doc.candidate)
 		tween.tween_property(id_card, "position", id_pos, 0.2).set_trans(Tween.TRANS_QUAD)
 	if not doc.candidate.envelope.is_empty():
@@ -183,6 +221,17 @@ func _next() -> void:
 		if d:
 			d.field_picked.connect(pick_field)
 			d.set_inspecting(inspecting)
+	if GameState.day == GameState.EXCEPTION_DAY and _exception_stamp == null and doc.candidate.liked_line != "":
+		_show_reveal(doc.candidate)
+
+
+## 新递上来的纸接替上一份的那一层，不往最上面放：玩家放在上面的东西一直在上面。
+## 当天第一份（没有上一份）照旧放最上面。
+func _insert_doc(paper: Control, after: Control) -> void:
+	if is_instance_valid(after) and after.get_parent() == _doc_layer:
+		after.add_sibling(paper)
+	else:
+		_doc_layer.add_child(paper)
 
 
 func _draw_pile() -> void:
@@ -197,6 +246,8 @@ func _on_stamped(verdict: String, _at: Vector2) -> void:
 	_shake()
 	if verdict == "pass":
 		commit("pass", &"", "")
+	elif verdict == "exception":
+		_ask_vouch()
 	else:
 		_open_picker()
 
@@ -205,6 +256,79 @@ func _shake() -> void:
 	var tween := create_tween()
 	tween.tween_property(self, "position", Vector2(0, 3), 0.03)
 	tween.tween_property(self, "position", Vector2.ZERO, 0.08)
+
+
+## 破格章：一天一次，只盖不合规的。确认框写明违反哪条、代价是什么。
+func _ask_vouch() -> void:
+	var c := doc.candidate
+	if not GameState.can_vouch():
+		doc.unstamp()
+		_show_toast("今天的破格已经给了 %s" % GameState.stats.exception, UI.YELLOW)
+		return
+	var result := RuleEngine.evaluate(c)
+	if result.pass:
+		doc.unstamp()
+		_show_toast("这份合规，不用破格，盖通过就行", UI.YELLOW)
+		return
+	var broken: Array = result.failed.map(func(r: Rule) -> String: return r.title_key)
+	var when := "下个月第一天" if GameState.day >= GameState.LAST_DAY else "明天 14:00"
+	_vouch_confirm = Control.new()
+	add_child(_vouch_confirm)
+	UI.panel(_vouch_confirm, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.35)).mouse_filter = Control.MOUSE_FILTER_STOP
+	UI.panel(_vouch_confirm, Rect2(160, 110, 320, 132), UI.PAPER, UI.BLACK)
+	UI.label(_vouch_confirm, "破格：%s" % c.display_name, Vector2(172, 118), UI.INK)
+	var lines := "不合规：%s。\n%s你单独面 TA，主管不在场。录用了，出了事算你的（担保金 ¥%d）。\n今天的破格只有这一次。" % ["、".join(PackedStringArray(broken)), when, GameState.VOUCH_FINE]
+	UI.label(_vouch_confirm, lines, Vector2(172, 138), UI.INK_SOFT, 296)
+	UI.button(_vouch_confirm, "我签字", Rect2(172, 212, 140, 22), _confirm_vouch)
+	UI.button(_vouch_confirm, "算了", Rect2(326, 212, 140, 22), _cancel_vouch)
+
+
+func _confirm_vouch() -> void:
+	_vouch_confirm.queue_free()
+	_vouch_confirm = null
+	commit("exception", &"", "")
+
+
+func _cancel_vouch() -> void:
+	_vouch_confirm.queue_free()
+	_vouch_confirm = null
+	doc.unstamp()
+	if closing:
+		_finish()
+
+
+func _add_exception_stamp() -> void:
+	_exception_stamp = StampTool.new()
+	_exception_stamp.position = DeskLayout.pos("exception")
+	add_child(_exception_stamp)
+	_exception_stamp.setup("exception")
+	_stamps["exception"] = _exception_stamp
+
+
+## 第一次见破格章：主角心里动了一下，从抽屉最底下把章拿出来。钟停着，等玩家点。
+func _show_reveal(c: Candidate) -> void:
+	_reveal = Control.new()
+	add_child(_reveal)
+	UI.panel(_reveal, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.45)).mouse_filter = Control.MOUSE_FILTER_STOP
+	var box := UI.panel(_reveal, Rect2(140, 60, 360, 0), UI.BLACK, UI.GREEN_DIM)
+	# 两段话都会换行：先入树量高度，再往下排，框跟着长
+	var liked := UI.label(_reveal, c.liked_line, Vector2(154, 70), UI.TEXT, 332)
+	var y := 70.0 + liked.get_line_count() * (liked.get_line_height() + 1) + 10.0
+	var drawer := UI.label(_reveal, "抽屉最底下有个章，入职那天就在，你一直没用过。章上刻着两个字：破格。\n盖了，明天你自己面；人是你保的，出了事你兜着。一天只能盖一次。", Vector2(154, y), UI.TEXT_DIM, 332)
+	y += drawer.get_line_count() * (drawer.get_line_height() + 1) + 8.0
+	UI.button(_reveal, "拿出来", Rect2(390, y, 96, 20), _take_out_stamp)
+	box.size.y = y + 28.0 - 60.0
+	Sfx.paper()
+
+
+func _take_out_stamp() -> void:
+	_reveal.queue_free()
+	_reveal = null
+	_add_exception_stamp()
+	var home := _exception_stamp.position
+	_exception_stamp.position = Vector2(home.x, 380)
+	create_tween().tween_property(_exception_stamp, "position", home, 0.25).set_trans(Tween.TRANS_QUAD)
+	_show_toast("破格章：拖到简历上", UI.YELLOW)
 
 
 ## 拒绝时必须选一条理由，这句话写进决策日志，终章原样回到玩家身上。
@@ -250,8 +374,12 @@ func commit(verdict: String, reason_rule: StringName, reason_text: String) -> vo
 		extra = {"flagged": flagged.duplicate(), "called": not call_result.is_empty(), "explanation_truthful": call_result.get("truthful")}
 	if _envelope and not _envelope_answered:
 		GameState.answer_envelope(doc.candidate, false)
-	var why := GameState.record_decision(doc.candidate, verdict, reason_rule, reason_text, extra)
-	if why != "" and GameState.instant_notice():
+	var why := ""
+	if verdict == "exception":
+		GameState.record_exception(doc.candidate)
+	else:
+		why = GameState.record_decision(doc.candidate, verdict, reason_rule, reason_text, extra)
+	if why != "":
 		_print_slip(doc.candidate.display_name, why)
 	_reset_inspect()
 	_done_count += 1
@@ -261,6 +389,8 @@ func commit(verdict: String, reason_rule: StringName, reason_text: String) -> vo
 			var tween := create_tween()
 			tween.tween_property(leaving, "position", Vector2(400, 330), 0.18).set_trans(Tween.TRANS_QUAD)
 			tween.tween_callback(leaving.queue_free)
+	_last_doc = doc
+	_last_id = id_card
 	doc = null
 	id_card = null
 	_envelope = null
@@ -274,8 +404,8 @@ func _close_day() -> void:
 	if closing:
 		return
 	closing = true
-	if _picker:
-		return  # 等玩家选完理由
+	if _picker or _vouch_confirm:
+		return  # 等玩家选完理由、签完字
 	_finish()
 
 
@@ -291,6 +421,10 @@ func _finish() -> void:
 		_envelope.queue_free()
 		_envelope = null
 	_reset_inspect()
+	_close_intake()
+	if _intake_button:
+		_intake_button.disabled = true
+	GameState.stats.intake_left = _intake.map(func(c: Dictionary) -> String: return c.display_name)
 	if _inspect_button:
 		_inspect_button.disabled = true
 	_close_bubble()
@@ -301,8 +435,12 @@ func _finish() -> void:
 	if _leave_button:
 		_leave_button.disabled = true
 	GameState.stats.unprocessed = queue.size()
-	var interview := not GameState.interviewees.is_empty()
+	var interview := not GameState.interviewees.is_empty() or not GameState.vouched.is_empty()
 	var note := ("15:00，该去面试了。今天两场。" if InterviewRoom.second_candidate() else "15:00，该去面试了。") if interview else "15:00。今天没有面试，你整理材料到六点下班。"
+	if not GameState.vouched.is_empty():
+		note = "14:00，去面你破格的 %s。" % GameState.vouched[0].display_name
+		if not GameState.interviewees.is_empty():
+			note += "15:00 还有%s那场。" % GameState.config.interviewer.get("name", "赵主管")
 	if not queue.is_empty():
 		note += "还有 %d 份简历没看，计件没了。" % queue.size()
 	if GameState.stats.left_early:
@@ -312,34 +450,77 @@ func _finish() -> void:
 	UI.button(self, "去面试" if interview and not GameState.stats.left_early else "继续", Rect2(280, 194, 80, 20), finished.emit)
 
 
-## 教学期：盖错章，打印机当场从桌边吐一张违规单。点一下扔掉；下一张来了旧的就收走。
+## 盖错章，桌角的打印机当场吐一张违规单。点一下扔掉；下一张来了旧的就收走。
+## 第一个月只扣这份的判断奖金；第二个月单子带编号，一天第 3 次起罚款。
 func _print_slip(who: String, why: String) -> void:
 	if _slip:
 		_slip.queue_free()
+	var fined := GameState.fines_on()
+	var n: int = GameState.stats.wrong
 	var slip := Control.new()
-	slip.size = Vector2(106, 104)
-	slip.position = Vector2(640, 182)
+	slip.size.x = 92
 	slip.mouse_filter = Control.MOUSE_FILTER_STOP
 	slip.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	add_child(slip)  # 先入树，换行宽度才生效
-	UI.panel(slip, Rect2(Vector2(2, 2), slip.size), UI.BLACK)
-	UI.panel(slip, Rect2(Vector2.ZERO, slip.size), UI.PAPER, UI.INK_SOFT)
+	var shadow := UI.panel(slip, Rect2(2, 2, slip.size.x, 0), UI.BLACK)
+	var paper := UI.panel(slip, Rect2(0, 0, slip.size.x, 0), UI.PAPER, UI.INK_SOFT)
 	UI.panel(slip, Rect2(0, 0, slip.size.x, 16), UI.RED)
-	UI.label(slip, "违规通知", Vector2(6, 1), UI.PAPER)
-	UI.label(slip, who, Vector2(6, 20), UI.INK)
-	UI.label(slip, why, Vector2(6, 36), UI.INK, 96)
-	var cost := "第 3 次起罚款" if GameState.fines_on() else "本月不扣钱，这份绩效少拿 ¥%d" % int(GameState.pay.per_correct)
-	UI.label(slip, cost, Vector2(6, 68), UI.INK_SOFT, 96)
+	UI.label(slip, "违规通知 #%d" % n if fined else "违规通知", Vector2(5, 1), UI.PAPER)
+	# 先放进一个临时容器入树，换行宽度才生效，好量出单子多长
+	add_child(slip)
+	var y := 20.0
+	for line: Array in [
+		[who, UI.INK],
+		[why, UI.INK],
+		[_slip_cost(fined, n), UI.RED if fined and n > GameState.FREE_WARNINGS else UI.INK_SOFT],
+	]:
+		var l := UI.label(slip, line[0], Vector2(5, y), line[1], slip.size.x - 10)
+		y += l.get_line_count() * (l.get_line_height() + 1) + 4
+	slip.size.y = y + 2
+	shadow.size.y = slip.size.y
+	paper.size.y = slip.size.y
+	remove_child(slip)
+
+	# 单子从出纸口往上冒；打印机被挪到顶上、上面放不下，就从底下吐
+	var at := _printer.position
+	var mouth := at + DeskPrinter.SLOT.position + Vector2((DeskPrinter.SLOT.size.x - slip.size.x) / 2.0, 0)
+	var up := mouth.y - slip.size.y >= DeskLayout.TOP
+	var feed := Control.new()
+	feed.clip_contents = true
+	feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if up:
+		feed.position = Vector2(mouth.x, mouth.y - slip.size.y)
+	else:
+		feed.position = Vector2(mouth.x, at.y + DeskPrinter.H)
+	feed.size = slip.size + Vector2(2, 2)
+	add_child(feed)
+	feed.add_child(slip)
+	slip.position.y = slip.size.y if up else -slip.size.y
 	slip.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
+			Sfx.paper()
 			var away := create_tween()
-			away.tween_property(slip, "position:x", 660.0, 0.15)
-			away.tween_callback(slip.queue_free))
-	_slip = slip
+			away.tween_property(feed, "modulate:a", 0.0, 0.15)
+			away.tween_callback(feed.queue_free))
+	_slip = feed
+
 	var tween := create_tween()
 	tween.tween_interval(0.2)  # 让盖章声先响完
-	tween.tween_callback(Sfx.printer)
-	tween.tween_property(slip, "position:x", 532.0, 0.5)
+	tween.tween_callback(func() -> void:
+		Sfx.printer()
+		_printer.print_for(0.6))
+	# 针式打印机一截一截往外走
+	var steps := 5
+	for i in steps:
+		tween.tween_property(slip, "position:y", slip.size.y * (1.0 - float(i + 1) / steps) * (1 if up else -1), 0.08)
+		tween.tween_interval(0.04)
+
+
+func _slip_cost(fined: bool, n: int) -> String:
+	if not fined:
+		return "本月不扣钱，这份绩效少拿 ¥%d" % int(GameState.pay.per_correct)
+	if n > GameState.FREE_WARNINGS:
+		return "今天第 %d 次，罚款 ¥%d" % [n, GameState.VIOLATION_FINE]
+	return "今天第 %d 次。第 %d 次起每次罚 ¥%d" % [n, GameState.FREE_WARNINGS + 1, GameState.VIOLATION_FINE]
 
 
 func toggle_inspect() -> void:
@@ -422,7 +603,7 @@ func _reset_inspect() -> void:
 
 ## 桌上的钟往前拨：DAY_START–DAY_END 对应 screening_seconds 真实秒数。
 func _spend(minutes: int) -> void:
-	elapsed += minutes / float(DAY_END - DAY_START) * GameState.config.screening_seconds
+	elapsed += minutes * _seconds_per_minute()
 
 
 func _show_toast(text: String, color: Color) -> void:
@@ -474,6 +655,46 @@ func _answer_envelope(taken: bool) -> void:
 	UI.label(_envelope, "（¥%d 进了抽屉。）" % amount if taken else "（原样塞回简历里了。）", Vector2(6, 104 if narrow else 64), UI.INK_SOFT, _envelope.size.x - 12)
 
 
+## 入职手续：一叠登记表，点开一张核对签字。钟照走。
+func _refresh_intake() -> void:
+	_intake_button.text = "入职手续 %d" % _intake.size()
+	_intake_button.visible = not _intake.is_empty()
+
+
+func _open_intake() -> void:
+	if closing or arranging or _intake.is_empty() or _intake_form or _picker or _vouch_confirm or _leave_confirm:
+		return
+	var c: Dictionary = _intake[0]
+	_intake_form = Control.new()
+	add_child(_intake_form)
+	UI.panel(_intake_form, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.35)).mouse_filter = Control.MOUSE_FILTER_STOP
+	var box := UI.panel(_intake_form, Rect2(160, 40, 320, 0), UI.PAPER, UI.BLACK)
+	UI.label(_intake_form, "入职登记表", Vector2(172, 48), UI.INK)
+	var body := UI.label(_intake_form, "姓名：%s\n岗位：%s\n□ 身份证复印件　□ 学历证明\n□ 离职证明　　　□ 银行卡、社保\n□ 劳动合同两份\n（老周以前办这个。）" % [c.display_name, c.get("applied_position", "")], Vector2(172, 68), UI.INK_SOFT, 296)
+	var y := 68.0 + body.get_line_count() * (body.get_line_height() + 1) + 8.0
+	UI.button(_intake_form, "核对签字（%d 分钟）" % INTAKE_MINUTES, Rect2(172, y, 150, 20), _sign_intake)
+	UI.button(_intake_form, "先放着", Rect2(330, y, 138, 20), _close_intake)
+	box.size.y = y + 28.0 - 40.0
+	Sfx.paper()
+
+
+func _sign_intake() -> void:
+	if _intake.is_empty():
+		return
+	_intake.pop_front()
+	_spend(INTAKE_MINUTES)
+	Sfx.stamp()
+	_show_toast("签好一份入职　−%d 分钟" % INTAKE_MINUTES, UI.TEXT)
+	_close_intake()
+	_refresh_intake()
+
+
+func _close_intake() -> void:
+	if _intake_form:
+		_intake_form.queue_free()
+		_intake_form = null
+
+
 ## 全家福：你、老婆、孩子、你爸。
 func _build_family() -> void:
 	var photo: Control = FamilyPhoto.new()
@@ -481,6 +702,10 @@ func _build_family() -> void:
 	add_child(photo)
 	_photo = photo
 	DeskDrag.attach(photo, "photo")
+	_printer = DeskPrinter.new()
+	_printer.position = DeskLayout.pos("printer")
+	add_child(_printer)
+	DeskDrag.attach(_printer, "printer")
 	_home_phone = DeskPhone.new()
 	_home_phone.position = DeskLayout.pos("phone")
 	_home_phone.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -502,6 +727,9 @@ func _check_home(minutes: int) -> void:
 		var taken: bool = id != "" and GameState.stats.texts.any(func(e: Dictionary) -> bool: return e.get("id", "") == id)
 		if taken or not GameState.family_matches(entry.get("when", "")):
 			continue
+		if "{done}" in entry.text:
+			entry = entry.duplicate()
+			entry.text = entry.text.replace("{done}", str(GameState.stats.processed))
 		GameState.receive_text(entry)
 		_unread.visible = true
 		_ring(entry.text, false)
@@ -513,9 +741,25 @@ func _check_home(minutes: int) -> void:
 		_ring(cfg.midday_call.text, true)
 
 
+## 猎头的转账：record_decision 或早上的留任结算挂上去的，第一次看到时记下几点到的、手机震一下。
+func _check_transfers(minutes: int) -> void:
+	for t: Dictionary in GameState.stats.transfers:
+		if t.has("at"):
+			continue
+		t.at = minutes
+		_unread.visible = true
+		_ring("%s：[转账] ¥%d %s" % [t.from, t.amount, t.note], false)
+		return
+
+
 ## 手机震、亮屏、旁边弹一条消息。预览几秒后自己消失；来电要点“知道了”，之后桌上多一个“提前下班”。
+## 手机开着的时候不弹，直接刷新屏幕。
 func _ring(text: String, is_call: bool) -> void:
 	Sfx.buzz()
+	if _inbox_panel and not is_call:
+		_inbox_panel.clock = _clock.text
+		_inbox_panel.refresh()
+		return
 	_close_inbox()
 	var home_x := DeskLayout.pos("phone").x
 	var shake := create_tween()
@@ -530,7 +774,7 @@ func _ring(text: String, is_call: bool) -> void:
 	add_child(_bubble)
 	var height := 64.0 if is_call else 40.0
 	UI.panel(_bubble, Rect2(0, 0, 210, height), UI.BLACK, UI.GREEN_DIM)
-	UI.label(_bubble, ("来电" if is_call else "短信") + "　" + text, Vector2(6, 4), UI.TEXT, 198)
+	UI.label(_bubble, ("来电" if is_call else "消息") + "　" + text, Vector2(6, 4), UI.TEXT, 198)
 	if not is_call:
 		UI.label(_bubble, "点手机回复", Vector2(150, 26), UI.GREEN_DIM)
 	if is_call:
@@ -571,54 +815,41 @@ func _toggle_inbox() -> void:
 
 func _open_inbox() -> void:
 	_close_inbox()
-	_inbox_panel = Control.new()
+	_inbox_panel = PhoneChat.new()
 	_inbox_panel.position = INBOX_POS
-	_inbox_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_inbox_panel.clock = _clock.text
+	_inbox_panel.seen = _seen
+	_inbox_panel.replied.connect(_reply)
+	_inbox_panel.transfer_answered.connect(_answer_transfer)
+	_inbox_panel.closed.connect(_close_inbox)
 	add_child(_inbox_panel)
-	var bg := UI.panel(_inbox_panel, Rect2(0, 0, 240, 30), UI.BLACK, UI.GREEN_DIM)
-	UI.label(_inbox_panel, "老婆", Vector2(6, 3), UI.GREEN)
-	UI.button(_inbox_panel, "收起", Rect2(196, 3, 40, 16), _close_inbox)
-	var y := 36.0
-	var texts: Array = GameState.stats.texts
-	if texts.is_empty():
-		UI.label(_inbox_panel, "（今天还没有消息）", Vector2(6, y), UI.TEXT_DIM)
-		y += 16.0
-	for entry: Dictionary in texts:
-		var at := int(entry.at)
-		UI.label(_inbox_panel, "%02d:%02d" % [at / 60, at % 60], Vector2(6, y), UI.TEXT_DIM)
-		var body: String = ("（来电）" if entry.get("call", false) else "") + String(entry.text).trim_prefix("老婆：")
-		var line := UI.label(_inbox_panel, body, Vector2(44, y), UI.TEXT, 190)
-		y += maxf(16.0, line.get_minimum_size().y + 2.0)
-		if not entry.has("replies"):
-			continue
-		if GameState.text_replied(entry.id):
-			var mine := _reply_label(entry)
-			var you := UI.label(_inbox_panel, "你：" + mine, Vector2(44, y), UI.GREEN, 190)
-			y += maxf(16.0, you.get_minimum_size().y + 2.0)
-			continue
-		for option: Dictionary in entry.replies:
-			var b := UI.text_button(_inbox_panel, option.label, Rect2(44, y, 190, 18), _reply.bind(entry, option))
-			y += b.size.y + 2.0
-	bg.size.y = y + 4.0
 	_unread.visible = false
 
 
-func _reply_label(entry: Dictionary) -> String:
-	for option: Dictionary in entry.replies:
-		if option.key == GameState.family.get(entry.id, ""):
-			return option.label
-	return ""
-
-
-## 回一条：打字要花几分钟，钟照走。
+## 回一条：打字要花几分钟，钟照走。带 transfer 的是从零钱转过去。
 func _reply(entry: Dictionary, option: Dictionary) -> void:
 	if closing or GameState.text_replied(entry.id):
 		return
 	GameState.reply_text(entry, option)
 	_spend(GameState.REPLY_MINUTES)
 	Sfx.key()
-	_show_toast("回了老婆　−%d 分钟" % GameState.REPLY_MINUTES, UI.TEXT)
-	_open_inbox()
+	var who: String = entry.get("from", "老婆")
+	if option.has("transfer"):
+		_show_toast("转给%s ¥%d　−%d 分钟" % [who, option.transfer, GameState.REPLY_MINUTES], UI.YELLOW)
+	else:
+		_show_toast("回了%s　−%d 分钟" % [who, GameState.REPLY_MINUTES], UI.TEXT)
+	_inbox_panel.clock = _clock.text
+	_inbox_panel.refresh()
+
+
+## 收款 / 退还：点一下的事，不花时间。
+func _answer_transfer(t: Dictionary, taken: bool) -> void:
+	if closing:
+		return
+	GameState.answer_transfer(t, taken)
+	Sfx.key()
+	_show_toast("收下 ¥%d" % t.amount if taken else "退还了 ¥%d" % t.amount, UI.YELLOW if taken else UI.TEXT)
+	_inbox_panel.refresh()
 
 
 func _close_inbox() -> void:
@@ -629,12 +860,12 @@ func _close_inbox() -> void:
 
 ## 走之前说清楚丢的是什么：剩下的简历没计件，今天的面试取消。
 func _ask_leave() -> void:
-	if closing or _leave_confirm or _picker:
+	if closing or _leave_confirm or _picker or _vouch_confirm or _reveal:
 		return
 	var left := queue.size() + (1 if doc else 0)
 	var lines := "剩下 %d 份简历今天不看了，计件没了。" % left
-	if not GameState.interviewees.is_empty():
-		lines += "\n今天的面试也取消。"
+	if not GameState.interviewees.is_empty() or not GameState.vouched.is_empty():
+		lines += "\n今天的面试也取消。" + ("（包括你破格的那位。）" if not GameState.vouched.is_empty() else "")
 	_leave_confirm = Control.new()
 	add_child(_leave_confirm)
 	UI.panel(_leave_confirm, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.35)).mouse_filter = Control.MOUSE_FILTER_STOP
@@ -665,13 +896,15 @@ func _bubble_pos() -> Vector2:
 
 ## 布置桌面（从菜单进）：钟停着，拖占位框摆东西，存下来以后每天都这么摆。
 func start_arrange() -> void:
-	if closing or arranging or _picker or _leave_confirm:
+	if closing or arranging or _picker or _leave_confirm or _reveal or _vouch_confirm or _intake_form:
 		return
 	arranging = true
 	_close_bubble()
 	_close_inbox()
 	_hang_up()
 	var keys := ["resume", "rulebook", "photo", "phone", "pass", "reject"]
+	if _exception_stamp:
+		keys.append("exception")
 	if _posting:
 		keys.append("posting")
 	if "id_card" in RuleEngine.active_docs:
@@ -700,7 +933,7 @@ func _place(key: String, at: Vector2) -> void:
 			_photo.position = at
 		"phone":
 			_home_phone.position = at
-		"pass", "reject":
+		"pass", "reject", "exception":
 			_stamps[key].position = at
 		"inspect":
 			_inspect_button.position = at

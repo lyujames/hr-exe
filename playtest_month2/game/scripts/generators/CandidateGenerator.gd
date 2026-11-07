@@ -57,9 +57,15 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> A
 	var rng := RandomNumberGenerator.new()
 	rng.seed = day_seed
 	var result: Array[Candidate] = []
+	# 猎头的人不排第一份，免得一开桌就撞上
+	var broker_slots := []
+	var open_slots := range(1, cfg.resume_count)
+	for n in mini(cfg.broker_count, open_slots.size()):
+		broker_slots.append(open_slots.pop_at(rng.randi_range(0, open_slots.size() - 1)))
 	for i in cfg.resume_count:
 		var background := _pick_background(rng, cfg.candidate_mix)
-		var c := _generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background, cfg.day)
+		var id := "gen_%d_%02d" % [cfg.day, i]
+		var c := _generate_broker(rng, rules, id, background, cfg.day) if i in broker_slots else _generate(rng, rules, id, background, cfg.day)
 		_attach_docs(c, rng)
 		result.append(c)
 	for story in cfg.story_candidates:
@@ -91,10 +97,41 @@ static func _pick_background(rng: RandomNumberGenerator, mix: Dictionary) -> Str
 	return mix.keys().back()
 
 
-static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background := "regular", day := 0) -> Candidate:
+## 猎头推来的人：挑一条不是今天新加的规则，卡在边上不合格（16–19k、“含实习”、JavaScript……），其余都合格；
+## 一眼看着像能过。能力差、不老实，但对介绍人忠心，进来了不会走，只会把活拖垮（留任期满是“项目延期”）。
+## 边界形态偶尔塑不出不合格的、或者连带违反了别的条，换一条再试，最后退到明显不合格。
+const BROKER_TRIES := 6
+
+
+static func _generate_broker(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background: String, day: int) -> Candidate:
+	var c: Candidate
+	for attempt in BROKER_TRIES:
+		var form := Rule.Shape.EDGE_FAIL if attempt < BROKER_TRIES - 1 else Rule.Shape.FAIL
+		c = _generate(rng, rules, id, "regular" if background == "fresh" else background, day, form)
+		# 只卡一条：塑年限时把年龄挤过了别的线，就再来
+		if RuleEngine.evaluate(c).failed.size() == 1:
+			break
+	c.broker = true
+	c.ability = rng.randi_range(18, 36)
+	c.honesty = rng.randi_range(15, 35)
+	c.loyalty = rng.randi_range(55, 80)
+	c.pressure = rng.randi_range(45, 75)
+	c.event_override = &""
+	return c
+
+
+## force：猎头的人用，目标规则只从老规则里挑、形态定死。
+static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background := "regular", day := 0, force := -1) -> Candidate:
 	var c := _base(rng, id)
 	_apply_background(c, background, rng)
 	var applicable := rules.filter(func(r: Rule) -> bool: return r.applies_to(c))
+	if force >= 0:
+		var old := applicable.filter(func(r: Rule) -> bool: return r.day_added < day)
+		var target_rule: Rule = (old if not old.is_empty() else applicable)[rng.randi_range(0, (old if not old.is_empty() else applicable).size() - 1)]
+		for rule in applicable:
+			rule.shape(c, force if rule == target_rule else Rule.Shape.PASS, rng)
+		_finish_shape(c, rng)
+		return c
 	var target := _pick_target(rng, applicable, day)
 	var roll := rng.randf()
 	var target_form := Rule.Shape.PASS
@@ -108,6 +145,16 @@ static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String
 		target_form = Rule.Shape.FAIL
 	for rule in applicable:
 		rule.shape(c, target_form if rule == target else Rule.Shape.PASS, rng)
+	_finish_shape(c, rng)
+	# 荒谬规则刷掉的人，往往是更好的员工
+	if target.is_absurd and target_form >= Rule.Shape.EDGE_FAIL:
+		c.ability = mini(c.ability + 25, 100)
+		c.loyalty = mini(c.loyalty + 20, 100)
+	return c
+
+
+## 规则塑完形以后：对齐年龄和年限，排经历，专科换学校。
+static func _finish_shape(c: Candidate, rng: RandomNumberGenerator) -> void:
 	if not c.is_intern:
 		_fit_age_to_experience(c, rng)
 	# 年龄可能被规则改过，经历最后再排
@@ -117,11 +164,6 @@ static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String
 		build_jobs(c, rng)
 	if c.degree < Candidate.Degree.BACHELOR:
 		c.school = COLLEGES[rng.randi_range(0, COLLEGES.size() - 1)]
-	# 荒谬规则刷掉的人，往往是更好的员工
-	if target.is_absurd and target_form >= Rule.Shape.EDGE_FAIL:
-		c.ability = mini(c.ability + 25, 100)
-		c.loyalty = mini(c.loyalty + 20, 100)
-	return c
 
 
 ## 今天新加的规则多抽几次，让玩家把手册上的“新”和桌上的简历对上。

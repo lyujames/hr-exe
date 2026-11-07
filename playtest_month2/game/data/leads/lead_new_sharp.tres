@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_new_sharp"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+lead_item = "技术"
+text_key = "你说你会的那几样，哪个你读过源码？讲一个你看到的坑。"
+honest = "Redis 的过期。不是一到点就删，是访问时删加后台抽查。我们因为这个，内存涨过一回。"
+honest_low = "……没读过。文档都看不完。"
+standard = "我对主流框架的源码都有深入研究。"
+flaw = "都读过。……坑的话，太多了，一下想不起来。"
+followup_text = "那回内存涨，你们最后怎么处理的？"
+honest_followup = "大 key 拆小，过期时间加了随机数，别一起到点。后来再没涨过。"
+honest_low_followup = "没处理过……我说的是文档上看的。"
+standard_followup = "我们进行了全面的优化。"
+flaw_followup = "就、就重启了。"
+lead_standard = "“深入研究”。说一个，就一个。"

@@ -36,6 +36,14 @@ class_name QuestionCard extends Resource
 @export var chief_standard: String
 @export var chief_honest: String
 @export var chief_flaw: String
+@export_group("组长反应")
+## 组长自己的卡打哪一项（技术 / 协作）；空的话按探的属性算，见 lead_item_for。
+@export var lead_item: String
+## 组长听到这几种回答时说的话；空就用 LEAD_LINES 里的。
+@export var lead_strong: String
+@export var lead_weak: String
+@export var lead_standard: String
+@export var lead_flaw: String
 
 
 ## 平时表演力到这个数就背标准答案。
@@ -131,6 +139,47 @@ const CHIEF_FOLLOWUP_LINES := {
 	"strong": ["嗯，有数。", "这个说得实在。", "行，是干过的。"],
 	"weak": ["问细了就露底。", "那就是没做过。", "……嗯。"],
 }
+
+
+## 组长和主管反着来：他自己写代码，听得出背的。说实话又说得出东西的加分；
+## 老实说不会的不扣也不加（实话他认，可组里要会的）；背标准答案、露破绽的都扣。
+const LEAD_ITEMS := ["技术", "协作"]
+const LEAD_LINES := {
+	"strong": ["嗯，干过。", "这个对。", "行，有东西。"],
+	"weak": ["不会就说不会，挺好。可我们组要会的。", "……那这块得从头带。", "实话。记下了。"],
+	"standard": ["这是网上的标准答案。", "背的吧。", "这些我们组实习生也会背。"],
+	"flaw": ["你自己信吗？", "编的。", "……换个问题吧。"],
+}
+
+
+static func lead_item_for(card: QuestionCard) -> String:
+	if card.lead_item != "":
+		return card.lead_item
+	return "技术" if "ability" in card.probes else "协作"
+
+
+func lead_reaction(reply: Dictionary, pick: int) -> Dictionary:
+	var key := _lead_key(reply)
+	var own: String = {"strong": lead_strong, "weak": lead_weak, "standard": lead_standard, "flaw": lead_flaw}[key]
+	var line: String = own if own != "" else LEAD_LINES[key][pick % 3]
+	return {"line": line, "delta": {"strong": 1, "weak": 0, "standard": -1, "flaw": -1}[key]}
+
+
+## 追问时组长更狠：问穿了的再扣，越说越具体的加两分。
+func lead_followup_reaction(reply: Dictionary, pick: int) -> Dictionary:
+	var key := _lead_key(reply)
+	var lines := {"strong": ["对，就是这么回事。", "这个细节编不出来。", "行。"], "weak": LEAD_LINES.weak,
+		"standard": ["一问细就没了。", "刚才那段是背的。", "……行了。"], "flaw": LEAD_LINES.flaw}
+	return {"line": lines[key][pick % 3], "delta": {"strong": 2, "weak": 0, "standard": -1, "flaw": -1}[key]}
+
+
+static func _lead_key(reply: Dictionary) -> String:
+	match reply.kind:
+		"honest":
+			return "strong" if reply.strong else "weak"
+		"standard":
+			return "standard"
+	return "flaw"
 
 
 func chief_followup_reaction(reply: Dictionary, pick: int) -> Dictionary:

@@ -4,6 +4,10 @@ class_name ResumeDoc extends DraggableDoc
 signal stamped(verdict: String, at: Vector2)
 
 const SIZE := Vector2(232, 268)
+## 抬头文字的左边（照片右边）、正文内容栏的左边、正文行高。
+const HEAD_X := 80
+const VALUE_X := 44
+const LINE := 17
 
 var candidate: Candidate
 var page := 0
@@ -34,6 +38,11 @@ func _render() -> void:
 	UI.clear(_content)
 	fields.clear()
 	UI.label(_content, "%d/2" % (page + 1), Vector2(162, 249), UI.INK_SOFT)
+	if candidate.broker:
+		# 猎头推来的：右下角一个铅笔字，两页都在同一张纸的角上
+		var mark := UI.label(_content, "钱", Vector2(140, 247), UI.INK_SOFT)
+		mark.rotation = -0.25
+		mark.modulate.a = 0.75
 	if page == 0:
 		_render_front()
 	else:
@@ -48,42 +57,77 @@ func _render_front() -> void:
 	photo.position = Vector2(8, 8)
 	photo.set_process(false)
 	_content.add_child(photo)
-	fields.display_name = UI.label(_content, c.fact("display_name"), Vector2(80, 8), UI.INK)
-	UI.label(_content, "应聘：" + c.applied_position, Vector2(80, 26), UI.INK)
+	# 抬头：照片右边姓名、出生；应聘岗位单独一行，横跨整张纸，岗位名再长也放得下
+	fields.display_name = UI.label(_content, c.fact("display_name"), Vector2(HEAD_X, 10), UI.INK)
 	var birth := DateUtil.parse(c.fact("birth_date"))
-	fields.birth_date = UI.label(_content, "出生：%d 年 %d 月" % [birth.x, birth.y], Vector2(80, 44), UI.INK)
-	var line := 82
-	var degree := "学历：" + c.degree_name() + ("在读" if c.is_intern else "") + "　" + c.school
-	UI.label(_content, degree, Vector2(8, line), UI.INK)
-	line += 16
+	fields.birth_date = UI.label(_content, "出生：%d年%d月" % [birth.x, birth.y], Vector2(HEAD_X, 30), UI.INK)
+	_render_ats()
+	var applied := UI.label(_content, "应聘：" + c.applied_position, Vector2(8, 77), UI.INK, SIZE.x - 16)
+	# 一行放不下就整段括号挪到第二行，别把“组）”孤零零甩下去
+	var font := applied.get_theme_font("font")
+	var font_size := applied.get_theme_font_size("font_size")
+	if font.get_string_size(applied.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > applied.size.x and "（" in applied.text:
+		applied.text = applied.text.replace("（", "\n　　　（")
+	var rule_y := 77 + _height(applied) + 3
+	UI.panel(_content, Rect2(8, rule_y, SIZE.x - 16, 1), UI.INK_SOFT)
+	# 正文：左边一栏小字标题，右边内容，内容长就在右栏里折行
+	var line := rule_y + 5
+	line = _row("学历", c.degree_name() + ("在读" if c.is_intern else "") + "　" + c.school, line)
 	if c.undergrad_school != "":
 		line = _note("（本科：%s）" % c.undergrad_school, line)
 	if c.degree_note != "":
 		line = _note("（%s）" % c.degree_note, line)
 	if c.is_intern:
-		UI.label(_content, "专业：" + c.major, Vector2(8, line), UI.INK)
-		line += 16
+		line = _row("专业", c.major, line)
 		if c.major_note != "":
 			line = _note("（%s）" % c.major_note, line)
-		UI.label(_content, "绩点：%.2f / 4.0" % c.gpa, Vector2(8, line), UI.INK)
-		line += 16
-		UI.label(_content, "可实习：每周 %d 天，%d 个月" % [c.intern_days, c.intern_months], Vector2(8, line), UI.INK)
+		line = _row("绩点", "%.2f / 4.0" % c.gpa, line)
+		line = _row("可实习", "每周 %d 天，%d 个月" % [c.intern_days, c.intern_months], line)
 	else:
-		UI.label(_content, "期望：月薪 " + c.salary_text(), Vector2(8, line), UI.INK)
-		line += 16
-		UI.label(_content, "工作年限：" + c.exp_text(), Vector2(8, line), UI.INK)
+		line = _row("期望", "月薪 " + c.salary_text(), line)
+		line = _row("工作年限", c.exp_text(), line)
 		if c.exp_note != "":
-			line += 16
-			line = _note("（%s）" % c.exp_note, line) - 16
-	line += 18
-	UI.label(_content, "技能：", Vector2(8, line), UI.INK)
-	UI.label(_content, " / ".join(c.skills), Vector2(44, line), UI.INK, 180)
+			line = _note("（%s）" % c.exp_note, line)
+	line += 3
+	_row("技能", " / ".join(c.skills), line)
 
 
-## 学历、专业后面的小字，太长就在纸边折行。返回下一行的位置。
+## 一行“标题 | 内容”：内容对齐在左栏后面，标题比左栏长（可实习、工作年限）就往后让。返回下一行的位置。
+func _row(key: String, value: String, line: int) -> int:
+	var title := UI.label(_content, key, Vector2(8, line), UI.INK_SOFT)
+	var x := maxf(VALUE_X, 8 + title.get_combined_minimum_size().x + 6)
+	var text := UI.label(_content, value, Vector2(x, line), UI.INK, SIZE.x - x - 8)
+	return line + _height(text) + 1
+
+
+## 折行的字收紧到跟行距一样（字体自带的行高 22，比一行一行排的 LINE 大），返回占的高度。
+## Label 刚建出来时 get_line_count() 有时还没排版，这里自己按字体量。
+func _height(label: Label) -> int:
+	var font := label.get_theme_font("font")
+	var font_size := label.get_theme_font_size("font_size")
+	var pitch := font.get_height(font_size)
+	label.add_theme_constant_override("line_spacing", LINE - roundi(pitch))
+	var flags := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
+	var h := font.get_multiline_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, label.size.x, font_size, -1, flags).y
+	return LINE * maxi(1, roundi(h / pitch))
+
+
+## 初筛系统上线以后（DayConfig.ats）：左下角盖一个系统的章。它只看技能栏，见 Ats。
+func _render_ats() -> void:
+	if GameState.config == null or not GameState.config.ats:
+		return
+	var tag := Ats.label(candidate)
+	if tag == "":
+		return
+	var ink: Color = Color("2f5d8a") if tag == Ats.MATCH else Color("8a3a2f")
+	UI.panel(_content, Rect2(8, 247, 112, 16), Color(ink, 0.1), ink).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UI.label(_content, "系统初筛：" + tag, Vector2(12, 247), ink)
+
+
+## 学历、专业后面的小字，写在右栏里，太长就折行。返回下一行的位置。
 func _note(text: String, line: int) -> int:
-	var note := UI.label(_content, text, Vector2(8, line), UI.INK_SOFT, SIZE.x - 16)
-	return line + 16 * note.get_line_count()
+	var note := UI.label(_content, text, Vector2(VALUE_X, line), UI.INK_SOFT, SIZE.x - VALUE_X - 8)
+	return line + _height(note) + 1
 
 
 func _render_back() -> void:
@@ -133,14 +177,14 @@ func _drop_data(at: Vector2, data: Variant) -> void:
 
 func stamp(verdict: String, at: Vector2) -> void:
 	is_stamped = true
-	var ink := UI.GREEN.darkened(0.3) if verdict == "pass" else UI.RED
+	var ink: Color = {"pass": UI.GREEN.darkened(0.3), "exception": UI.YELLOW.darkened(0.35)}.get(verdict, UI.RED)
 	var mark := Control.new()
 	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mark.position = at.clamp(Vector2(40, 20), SIZE - Vector2(40, 20))
 	mark.rotation = randf_range(-0.2, 0.2)
 	UI.panel(mark, Rect2(-38, -15, 76, 30), Color(ink, 0.12), ink)
 	UI.panel(mark, Rect2(-36, -13, 72, 26), Color.TRANSPARENT, ink)
-	var text := UI.label(mark, "通 过" if verdict == "pass" else "拒 绝", Vector2(-36, -8), ink)
+	var text := UI.label(mark, {"pass": "通 过", "exception": "破 格"}.get(verdict, "拒 绝"), Vector2(-36, -8), ink)
 	text.size.x = 72
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(mark)

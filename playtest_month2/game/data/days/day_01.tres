@@ -30,7 +30,7 @@ coworker_note = "老周的便签：
 把印章拖到简历上。拒绝要选一句理由，选准是哪条另有奖金。
 工资按份计件，看得越多挣得越多。
 盖错了，打印机当场吐一张违规单。"
-pay = {"base": 170, "per_resume": 15, "per_correct": 5, "per_reason": 5, "chief_bonus": 100, "retention": 150, "retention_days": 3, "retention_deferred": false, "fines": false, "instant_notice": true}
+pay = {"base": 170, "per_resume": 15, "per_correct": 5, "per_reason": 5, "chief_bonus": 100, "retention": 150, "retention_days": 3, "retention_deferred": false, "fines": false}
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
 headline = "实习岗“一岗难求”：互联网运营实习投递比达 300:1"
 news_body = "某招聘平台称，大三学生平均投递 60 份简历，才换来一次实习面试。"

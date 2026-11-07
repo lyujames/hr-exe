@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_infra_oom"
+probes = PackedStringArray("ability")
+audience = "regular"
+lead_item = "技术"
+text_key = "本地容器里跑得好好的，一上线就被杀掉。你先看什么？"
+honest = "先看容器限了多少内存，再看 JVM 堆设了多少。上回就是堆比限制还大。"
+honest_low = "……加内存？我对容器不太熟。"
+standard = "从资源配置、应用代码、依赖环境三个层面逐一排查。"
+flaw = "可能是线上机器不太行。"
+followup_text = "那堆应该设多少？"
+honest_followup = "留出三成给堆外的东西。限 4G，堆给到 2.8 左右。"
+honest_low_followup = "……跟限制一样大？"
+standard_followup = "根据压测结果，动态调整。"
+flaw_followup = "设、设大一点？"
+lead_flaw = "线上机器比你本地好。"

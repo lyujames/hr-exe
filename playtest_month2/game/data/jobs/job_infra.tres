@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "后端开发工程师（基础架构组）"
+pay_text = "月薪 12–18k"
+majors = PackedStringArray()
+lookalikes = PackedStringArray()
+requirements = PackedStringArray("5 年以上经验", "接受 on-call")
+keywords = PackedStringArray("Go", "Linux", "Docker")
+keyword_lookalikes = PackedStringArray("Golang", "Unix", "Docker Desktop")
+skill_pool = PackedStringArray("Go", "Linux", "Docker", "Kubernetes", "Nginx", "Prometheus", "Python", "Java", "MySQL", "Shell", "Git", "Golang", "Unix")
+job_titles = PackedStringArray("运维开发", "SRE", "后端开发", "外包驻场开发", "平台开发")

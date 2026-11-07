@@ -18,13 +18,16 @@ func _ready() -> void:
 	UI.label(self, "日结单 · 第 %d 天 · %s" % [GameState.day, off], Vector2(40, 18), UI.INK)
 	var y := 40.0
 	var pay := GameState.pay
-	y = _row("底薪", int(pay.base), y)
+	if GameState.config.quota > 0:
+		y = _row("底薪（人效 %d/%d 份）" % [mini(s.processed, GameState.config.quota), GameState.config.quota], GameState.base_pay(), y)
+	else:
+		y = _row("底薪", int(pay.base), y)
 	# 判对的钱并进绩效，日结单上不单列
 	y = _row("绩效 %d 份" % s.processed, GameState.performance_pay() + GameState.judge_bonus(), y)
 	if pay.get("per_reason", 0) > 0:
 		y = _row("理由准确 %d 份 × ¥%d" % [s.reason_ok, pay.per_reason], GameState.reason_bonus(), y)
 	for name: String in s.chief_picks:
-		y = _row("主管推荐奖 %s" % name, int(pay.get("chief_bonus", 0)), y)
+		y = _row("%s %s" % [GameState.config.interviewer.get("bonus", "主管推荐奖"), name], int(pay.get("chief_bonus", 0)), y)
 	for r: Dictionary in s.retained:
 		if r.left:
 			y = _row("留任 %s：已离职" % r.name, 0, y)
@@ -38,14 +41,21 @@ func _ready() -> void:
 			y = _row("违规 %d 次（%d 次警告）" % [s.wrong, free], -GameState.fines(), y)
 		else:
 			y = _row("违规 %d 次（本月不罚款）" % s.wrong, 0, y)
-	if s.event_fine > 0:
-		y = _row("员工事故", -s.event_fine, y)
+	var vouch_bad: int = s.vouch.filter(func(v: Dictionary) -> bool: return not v.good).size()
+	for v: Dictionary in s.vouch:
+		y = _row("破格担保 %s：%s" % [v.name, "干得好" if v.good else "出事了"], -GameState.VOUCH_FINE if not v.good else 0, y)
+	if s.event_fine - vouch_bad * GameState.VOUCH_FINE > 0:
+		y = _row("员工事故", -(s.event_fine - vouch_bad * GameState.VOUCH_FINE), y)
 	if s.gray > 0:
 		y = _row("信封（不入账）", s.gray, y)
+	if not s.broker.is_empty():
+		y = _row("李哲他爸转账 %d 笔（不入账）" % s.broker.size(), GameState.broker_income(), y)
+	for t: Dictionary in s.sent:
+		y = _row("手机转给%s（%s）" % [t.to, t.note], -int(t.amount), y)
 	if GameState.is_month_end():
 		y = _row("房贷（月供）", -GameState.MORTGAGE, y)
 	y += 6.0
-	for bill: Dictionary in GameState.config.bills:
+	for bill: Dictionary in GameState.bills_today():
 		paid[bill.id] = true
 		var box := CheckBox.new()
 		box.text = "%s  −¥%d" % [bill.label, bill.amount]
@@ -92,10 +102,24 @@ func _build_notice() -> void:
 		# 只是让玩家知道，不进今天的收入
 		var due := pending.map(func(h: Dictionary) -> String: return "%s 第 %d 天" % [h.candidate.display_name, GameState.retention_due(h)])
 		footer.append("在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)))
+	var broker := GameState.broker_pending()
+	if not broker.is_empty():
+		footer.append("在路上：李哲他爸 ¥%d × %d（满试用期才转）" % [GameState.BROKER_RETAIN, broker.size()])
 	if not GameState.passed_today.is_empty() and not GameState.is_month_end():
 		footer.append("今天通过 %d 人，约明天面试。" % GameState.passed_today.size())
+	if s.exception != "" and GameState.day < GameState.LAST_DAY:
+		footer.append("破格：%s，%s 14:00 你单独面。" % [s.exception, "下个月第一天" if GameState.is_month_end() else "明天"])
 	if s.unprocessed > 0:
 		footer.append("未处理简历 %d 份。" % s.unprocessed)
+	if not s.intake_left.is_empty():
+		footer.append("入职手续没办完：%s。王总记了一笔。" % "、".join(PackedStringArray(s.intake_left)))
+	if GameState.config.ats and s.ats_agree + s.ats_override > 0:
+		var ats := "系统初筛：跟系统一致 %d 份，推翻系统 %d 份" % [s.ats_agree, s.ats_override]
+		if s.ats_override > 0:
+			ats += "（其中判对 %d 份）" % s.ats_override_ok
+		footer.append(ats + "。")
+	if s.called_out > 0:
+		footer.append("面试里，你红笔圈的疑点被说中 %d 处。" % s.called_out)
 	footer.append("正确 %d / 已处理 %d" % [s.correct, s.processed])
 	var labels: Array[Label] = []
 	var footer_h := 0.0
@@ -138,7 +162,7 @@ func paid_ids() -> Array:
 
 func _refresh() -> void:
 	var net := GameState.income() - GameState.mortgage_today()
-	for bill: Dictionary in GameState.config.bills:
+	for bill: Dictionary in GameState.bills_today():
 		if paid[bill.id]:
 			net -= int(bill.amount)
 	var after := GameState.savings + net

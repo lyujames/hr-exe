@@ -71,19 +71,21 @@ func _show_people() -> void:
 				continue
 			var outcome := GameState.story_outcome(String(c.id))
 			var key: String = outcome.verdict if outcome.verdict != "" else "unseen"
+			if outcome.exception and key == "pass" and c.epilogue.has("exception"):
+				key = "exception"
 			var line: String = c.epilogue.get(key, "")
 			if line == "" and key == "hired":
 				line = c.epilogue.get("pass", "")
 			if key == "unseen":
 				line = "这份简历你没来得及看。"
 			if outcome.chief_pick:
-				line += "（赵主管推荐）"
+				line += "（%s推荐）" % outcome.picked_by
 			var who := UI.label(_lines, "第 %d 天　%s" % [d, c.display_name], Vector2(40, y), UI.TEXT)
 			who.size.x = 120
 			var text := UI.label(_lines, line.replace("{reason}", outcome.reason.trim_suffix("。")), Vector2(164, y), UI.TEXT_DIM, 436)
 			y += maxf(16.0, text.get_line_count() * 15.0) + 5.0
 	y += 4.0
-	for note in _kickback_notes():
+	for note in _kickback_notes() + _work_notes():
 		var l := UI.label(_lines, note, Vector2(40, y), UI.YELLOW, 560)
 		y += maxf(16.0, l.get_line_count() * 15.0) + 4.0
 	UI.button(_lines, "继续", Rect2(484, 328, 110, 24), _show_home)
@@ -102,7 +104,52 @@ func _kickback_notes() -> Array:
 			"story_xiaoliu":
 				notes.append("小刘家那张购物卡，¥%d，你拿去交了孩子的编程班。" % k.amount if k.taken \
 					else "小刘家的烟和购物卡，你爸替你拎回去了。回来的时候他在楼下站了很久才上楼。")
+	# 猎头：这个月放进来几个带“钱”字的，收了多少，还有多少在路上
+	var passes := GameState.broker_passes(_month)
+	if not passes.is_empty():
+		var got := 0
+		var returned := 0
+		for k: Dictionary in GameState.kickbacks_in(_month):
+			if k.get("broker", "") != "":
+				if k.taken:
+					got += int(k.amount)
+				else:
+					returned += 1
+		var names := PackedStringArray(passes.map(func(k: Dictionary) -> String: return k.get("name", "")))
+		var line := "右下角写着“钱”的简历，你放进去 %d 份：%s。" % [passes.size(), "、".join(names)]
+		if got > 0:
+			line += "李哲他爸转的钱，你收了 ¥%d。" % got
+		if returned > 0:
+			line += "退回去 %d 笔，他每次都回一个“？”。" % returned
+		var pending := GameState.broker_pending().size()
+		if pending > 0:
+			line += "还有 %d 个人试用期没满，他说“到时候一起结”。" % pending
+		notes.append(line)
 	return notes
+
+
+## 这个月的活：初筛系统推翻了几次；月底那张盘点表你怎么交的。
+func _work_notes() -> Array:
+	var notes := []
+	var ats := GameState.ats_overrides(_month)
+	if ats.agree + ats.override > 0:
+		var line := "系统上线那两天，你跟它一致 %d 份。王总在周会上念了这个数。" % ats.agree
+		if ats.override > 0:
+			line += "你推翻了它 %d 次，判对 %d 次。这个数只有你知道。" % [ats.override, ats.ok]
+		notes.append(line)
+	match str(GameState.family.get("w14_table", "")):
+		"true":
+			notes.append("这个月你招了 %d 个人，月底交了一张表。表上每个人的学历、年龄都是真的。" % _hired_count())
+		"fudge":
+			notes.append("这个月你招了 %d 个人，月底交了一张表。表上有几格，你改过。" % _hired_count())
+		"delay", "ignored":
+			notes.append("这个月你招了 %d 个人。那张表你没交，王总说他自己来。" % _hired_count())
+	return notes
+
+
+func _hired_count() -> int:
+	var first := (_month - 1) * GameState.DAYS_PER_MONTH + 1
+	return GameState.hires.filter(func(h: Dictionary) -> bool: return int(h.day_hired) >= first).size()
 
 
 ## 第二页：下班回家。老婆发的消息你回了多少，决定门后面是什么。

@@ -15,9 +15,13 @@ static func due_event() -> Dictionary:
 		if not hire.event_resolved and GameState.retention_due(hire) <= GameState.day:
 			hire.event_resolved = true
 			var event := _for_hire(hire)
+			_settle_vouch(hire, event)
 			var days := GameState.retention_due(hire) - int(hire.day_hired)
 			var entry := {"name": event.name, "days": days, "left": event.id in LEAVES, "title": event.title}
 			GameState.stats.retained.append(entry)
+			# 猎头的人满了试用期还在：后半笔钱到了，哪怕他把项目拖垮了
+			if hire.candidate.get("broker", false) and not entry.left:
+				GameState.broker_paid(Candidate.from_dict(hire.candidate), GameState.BROKER_RETAIN, "retain")
 			events.append(event)
 	if events.is_empty():
 		return _empty_headcount() if _no_hires_this_month() else {}
@@ -69,11 +73,30 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 	if not GameState.fines_on():
 		event.fine = 0
 	if hire.get("chief_pick", false):
-		event.body += "\n赵主管在旁边：“我带得好。”" if kind == "praise" else "\n赵主管在旁边：“人是你面的。”"
+		var who: String = hire.get("picked_by", "赵主管")
+		event.body += "\n%s在旁边：“%s”" % [who, "我带得好。" if kind == "praise" else "人是你面的。"]
 	var promise: String = hire.get("promise", "")
 	if promise != "" and kind in ["jump", "burnout"]:
 		event.body += "\n离职记录：“面试时 HR 说：%s”" % promise
+	# 破格进来的人：你单独面、你签的字。出事扣担保金，干得好老板记你一笔。
+	if hire.get("vouched", false):
+		event.vouched = true
+		if kind == "praise":
+			event.body += "\n王总批注：“破格那个是你保的？眼光可以。”"
+		else:
+			event.body += "\n“规则不让进，是你破格放进来的。担保金 ¥%d，自己出。”" % GameState.VOUCH_FINE
 	return event
+
+
+## 破格担保对账：出事（含跳槽、项目延期）扣担保金，甩锅也甩不掉；干得好老板记你一笔。日结单上单列一行。
+static func _settle_vouch(hire: Dictionary, event: Dictionary) -> void:
+	if not hire.get("vouched", false):
+		return
+	var good: bool = event.id == "praise"
+	GameState.boss_trust += 1 if good else -1
+	if not good:
+		GameState.stats.event_fine += GameState.VOUCH_FINE
+	GameState.stats.vouch.append({"name": hire.candidate.display_name, "good": good})
 
 
 static func _empty_headcount() -> Dictionary:

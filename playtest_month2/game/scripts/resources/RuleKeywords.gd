@@ -36,7 +36,8 @@ static func fillers() -> Array:
 
 func shape(c: Candidate, form: Shape, rng: RandomNumberGenerator) -> void:
 	var keywords := Array(_posting_keywords(c))
-	var pool := fillers()
+	# 填充技能里不能有必备技能：基础架构组要的 Go、Linux、Docker 本来就在填充名单里，少写的那两项不能又被补回来
+	var pool := fillers().filter(func(s: String) -> bool: return s not in keywords)
 	var picked: Array = keywords.duplicate()
 	var total := rng.randi_range(4, 6)
 	match form:

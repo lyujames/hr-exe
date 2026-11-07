@@ -18,6 +18,8 @@ const MAX_ROWS := 2
 ## 行距收紧一点：这套像素字自带的行高留白太多，四段工作加空窗会挤出纸。
 const TIGHTEN := 3
 const MARK_COLORS := {"认了": Color("b08a1a"), "支吾": Color("6b6b6b"), "答不上": Color("b03a2e")}
+## 红笔先圈了、后来问出了反应的行：你说中了。
+const HIT_COLOR := Color("2e7d4f")
 
 var candidate: Candidate
 ## 手牌开着才能问；红笔什么时候都能用。
@@ -26,6 +28,8 @@ var pen := false
 ## 圈了哪些行（key），按圈的先后。
 var circled: PackedStringArray = []
 var marks := {}
+## 圈了以后才问出反应的行（被你说中）。
+var hits: PackedStringArray = []
 var _lines: Array[Dictionary] = []
 var _spots := {}
 var _paper: Panel
@@ -112,8 +116,10 @@ func _row_height() -> float:
 func _spot(line: Dictionary, rect: Rect2) -> void:
 	var key: String = line.key
 	if key in circled:
-		var ring := UI.panel(_layer, rect.grow(1), Color.TRANSPARENT, UI.RED)
+		var ring := UI.panel(_layer, rect.grow(1), Color.TRANSPARENT, HIT_COLOR if key in hits else UI.RED)
 		ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if key in hits:
+			UI.label(_layer, "中", Vector2(rect.end.x - 4, rect.position.y - 9), HIT_COLOR)
 	# 问出来的反应：技能、学历这种挤在一排的画下划线，整行的在左边画一道竖条，行尾写字
 	if marks.has(key):
 		var tag: String = marks[key]
@@ -182,10 +188,20 @@ func set_open(on: bool) -> void:
 func mark(key: String, tag: String) -> void:
 	# 答不上压过支吾，支吾压过认了
 	var order := ["认了", "支吾", "答不上"]
+	var hit := key in circled and key not in hits
+	if hit:
+		hits.append(key)
 	if marks.has(key) and order.find(marks[key]) >= order.find(tag):
+		if hit:
+			_render()
 		return
 	marks[key] = tag
 	_render()
+
+
+## 这一行是不是刚被说中（mark 之后查）。
+func was_hit(key: String) -> bool:
+	return key in hits
 
 
 func line_by_key(key: String) -> Dictionary:
