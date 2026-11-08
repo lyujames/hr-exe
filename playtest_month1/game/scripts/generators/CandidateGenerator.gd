@@ -53,7 +53,8 @@ const LAID_OFF_EVALS := [
 ]
 
 
-static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> Array[Candidate]:
+## late：今天晚到，剧情人物排到最上面，来不及看的只是生成的人。
+static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int, late := false) -> Array[Candidate]:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = day_seed
 	var result: Array[Candidate] = []
@@ -62,8 +63,11 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> A
 		var c := _generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background, cfg.day)
 		_attach_docs(c, rng)
 		result.append(c)
-	for story in cfg.story_candidates:
-		result.insert(mini(cfg.story_slot, result.size()), story)
+	# 倒着插，同一个位置上几个人按 story_candidates 的顺序排
+	var stories := cfg.story_candidates.filter(func(story: Candidate) -> bool: return story.skip_when == "" or not GameState.echo_matches(story.skip_when))
+	stories.reverse()
+	for story: Candidate in stories:
+		result.insert(0 if late else mini(cfg.story_slot, result.size()), story)
 	return result
 
 

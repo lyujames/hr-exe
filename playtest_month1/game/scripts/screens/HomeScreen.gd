@@ -67,7 +67,13 @@ func _ask(beat: Dictionary) -> void:
 	_next.visible = false
 	var options: Array = beat.options.filter(func(o: Dictionary) -> bool: return GameState.family_matches(o.get("when", "")))
 	for option: Dictionary in options:
-		_options.append(UI.text_button(self, option.label, Rect2(56, 0, 360, 22), _choose.bind(beat, option)))
+		var label: String = option.label
+		# 晚到的选项先说清楚代价；今天破格了的，明天下午还有你单独面的那场
+		if option.has("late"):
+			var at := 8 * 60 + int(option.late)
+			label += "（明天 %02d:%02d 才到公司" % [at / 60, at % 60]
+			label += "，14:00 还有你担保的面试）" if not GameState.vouched_today.is_empty() else "）"
+		_options.append(UI.text_button(self, label, Rect2(56, 0, 520, 22), _choose.bind(beat, option)))
 	var total := 0.0
 	for b in _options:
 		total += b.size.y + 4.0

@@ -33,8 +33,14 @@ func _show_people() -> void:
 	var y := 44.0
 	for d in range(1, GameState.LAST_DAY + 1):
 		for c: Candidate in RuleEngine.load_day(d).story_candidates:
+			if not c.is_story or (c.skip_when != "" and GameState.echo_matches(c.skip_when)):
+				continue
 			var outcome := GameState.story_outcome(String(c.id))
 			var key: String = outcome.verdict if outcome.verdict != "" else "unseen"
+			if outcome.exception and key == "pass" and c.epilogue.has("exception"):
+				key = "exception"
+			elif key == "pass" and c.epilogue.has("exposed") and GameState.echo_matches(String(c.id) + ":exposed"):
+				key = "exposed"
 			var line: String = c.epilogue.get(key, "")
 			if line == "" and key == "hired":
 				line = c.epilogue.get("pass", "")

@@ -76,8 +76,11 @@ func show_desk() -> void:
 	_swap("res://scenes/Desk.tscn", show_interview)
 
 
+## 昨天破格的人 14:00 先面（你单独面），面完再去赵主管那场。
 func show_interview() -> void:
-	if GameState.interviewees.is_empty():
+	if GameState.next_vouched():
+		_swap("res://scenes/InterviewRoom.tscn", show_interview)
+	elif GameState.interviewees.is_empty():
 		show_report()
 	else:
 		_swap("res://scenes/InterviewRoom.tscn", _after_interview)

@@ -21,6 +21,7 @@ morning_push = "家长代投简历、陪同面试，HR：“见怪不怪”"
 boss_mail = "各位家人：
 还是那两个岗。
 规则不变，手册上有的，一条都不能松。
+另外，部门推荐奖今天起发：面试时赵主管会给你一张便签，他要的人你招进来，一人 ¥100。
 —— 王总"
 coworker_note = "老周的便签：
 内容那页的“新闻学”，不是“编辑出版学”。
@@ -28,7 +29,7 @@ coworker_note = "老周的便签：
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
 headline = "实习也要“托关系”？家长圈流传“内推价目表”"
 news_body = "某家长群截图显示，大厂实习“内推”报价从三百到三千不等。受访 HR：“信封我们见得多了。”"
-story_echoes = [{"when": "story_philosophy:reject", "headline": "一篇推文刷屏：《凌晨四点的外卖站》", "body": "作者苏见青，哲学系大三，现为某竞品公司内容运营实习生。她说：“谢谢每一个拒绝过我的公司。”", "mail_ps": "PS：竞品那篇外卖站的推文看了吗？咱们怎么就招不到这种人？"}, {"when": "story_caregiver:hired", "mail_ps": "PS：赵主管说，新来的实习生许安周二又没来，说是在医院。下不为例。"}]
+story_echoes = [{"when": "story_perfect:exposed", "mail_ps": "PS：晚报上卷钱跑的顾全，面试时是你问出毛病的。干得好，特批奖金今天发。", "bonus": {"label": "王总特批：识破顾全", "amount": 200}}, {"when": "story_perfect:reject", "mail_ps": "PS：晚报上卷钱跑的顾全，第一天投过咱们，你拒的？运气不错。"}, {"when": "story_philosophy:reject", "headline": "一篇推文刷屏：《凌晨四点的外卖站》", "body": "作者苏见青，哲学系大三，现为某竞品公司内容运营实习生。她说：“谢谢每一个拒绝过我的公司。”", "mail_ps": "PS：竞品那篇外卖站的推文看了吗？咱们怎么就招不到这种人？"}, {"when": "story_caregiver:hired", "mail_ps": "PS：赵主管说，新来的实习生许安周二又没来，说是在医院。下不为例。"}]
 family_sms = "老婆：这个月电费比上个月多了一百。
 老婆：孩子问编程班的试听课不要钱，周六能去吗？"
 chief_opener = "实习生嘛，我得问问家里情况。别紧张，随便聊聊。"

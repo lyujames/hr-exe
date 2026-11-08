@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
@@ -6,7 +6,8 @@
 [ext_resource type="Resource" path="res://data/rules/rule_major.tres" id="4"]
 [ext_resource type="Resource" path="res://data/chief/question_day3.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day3.tres" id="chief_a"]
-[ext_resource type="Resource" path="res://data/story/candidate_philosophy.tres" id="story"]
+[ext_resource type="Resource" path="res://data/story/candidate_zhuanshengben_2.tres" id="story"]
+[ext_resource type="Resource" path="res://data/story/candidate_college_shop.tres" id="story_alt"]
 
 [resource]
 script = ExtResource("1")
@@ -15,30 +16,28 @@ date = "2026-03-04"
 resume_count = 4
 screening_seconds = 145.0
 new_rules = Array[ExtResource("2")]([ExtResource("4")])
-story_candidates = Array[ExtResource("3")]([ExtResource("story")])
+story_candidates = Array[ExtResource("3")]([ExtResource("story"), ExtResource("story_alt")])
 story_slot = 2
 candidate_mix = {"fresh": 100}
 morning_push = "实习招聘只认“对口专业”？"
 boss_mail = "各位家人：
 两天了，该熟了。从今天起我有要求：专业要对口，名单在桌上的 JD 里。不在名单上的，再优秀也不要。
 按 JD 办事，别问为什么。
-另外，部门推荐奖今天起发：面试时赵主管会给你一张便签，他要的人你招进来，一人 ¥100。
 —— 王总"
 coworker_note = "老周的便签：
 专业对着 JD 上那几个，一字不差才算。
 专业看主修，辅修不算；“国际经济与贸易”不是“电子商务”。
 昨天的规则还在，规则只增不减。"
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
-headline = "“专业对口”成实习门槛：非相关专业投递回复率不足一成"
-news_body = "受访学生：“我学的是哲学，可我真的会写文案。”"
-story_echoes = [{"when": "story_philosophy:reject", "headline": "“专业对口”成实习门槛：非相关专业投递回复率不足一成", "body": "受访学生：“我学的是哲学，可我真的会写文案。今天下午又收到一封回信，就一句话：{reason}”"}, {"when": "story_philosophy:pass", "headline": "“专业对口”成实习门槛：非相关专业投递回复率不足一成", "body": "受访学生：“我学的是哲学，可我真的会写文案。今天终于有一家公司让我去面试。”"}]
+headline = "专升本的“五天时差”：录取通知书在手，简历上还是“大专”"
+news_body = "本月入学的专升本新生，开学前投递实习，多数在学历一栏被系统直接筛掉。"
+story_echoes = [{"when": "story_zhuanshengben_2:exception", "headline": "专升本的“五天时差”：录取通知书在手，简历上还是“大专”", "body": "一名专升本新生说：“投了二十几家，都是学历那栏被筛掉。今天有一家公司的 HR，在我简历上盖了个我没见过的章。”"}, {"when": "story_zhuanshengben_2:reject", "headline": "专升本的“五天时差”：录取通知书在手，简历上还是“大专”", "body": "一名专升本新生说：“同一家公司我投了两次。两次的回信都是同一句：{reason}”"}]
 family_sms = "老婆：你爸还是说胸口闷，我明天陪他去医院看看。"
 family_sms_by = [{"when": "d2_dad:checkup", "sms": "老婆：你爸听你的，答应去查了。我明天一早陪他去医院。"}, {"when": "d2_dad:weekend", "sms": "老婆：你说周末，周末你也加班。\n老婆：你爸还是闷，我明天先陪他去医院。"}]
 chief_opener = "我们节奏快，实习生来了就得能上手。"
-chief_need = {"item": "狼性", "note": "要能扛事的。"}
 chief_question = ExtResource("chief_q")
 candidate_ask = ExtResource("chief_a")
 desk_texts = [{"id": "t3_1", "at": 590, "text": "老婆：你爸刚才又说胸口闷……", "replies": [{"key": "warm", "label": "要不要我请半天假？", "marriage": 1}, {"key": "curt", "label": "先观察观察。", "marriage": 0}]}, {"id": "t3_2", "at": 830, "text": "老婆：你是不是又在忙？算了，晚上再说。", "when": "t3_1:", "replies": [{"key": "warm", "label": "刚看到，晚上我早点回。", "marriage": 1}, {"key": "curt", "label": "嗯，在忙。", "marriage": 0}]}, {"id": "t3_2", "at": 830, "text": "老婆：今晚能早点回吗？想跟你商量你爸的事。", "replies": [{"key": "warm", "label": "尽量，七点前。", "marriage": 1}, {"key": "curt", "label": "看情况。", "marriage": 0}]}]
 sms_flag = "d3_eve"
 sms_replies = [{"key": "warm", "label": "我明天一早过去。", "marriage": 1}, {"key": "curt", "label": "好。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
-home_scene = [{"text": "你到家，钟刚过七点。老婆已经把碗筷摆好了。", "when": "t3_2:warm"}, {"text": "老婆：说早点回，还真回来了。", "when": "t3_2:warm"}, {"text": "你到家 19:05。老婆没抬头：“饭在锅里。”", "when": "!t3_2:warm"}, {"text": "孩子：（从房间探出头）爷爷是不是生病了？"}, {"ask": "h3_kid", "options": [{"key": "tired", "label": "没事，爷爷就是累了。", "then": [{"text": "孩子：那我周末给爷爷画张画。"}]}, {"key": "honest", "label": "爷爷心口不舒服，明天去医院看看。", "marriage": 1, "then": [{"text": "孩子想了一会儿：“那我今晚就画。”"}, {"text": "他回房间了，门没关。"}]}]}, {"text": "老婆：你爸的事，我想了想，明天我请假陪他去。你刚入职，就别请了。"}, {"ask": "h3_dad", "options": [{"key": "both", "label": "我也请，一起去。", "marriage": 1, "then": [{"text": "老婆：你才去两周……"}, {"text": "老婆：算了，你自己看着办。"}]}, {"key": "thanks", "label": "那辛苦你了。", "then": [{"text": "老婆：嗯。我习惯了。"}]}, {"key": "clinic", "label": "要不让他先去社区医院看看？", "marriage": -1, "then": [{"text": "老婆看着你，没说话。"}, {"text": "孩子房间的门，轻轻关上了。"}]}]}]
+home_scene = [{"text": "你到家，钟刚过七点。老婆已经把碗筷摆好了。", "when": "t3_2:warm"}, {"text": "老婆：说早点回，还真回来了。", "when": "t3_2:warm"}, {"text": "你到家 19:05。老婆没抬头：“饭在锅里。”", "when": "!t3_2:warm"}, {"text": "孩子：（从房间探出头）爷爷是不是生病了？"}, {"ask": "h3_kid", "options": [{"key": "tired", "label": "没事，爷爷就是累了。", "then": [{"text": "孩子：那我周末给爷爷画张画。"}]}, {"key": "honest", "label": "爷爷心口不舒服，明天去医院看看。", "marriage": 1, "then": [{"text": "孩子想了一会儿：“那我今晚就画。”"}, {"text": "他回房间了，门没关。"}]}]}, {"text": "老婆：你爸的事，我想了想，明天我请假陪他去。你刚入职，就别请了。"}, {"ask": "h3_dad", "options": [{"key": "both", "label": "我上午陪他去，看完再去公司。", "marriage": 1, "late": 150, "morning": "早上七点，你和老婆一左一右扶着你爸进了医院。挂号、排队、抽血。你爸一直说：“你去上班，我没事。”\n心电图的结果要下午才出。十点，你把他交给老婆，打车去公司。", "then": [{"text": "老婆：你才去两周……"}, {"text": "老婆：行。有你在，他踏实点。"}]}, {"key": "thanks", "label": "那辛苦你了。", "then": [{"text": "老婆：嗯。我习惯了。"}]}, {"key": "clinic", "label": "要不让他先去社区医院看看？", "marriage": -1, "then": [{"text": "老婆看着你，没说话。"}, {"text": "孩子房间的门，轻轻关上了。"}]}]}]

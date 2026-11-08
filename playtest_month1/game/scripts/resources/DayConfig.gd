@@ -37,7 +37,7 @@ class_name DayConfig extends Resource
 ## 按当天员工事件 id 替换报纸头条：{event_id: [标题, 正文]}。
 @export var news_by_event: Dictionary = {}
 ## 之前那些手写人物的回响 [{when, headline, body, mail_ps, sms}]，when 是“候选人 id:pass/reject/hired”。
-## 第一条对上的生效；headline 让位给 news_by_event。文字里的“{reason}”换成玩家拒绝 TA 时选的那句。
+## 第一条对上的生效；headline 让位给 news_by_event。bonus {label, amount}：对上了，今天日结单多一行老板发的钱。文字里的“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var story_echoes: Array = []
 @export_multiline var family_sms: String
 ## 按之前的家里事换掉 family_sms [{when, sms}]，when 是“标记:选项”（见 GameState.family），第一条对上的生效。

@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
 [ext_resource type="Resource" path="res://data/rules/rule_degree.tres" id="4"]
 [ext_resource type="Resource" path="res://data/story/candidate_perfect.tres" id="5"]
+[ext_resource type="Resource" path="res://data/story/candidate_college_d1.tres" id="college"]
 [ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
 [ext_resource type="Resource" path="res://data/jobs/job_ops.tres" id="job_ops"]
 
@@ -15,8 +16,8 @@ date = "2026-03-02"
 resume_count = 4
 screening_seconds = 120.0
 new_rules = Array[ExtResource("2")]([ExtResource("4")])
-story_candidates = Array[ExtResource("3")]([ExtResource("5")])
-story_slot = 3
+story_candidates = Array[ExtResource("3")]([ExtResource("college"), ExtResource("5")])
+story_slot = 1
 candidate_mix = {"fresh": 100}
 new_postings = Array[ExtResource("jp")]([ExtResource("job_ops")])
 morning_push = "互联网公司暑期实习开抢"
