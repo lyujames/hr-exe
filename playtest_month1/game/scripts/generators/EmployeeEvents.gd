@@ -15,6 +15,7 @@ const EVENT_ITEM := {"burnout": "狼性", "jump": "稳定性", "delay": "格局"
 
 
 static func due_event() -> Dictionary:
+	settle_rejects()
 	var events: Array = []
 	for hire: Dictionary in GameState.hires:
 		if not hire.event_resolved and GameState.retention_due(hire) <= GameState.day:
@@ -40,18 +41,50 @@ static func _no_hires_this_month() -> bool:
 	return not GameState.hires.any(func(h: Dictionary) -> bool: return int(h.day_hired) >= month_start)
 
 
+## 这个人进来会怎样：剧情人物写死，其余按隐藏属性。录用和拒绝共用一套。
+static func fate(c: Candidate) -> String:
+	var kind := String(c.event_override)
+	if kind != "":
+		return kind
+	if c.ability < 40:
+		return "delay"
+	if c.loyalty < 35:
+		return "jump"
+	if c.pressure < 35:
+		return "burnout"
+	return "praise"
+
+
+## 被拒的人在别家的下场：拒对了有证据发识人奖，拒掉好人记错失（GameState.reject_bonus / reject_cost）。
+const ELSEWHERE := {
+	"embezzle": "%s去了别家，带着备用金失联了。",
+	"jump": "%s去了别家，试用期没过就跳了。",
+	"burnout": "%s去了别家，加班加到辞职了。",
+	"delay": "%s去了别家，把项目拖黄了。",
+	"praise": "%s去了竞对，干得很好。",
+}
+
+
+static func settle_rejects() -> void:
+	for r: Dictionary in GameState.rejects:
+		if r.resolved or int(r.due) > GameState.day:
+			continue
+		r.resolved = true
+		var c := Candidate.from_dict(r.candidate)
+		var kind := fate(c)
+		var good := kind == "praise"
+		var evidence := GameState.has_evidence(r.get("evidence", {}))
+		var text: String = ELSEWHERE[kind] % c.display_name
+		if good:
+			text += "“我要的人你也拒？”" if r.get("chief_pick", false) else "你拒掉了一个好人。"
+		else:
+			text += "你拒对了。" if evidence else "拒对了，但你说不出为什么。"
+		GameState.stats.rejects.append({"name": c.display_name, "good": good, "evidence": evidence, "text": text})
+
+
 static func _for_hire(hire: Dictionary) -> Dictionary:
 	var c := Candidate.from_dict(hire.candidate)
-	var kind := String(c.event_override)
-	if kind == "":
-		if c.ability < 40:
-			kind = "delay"
-		elif c.loyalty < 35:
-			kind = "jump"
-		elif c.pressure < 35:
-			kind = "burnout"
-		else:
-			kind = "praise"
+	var kind := fate(c)
 	var scorecard_full: bool = hire.scorecard.values().all(func(v: Variant) -> bool: return int(v) == 5)
 	var event := {"id": kind, "name": c.display_name, "fine": BLAME_FINE, "scorecard_full": scorecard_full, "blame": true}
 	var term := "实习期" if c.is_intern else "试用期"
@@ -91,6 +124,11 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 		var to := int(edit.to)
 		var said := "看出来了还招？" if to <= 2 else ("这一项是你签的字。" if to >= 4 else "改成个 3 分，有什么用？")
 		event.body += "\n评分表上你改了%s %d→%d：“%s”" % [edit.item, int(edit.from), to, said]
+	# 面试里查实了还录：第一个月也扣（GameState.knowing_fine）
+	if kind != "praise" and not hire.get("evidence", {}).get("found", []).is_empty():
+		event.body += "\n“面试记录上你自己写着查实。你还招？”"
+		GameState.boss_trust -= 1
+		GameState.stats.knowing.append(c.display_name)
 	var promise: String = hire.get("promise", "")
 	if promise != "" and kind in ["jump", "burnout"]:
 		event.body += "\n离职记录：“面试时 HR 说：%s”" % promise

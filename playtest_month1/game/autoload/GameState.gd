@@ -10,6 +10,8 @@ const FREE_WARNINGS := 2
 ## 担保的人留任期满出事，不管这个月扣不扣钱，都扣 VOUCH_FINE；干得好，老板记你一笔。
 const EXCEPTION_DAY := 3
 const VOUCH_FINE := 100
+const KNOWING_FINE := 100
+const MISS_COST := 50
 ## 晚到：每晚一小时扣多少（底薪按 8 小时折）。这是考勤，不是违规罚款，第一个月也扣。
 const LATE_PER_HOUR := 20
 ## 每 7 个工作日算一个月，月底一次扣月供。
@@ -38,6 +40,8 @@ var decision_log: Array = []
 ## hr_edit：评分表上你用红笔改的那一处 {item, from, to}，空表示没改；留任期满那天对账（见 EmployeeEvents.settle_edit）。
 ## chief_pick：赵主管要的人（拿了主管推荐奖），出了事他说“人是你面的”。
 var hires: Array = []
+## 面试后没录的人：满期那天按 TA 的底子对账，拒对了有证据发识人奖，拒掉好人记错失（EmployeeEvents.settle_rejects）
+var rejects: Array = []
 ## 延发月份没进存款的留任奖金，最终“在离职补偿中抵扣”。
 var deferred_bonus := 0
 var boss_promised_rule := false
@@ -53,6 +57,8 @@ var vouched: Array[Candidate] = []
 var interviewed_today: PackedStringArray = []
 ## 夹在简历里的信封 {day, from, amount, candidate_id, taken}：第一个月只收不追，下个月有人来“惦记”。
 var kickbacks: Array = []
+## 手机零钱转出去的累计：零钱 = 收下的转账 − 这个数（见 wallet()）。第一个月没有转账，零钱一直是 0；第二个月猎头的钱从这里进。
+var wallet_out := 0
 ## 面试时被你追问问穿了的手写人物 id（Candidate.crack_lines 说完最后一句）。
 var exposed: Array = []
 ## 晚上答应了家里、明天晚到：{minutes, morning}（回家那一幕选项的 late / morning）。
@@ -84,6 +90,7 @@ func new_game(game_seed := 0) -> void:
 	marriage = 0
 	decision_log = []
 	hires = []
+	rejects = []
 	deferred_bonus = 0
 	boss_promised_rule = false
 	lawsuit_risk = 0
@@ -91,6 +98,7 @@ func new_game(game_seed := 0) -> void:
 	interviewees = []
 	vouched = []
 	kickbacks = []
+	wallet_out = 0
 	exposed = []
 	late_next = {}
 	late_today = {}
@@ -121,7 +129,7 @@ func begin_day() -> void:
 	pay = RuleEngine.pay(day)
 	RuleEngine.set_day(day)
 	# retained：今天满期、人还在的 {name, day_hired, days}
-	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "paid_bills": [], "left_early": false, "texts": [], "called": false, "edits": [], "exception": "", "solo_done": [], "vouch": []}
+	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "paid_bills": [], "left_early": false, "texts": [], "called": false, "edits": [], "rejects": [], "knowing": [], "exception": "", "solo_done": [], "vouch": [], "transfers": [], "sent": []}
 	passed_today = []
 	vouched_today = []
 	interviewed_today = []
@@ -325,6 +333,37 @@ func reply_text(entry: Dictionary, option: Dictionary) -> void:
 		return
 	family[entry.id] = option.key
 	marriage += int(option.get("marriage", 0))
+	family_state += int(option.get("family", 0))
+	if option.has("transfer"):
+		send_transfer(entry.get("from", "老婆"), int(option.transfer), option.get("note", ""))
+
+
+## 手机上的转账卡片（stats.transfers {id, from, amount, note, status, ...}）点收款 / 退还。
+## 第一个月没人转账；第二个月猎头的钱走这里（那边会多记 broker 字段）。
+func answer_transfer(t: Dictionary, taken: bool) -> void:
+	if t.status != "pending":
+		return
+	t.status = "taken" if taken else "returned"
+	kickbacks.append({"day": day, "from": t.from, "amount": int(t.amount), "candidate_id": t.get("candidate_id", ""), "taken": taken, "broker": t.get("broker", "transfer"), "name": t.get("name", "")})
+
+
+## 手机零钱：收下的转账减去转出去的。
+func wallet() -> int:
+	var got := 0
+	for k: Dictionary in kickbacks:
+		if k.get("broker", "") != "" and k.taken:
+			got += int(k.amount)
+	return got - wallet_out
+
+
+## 从零钱转出去（回消息的选项带 transfer）：当天从存款里扣。
+func send_transfer(to: String, amount: int, note: String) -> void:
+	stats.sent.append({"to": to, "amount": amount, "note": note})
+	wallet_out += amount
+
+
+func sent_total() -> int:
+	return stats.sent.reduce(func(sum: int, t: Dictionary) -> int: return sum + int(t.amount), 0)
 
 
 ## 下班结算：收到了没回的算不回。来了电话没走，也算一次。
@@ -332,7 +371,11 @@ func settle_family() -> void:
 	for entry: Dictionary in stats.texts:
 		if entry.has("replies") and not text_replied(entry.id):
 			family[entry.id] = "ignored"
-			marriage += int(entry.get("ignored", -1))
+			# 只有老婆的消息不回默认扣感情，别人的写了 ignored 才算
+			marriage += int(entry.get("ignored", -1 if entry.get("from", "老婆") == "老婆" else 0))
+	# 下班还没点的转账，自动退回
+	for t: Dictionary in stats.transfers:
+		answer_transfer(t, false)
 	if stats.called and not stats.left_early:
 		marriage += int(config.midday_call.get("stayed", -1))
 
@@ -404,14 +447,27 @@ func leave_early() -> void:
 
 ## loyalty_hit 只作用于入职记录：候选人资源是共享的，不能改。
 ## vouched：破格进来、你单独面的人，出了事算你的（EmployeeEvents）。
-func add_hire(c: Candidate, scorecard: Dictionary, promise := "", loyalty_hit := 0, chief_pick := false, picked_by := "赵主管", hr_edit := {}, vouched_hire := false) -> void:
+## evidence：面试里查出来的 {found: 查实的行, caught: 说中几次}；查实了还录、人又出事，算明知故犯（EmployeeEvents）。
+func add_hire(c: Candidate, scorecard: Dictionary, promise := "", loyalty_hit := 0, chief_pick := false, picked_by := "赵主管", hr_edit := {}, vouched_hire := false, evidence := {}) -> void:
 	var data := c.to_dict()
 	data.loyalty = maxi(0, data.loyalty - loyalty_hit)
 	hires.append({
 		"candidate": data, "day_hired": day, "scorecard": scorecard, "promise": promise,
 		"event_resolved": false, "retention_due": day + int(pay.retention_days), "chief_pick": chief_pick, "picked_by": picked_by,
-		"hr_edit": hr_edit, "vouched": vouched_hire,
+		"hr_edit": hr_edit, "vouched": vouched_hire, "evidence": evidence,
 	})
+
+
+## 面试完没录：和录用的人同一天对账。chief_pick：主管当时想要这个人。
+func add_reject(c: Candidate, evidence := {}, chief_pick := false) -> void:
+	rejects.append({
+		"candidate": c.to_dict(), "day": day, "due": day + int(pay.retention_days),
+		"evidence": evidence, "chief_pick": chief_pick, "resolved": false,
+	})
+
+
+static func has_evidence(evidence: Dictionary) -> bool:
+	return not evidence.get("found", []).is_empty() or int(evidence.get("caught", 0)) > 0
 
 
 ## 留任期按录用那天的标准算；旧存档没有这一项，按 3 天补。
@@ -467,6 +523,23 @@ func edit_bonus() -> int:
 	return stats.edits.filter(func(e: Dictionary) -> bool: return e.verdict == "right").size() * int(pay.get("edit_bonus", 0))
 
 
+## 拒对了、面试里又有证据（说中/查实）：发识人奖；没证据不发，免得“全拒最安全”。
+func reject_bonus() -> int:
+	return stats.rejects.filter(func(r: Dictionary) -> bool: return not r.good and r.evidence).size() * int(pay.get("edit_bonus", 0))
+
+
+## 拒掉好人：招聘成本。第一个月不扣钱。
+func reject_cost() -> int:
+	if not fines_on():
+		return 0
+	return stats.rejects.filter(func(r: Dictionary) -> bool: return r.good).size() * MISS_COST
+
+
+## 查实了还录、人又出事：第一个月也扣（明知故犯，和破格担保一个道理）。
+func knowing_fine() -> int:
+	return stats.knowing.size() * KNOWING_FINE
+
+
 ## 今天满期、人还在的留任奖金；延发的月份不进今天的收入。
 func retention_bonus() -> int:
 	return 0 if pay.retention_deferred else retained_count() * int(pay.retention)
@@ -474,7 +547,7 @@ func retention_bonus() -> int:
 
 ## 罚款开着时第 1–2 次违规只警告；未处理的简历拿不到绩效和判断奖金。
 func income() -> int:
-	return int(pay.base) + performance_pay() + judge_bonus() + reason_bonus() + chief_bonus() + edit_bonus() + retention_bonus() + echo_bonus() - late_fine() - fines() - stats.event_fine + stats.gray
+	return int(pay.base) + performance_pay() + judge_bonus() + reason_bonus() + chief_bonus() + edit_bonus() + retention_bonus() + echo_bonus() + reject_bonus() - reject_cost() - knowing_fine() - late_fine() - fines() - stats.event_fine + stats.gray - sent_total()
 
 
 ## 第几个月，1 起。
@@ -524,8 +597,8 @@ func to_dict() -> Dictionary:
 	return {
 		"run_seed": run_seed, "day": day, "savings": savings, "conscience": conscience,
 		"boss_trust": boss_trust, "family_state": family_state, "family": family, "marriage": marriage, "deferred_bonus": deferred_bonus,
-		"decision_log": decision_log, "hires": hires, "boss_promised_rule": boss_promised_rule,
-		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log, "kickbacks": kickbacks, "exposed": exposed,
+		"decision_log": decision_log, "hires": hires, "rejects": rejects, "boss_promised_rule": boss_promised_rule,
+		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log, "kickbacks": kickbacks, "wallet_out": wallet_out, "exposed": exposed,
 		"late_next": late_next, "late_today": late_today, "late_count": late_count, "late_ps": late_ps,
 		"interviewees": interviewees.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 		"vouched": vouched.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
@@ -543,11 +616,13 @@ func load_dict(data: Dictionary) -> void:
 	marriage = int(data.get("marriage", 0))
 	decision_log = data.decision_log
 	hires = data.hires
+	rejects = data.get("rejects", [])
 	boss_promised_rule = data.boss_promised_rule
 	lawsuit_risk = int(data.get("lawsuit_risk", 0))  # 旧存档没有这两项
 	reply_log = data.get("reply_log", [])
 	deferred_bonus = int(data.get("deferred_bonus", 0))
 	kickbacks = data.get("kickbacks", [])
+	wallet_out = int(data.get("wallet_out", 0))
 	exposed = data.get("exposed", [])
 	late_next = data.get("late_next", {})
 	late_today = data.get("late_today", {})

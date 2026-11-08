@@ -28,6 +28,7 @@ const INBOX_POS := Vector2(70, 30)
 const FamilyPhoto := preload("res://scripts/ui/FamilyPhoto.gd")
 const DeskPhone := preload("res://scripts/ui/DeskPhone.gd")
 const DeskPrinter := preload("res://scripts/ui/DeskPrinter.gd")
+const PhoneChat := preload("res://scripts/ui/PhoneChat.gd")
 
 var queue: Array[Candidate] = []
 var doc: ResumeDoc
@@ -63,7 +64,9 @@ var _bubble: Control
 ## desk_texts 里处理到第几条（没对上 when 的变体也算处理过）。
 var _texts_sent := 0
 var _unread: Panel
-var _inbox_panel: Control
+var _inbox_panel: PhoneChat
+## 手机里每个对话看过几条，收起再打开还记得。
+var _seen := {}
 var _called := false
 var _leave_button: Button
 var _leave_confirm: Control
@@ -164,6 +167,7 @@ func _process(delta: float) -> void:
 	var minutes := mini(int(DAY_START + elapsed / _seconds_per_minute()), day_end)
 	_clock.text = "%02d:%02d" % [minutes / 60, minutes % 60]
 	_check_home(minutes)
+	_check_transfers(minutes)
 	if minutes >= day_end - WARN_MINUTES:
 		_clock.add_theme_color_override("font_color", UI.RED)
 	if minutes >= day_end:
@@ -667,8 +671,24 @@ func _check_home(minutes: int) -> void:
 
 
 ## 手机震、亮屏、旁边弹一条消息。预览几秒后自己消失；来电要点“知道了”，之后桌上多一个“提前下班”。
+## 有人转账（stats.transfers）：第一次看到时记下几点到的、手机震一下。第一个月没有，第二个月猎头用。
+func _check_transfers(minutes: int) -> void:
+	for t: Dictionary in GameState.stats.transfers:
+		if t.has("at"):
+			continue
+		t.at = minutes
+		_unread.visible = true
+		_ring("%s：[转账] ¥%d %s" % [t.from, t.amount, t.note], false)
+		return
+
+
+## 手机开着的时候不弹，直接刷新屏幕。
 func _ring(text: String, is_call: bool) -> void:
 	Sfx.buzz()
+	if _inbox_panel and not is_call:
+		_inbox_panel.clock = _clock.text
+		_inbox_panel.refresh()
+		return
 	_close_inbox()
 	var home_x := DeskLayout.pos("phone").x
 	var shake := create_tween()
@@ -683,7 +703,7 @@ func _ring(text: String, is_call: bool) -> void:
 	add_child(_bubble)
 	var height := 64.0 if is_call else 40.0
 	UI.panel(_bubble, Rect2(0, 0, 210, height), UI.BLACK, UI.GREEN_DIM)
-	UI.label(_bubble, ("来电" if is_call else "短信") + "　" + text, Vector2(6, 4), UI.TEXT, 198)
+	UI.label(_bubble, ("来电" if is_call else "消息") + "　" + text, Vector2(6, 4), UI.TEXT, 198)
 	if not is_call:
 		UI.label(_bubble, "点手机回复", Vector2(150, 26), UI.GREEN_DIM)
 	if is_call:
@@ -724,54 +744,41 @@ func _toggle_inbox() -> void:
 
 func _open_inbox() -> void:
 	_close_inbox()
-	_inbox_panel = Control.new()
+	_inbox_panel = PhoneChat.new()
 	_inbox_panel.position = INBOX_POS
-	_inbox_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_inbox_panel.clock = _clock.text
+	_inbox_panel.seen = _seen
+	_inbox_panel.replied.connect(_reply)
+	_inbox_panel.transfer_answered.connect(_answer_transfer)
+	_inbox_panel.closed.connect(_close_inbox)
 	add_child(_inbox_panel)
-	var bg := UI.panel(_inbox_panel, Rect2(0, 0, 240, 30), UI.BLACK, UI.GREEN_DIM)
-	UI.label(_inbox_panel, "老婆", Vector2(6, 3), UI.GREEN)
-	UI.button(_inbox_panel, "收起", Rect2(196, 3, 40, 16), _close_inbox)
-	var y := 36.0
-	var texts: Array = GameState.stats.texts
-	if texts.is_empty():
-		UI.label(_inbox_panel, "（今天还没有消息）", Vector2(6, y), UI.TEXT_DIM)
-		y += 16.0
-	for entry: Dictionary in texts:
-		var at := int(entry.at)
-		UI.label(_inbox_panel, "%02d:%02d" % [at / 60, at % 60], Vector2(6, y), UI.TEXT_DIM)
-		var body: String = ("（来电）" if entry.get("call", false) else "") + String(entry.text).trim_prefix("老婆：")
-		var line := UI.label(_inbox_panel, body, Vector2(44, y), UI.TEXT, 190)
-		y += maxf(16.0, line.get_minimum_size().y + 2.0)
-		if not entry.has("replies"):
-			continue
-		if GameState.text_replied(entry.id):
-			var mine := _reply_label(entry)
-			var you := UI.label(_inbox_panel, "你：" + mine, Vector2(44, y), UI.GREEN, 190)
-			y += maxf(16.0, you.get_minimum_size().y + 2.0)
-			continue
-		for option: Dictionary in entry.replies:
-			var b := UI.text_button(_inbox_panel, option.label, Rect2(44, y, 190, 18), _reply.bind(entry, option))
-			y += b.size.y + 2.0
-	bg.size.y = y + 4.0
 	_unread.visible = false
 
 
-func _reply_label(entry: Dictionary) -> String:
-	for option: Dictionary in entry.replies:
-		if option.key == GameState.family.get(entry.id, ""):
-			return option.label
-	return ""
-
-
-## 回一条：打字要花几分钟，钟照走。
+## 回一条：打字要花几分钟，钟照走。带 transfer 的是从零钱转过去。
 func _reply(entry: Dictionary, option: Dictionary) -> void:
 	if closing or GameState.text_replied(entry.id):
 		return
 	GameState.reply_text(entry, option)
 	_spend(GameState.REPLY_MINUTES)
 	Sfx.key()
-	_show_toast("回了老婆　−%d 分钟" % GameState.REPLY_MINUTES, UI.TEXT)
-	_open_inbox()
+	var who: String = entry.get("from", "老婆")
+	if option.has("transfer"):
+		_show_toast("转给%s ¥%d　−%d 分钟" % [who, option.transfer, GameState.REPLY_MINUTES], UI.YELLOW)
+	else:
+		_show_toast("回了%s　−%d 分钟" % [who, GameState.REPLY_MINUTES], UI.TEXT)
+	_inbox_panel.clock = _clock.text
+	_inbox_panel.refresh()
+
+
+## 收款 / 退还：点一下的事，不花时间。
+func _answer_transfer(t: Dictionary, taken: bool) -> void:
+	if closing:
+		return
+	GameState.answer_transfer(t, taken)
+	Sfx.key()
+	_show_toast("收下 ¥%d" % t.amount if taken else "退还了 ¥%d" % t.amount, UI.YELLOW if taken else UI.TEXT)
+	_inbox_panel.refresh()
 
 
 func _close_inbox() -> void:

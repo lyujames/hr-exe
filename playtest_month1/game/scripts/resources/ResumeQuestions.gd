@@ -101,13 +101,13 @@ const KINDS := {
 		"sharp_q": "绩点 {gpa}，挂过科吗？挂过几门？哪几门？",
 		"honest": "专业前百分之二十。有一门统计学重修过，写在成绩单上了。",
 		"honest_low": "中间吧。不算好，没挂过。",
-		"admit": "这个绩点是去掉了两门选修算的。全算的话低一点。",
+		"admit": "这个绩点是去掉了两门选修算的。全算的话只有 {real}。",
 		"standard": "我的成绩一直名列前茅，多次获得奖学金。",
 		"flaw": "排、排……挺靠前的。",
 		"followup": "成绩单带了吗？",
 		"honest_followup": "（TA 从文件袋里抽出一张盖了教务处章的成绩单，重修那一门用铅笔圈着。）",
 		"honest_low_followup": "带了。（TA 递过来。都是 B，一个 A 也没有。）",
-		"admit_followup": "带了，教务处打的。（上面的绩点比简历上低零点二。）",
+		"admit_followup": "带了，教务处打的。（上面印着 {real}。）",
 		"standard_followup": "成绩单……今天走得急，忘带了。",
 		"flaw_followup": "带、带了吧……（TA 翻了半天包。）",
 	},
@@ -241,6 +241,9 @@ static func padded(c: Candidate, line: Dictionary) -> bool:
 static func card_for(c: Candidate, line: Dictionary, sharp := false) -> QuestionCard:
 	var t: Dictionary = KINDS[line.kind]
 	var pad := padded(c, line)
+	var real := SelfIntro.truth(c, line)
+	if not real.is_empty():
+		line = line.merged({"sub": line.sub.merged({"real": real.show})}, true)
 	var card := QuestionCard.new()
 	card.id = StringName("r_" + line.key)
 	card.text_key = _fill(t.sharp_q if sharp else t.q, line.sub)
