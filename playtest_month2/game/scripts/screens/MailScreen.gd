@@ -63,7 +63,9 @@ func _show_morning() -> void:
 func _show_push(text: String, fade := false) -> void:
 	var phone := UI.panel(self, Rect2(418, 52, 148, 60), Color("161b1a"), UI.BLACK)
 	UI.label(phone, "07:42　新闻推送", Vector2(8, 6), UI.GREEN_DIM)
-	UI.label(phone, text, Vector2(8, 24), UI.TEXT, 132)
+	var body := UI.label(phone, text, Vector2(8, 24), UI.TEXT, 132)
+	# 标题长了折三四行：框跟着字撑高，底下留一点边
+	phone.size.y = maxf(60.0, 24.0 + body.get_line_count() * (body.get_line_height() + 1) + 8.0)
 	var tween := create_tween()
 	tween.tween_property(phone, "position:x", 418.0, 0.3).from(640.0).set_trans(Tween.TRANS_QUAD)
 	if fade:
