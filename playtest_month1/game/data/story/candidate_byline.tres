@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_byline"
+display_name = "林一舟"
+applied_position = "产品运营实习生"
+birth_date = "2004-10-09"
+degree = 2
+school = "江城理工大学"
+skills = PackedStringArray("公众号排版", "用户运营", "Excel", "剪映")
+is_intern = true
+major = "电子商务"
+gpa = 3.08
+projects = [{"name": "学院公众号运营", "role": "成员", "start": "2024-09", "end": "2026-02"}, {"name": "校运动会志愿者统筹", "role": "志愿者", "start": "2025-04", "end": "2025-05"}]
+intern_days = 4
+intern_months = 8
+salary_k = 0
+jobs = []
+self_eval = "学院的公众号是我一个人在更：选题、排版、半夜盯数据，一年半没断过。挂名负责人的是部长，所以我写的是成员。"
+attachment = "公众号近一年的后台数据截图，粉丝从 600 到 5200。"
+portrait_seed = 20260319
+ability = 82
+honesty = 92
+loyalty = 75
+pressure = 70
+performance = 80
+answers = {"q_project": "推送都是我写的，部长负责审。数据是我一条条记在表里的，您要看我现在就能翻出来。", "chief_led": "从头带到尾的没有。公众号那个，活基本是我干的，挂名的不是我。"}
+epilogue = {"hired": "你录了他。他第一周的周报写：“写了 4 篇，部长转了 1 篇。”赵主管说，下回还是要个当过负责人的。", "pass": "你约了他，面试后没录用。他回学校接着更那个号，署名还是部长。", "unbooked": "你放了他，那天晚上约的是别人。他回学校接着更那个号，署名还是部长。", "reject": "你拒了他：“{reason}”。他哪条规则都没违反。"}
+is_story = true

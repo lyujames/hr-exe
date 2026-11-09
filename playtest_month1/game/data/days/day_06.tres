@@ -5,38 +5,39 @@
 [ext_resource type="Resource" path="res://data/chief/question_day6.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day6.tres" id="chief_a"]
 [ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
-[ext_resource type="Resource" path="res://data/story/candidate_headhunter.tres" id="story"]
+[ext_resource type="Resource" path="res://data/story/candidate_byline.tres" id="story"]
 
 [resource]
 script = ExtResource("1")
 day = 6
-date = "2026-03-24"
-resume_count = 6
+date = "2026-03-19"
+resume_count = 7
 screening_seconds = 170.0
 new_rules = Array[ExtResource("2")]([])
 story_candidates = Array[ExtResource("3")]([ExtResource("story")])
 story_slot = 3
 candidate_mix = {"fresh": 100}
-morning_push = "家长代投简历、陪同面试，HR：“见怪不怪”"
+morning_push = "高校社团“头衔通胀”：一个项目八个负责人"
 boss_mail = "各位家人：
-还是那两个岗。
-规则不变，手册上有的，一条都不能松。
-另外，部门推荐奖今天起发：面试时赵主管会给你一张便签，他要的人你招进来，一人 ¥100。
+规则不变，手册上的一条都不能松。
+赵主管说面试的人他想自己挑挑。从今天起他早上给你桌上贴张便签，写他明天想见什么样的。
+他要的人你招进来，部门推荐奖一人 ¥100。
 —— 王总"
 coworker_note = "老周的便签：
-内容那页的“新闻学”，不是“编辑出版学”。
-赵主管问的有些话，你听听就好，别跟着问。"
+赵主管的便签贴你桌角了。
+他看的是简历第二页：项目、角色、做了几个月。
+写着“负责人”的，不一定真负责过。"
+chief_need = {"item": "狼性", "note": "明天给我找个真带过项目的：在校项目当过负责人或者队长。", "short": "当过负责人", "role": ["负责人", "队长"]}
 bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
-headline = "实习也要“托关系”？家长圈流传“内推价目表”"
-news_body = "某家长群截图显示，大厂实习“内推”报价从三百到三千不等。受访 HR：“信封我们见得多了。”"
-story_echoes = [{"when": "story_perfect:exposed", "mail_ps": "PS：晚报上卷钱跑的顾全，面试时是你问出毛病的。干得好，特批奖金今天发。", "bonus": {"label": "王总特批：识破顾全", "amount": 200}}, {"when": "story_perfect:reject", "mail_ps": "PS：晚报上卷钱跑的顾全，第一天投过咱们，你拒的？运气不错。"}, {"when": "story_philosophy:reject", "headline": "一篇推文刷屏：《凌晨四点的外卖站》", "body": "作者苏见青，哲学系大三，现为某竞品公司内容运营实习生。她说：“谢谢每一个拒绝过我的公司。”", "mail_ps": "PS：竞品那篇外卖站的推文看了吗？咱们怎么就招不到这种人？"}, {"when": "story_caregiver:hired", "mail_ps": "PS：赵主管说，新来的实习生许安周二又没来，说是在医院。下不为例。"}]
-family_sms = "老婆：这个月电费比上个月多了一百。
-老婆：孩子问编程班的试听课不要钱，周六能去吗？"
-chief_opener = "实习生嘛，我得问问家里情况。别紧张，随便聊聊。"
-chief_need = {"item": "稳定性", "note": "要能长期留在本地的。"}
+headline = "“人人都是负责人”：高校社团头衔通胀调查"
+news_body = "一所高校学生会登记在册的“项目负责人”比项目还多。受访学生：“不写负责人，简历第一轮就过不去。”"
+story_echoes = [{"when": "story_perfect:exposed", "mail_ps": "PS：晚报上卷钱跑的顾全，面试时是你问出毛病的。干得好，特批奖金今天发。", "bonus": {"label": "王总特批：识破顾全", "amount": 200}}, {"when": "story_perfect:seen&!story_perfect:hired&!story_perfect:exposed", "mail_ps": "PS：晚报上卷钱跑的顾全，第一天投过咱们，没进咱们的门。特批 ¥50，算你运气，也算你眼光。", "bonus": {"label": "王总特批：没招顾全", "amount": 50}}, {"when": "story_philosophy:reject", "headline": "一篇推文刷屏：《凌晨四点的外卖站》", "body": "作者苏见青，哲学系大三，现为某竞品公司内容运营实习生。她说：“谢谢每一个拒绝过我的公司。”", "mail_ps": "PS：竞品那篇外卖站的推文看了吗？咱们怎么就招不到这种人？"}]
+family_sms = "老婆：你爸下午在阳台打电话，打了快一个钟头。
+老婆：我问他跟谁，他说老单位的。"
+sms_flag = "d6n_eve"
+sms_replies = [{"key": "warm", "label": "我回去问问他。", "marriage": 1}, {"key": "curt", "label": "老同事叙叙旧吧。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+chief_opener = "规则一天比一天多，人倒是一个比一个像。你多看看。"
 chief_question = ExtResource("chief_q")
 candidate_ask = ExtResource("chief_a")
-desk_texts = [{"id": "t6_1", "at": 550, "text": "老婆：我们部门今天又走了两个，说是“优化”。", "replies": [{"key": "warm", "label": "你还好吗？", "marriage": 1}, {"key": "curt", "label": "现在哪都这样。", "marriage": 0}]}, {"id": "t6_2", "at": 830, "text": "老婆：还好，就是有点怕。你是做 HR 的，你说名单是怎么定的？", "when": "t6_1:warm", "replies": [{"key": "honest", "label": "说实话，看年龄和工资。", "marriage": 1}, {"key": "curt", "label": "别多想，没事的。", "marriage": 0}]}, {"id": "t6_2", "at": 830, "text": "老婆：没事，就是跟你说一声。你忙。", "replies": [{"key": "warm", "label": "晚上回去聊。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}]
-sms_flag = "d6_eve"
-sms_replies = [{"key": "warm", "label": "能，我带他去。", "marriage": 1}, {"key": "curt", "label": "周六我可能加班。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
-home_scene = [{"text": "你外套口袋里那个信封硌了你一下。进门前，你把它塞进了公文包最里层。", "when": "kickback"}, {"text": "到家 18:50。老婆在厨房，锅里的水开了很久，她没关火。"}, {"text": "你爸在阳台打电话：“……跟他说了，说了。东西先别往家里送，等等再说。”"}, {"text": "看见你进门，他把电话挂了。"}, {"text": "老婆：你白天说，看年龄和工资。我今年三十三，工资在部门里排前三。", "when": "t6_2:honest"}, {"text": "老婆：你们做 HR 的，名单到底是怎么定的？", "when": "!t6_2:honest"}, {"ask": "h6_wife", "options": [{"key": "together", "label": "真到那天，我们一起扛。", "marriage": 1, "then": [{"text": "她把火关了。"}, {"text": "老婆：嗯。"}]}, {"key": "needed", "label": "你们财务离不开你。", "then": [{"text": "老婆：星桥当年也离不开你。"}, {"text": "你没说话。"}]}, {"key": "dunno", "label": "名单又不是我定的，我哪知道。", "marriage": -1, "then": [{"text": "老婆：我没问你定的。我问你怎么定的。"}, {"text": "她把面捞出来，一根一根，捞得很慢。"}]}]}, {"text": "孩子在日历的周六上画了个圈，圈了三层。", "when": "d6_eve:warm"}, {"text": "孩子：爸爸，周六说好了啊！", "when": "d6_eve:warm"}, {"text": "孩子：妈妈说你周六可能加班。那周日呢？", "when": "d6_eve:curt"}, {"ask": "h6_sunday", "options": [{"key": "yes", "label": "周日，爸爸一定去。", "marriage": 1, "then": [{"text": "孩子：拉钩。"}, {"text": "这是这个月第二次拉钩了。", "when": "h2_kid:burger"}]}, {"key": "maybe", "label": "看情况吧。", "then": [{"text": "孩子：你每次都说看情况。"}]}], "when": "d6_eve:curt"}, {"text": "孩子守着妈妈的手机等你回短信，等着等着在沙发上睡着了。手里还攥着试听课的传单。", "when": "d6_eve:silent"}, {"text": "十一点，你把公文包放进柜子。老婆已经睡了。", "when": "kickback"}]
+desk_texts = [{"id": "t6n_1", "at": 560, "text": "老婆：你爸说住咱家给我们添麻烦，非要回去。我劝住了。", "replies": [{"key": "warm", "label": "让他安心住着，晚上我跟他说。", "marriage": 1}, {"key": "curt", "label": "他想回就让他回吧。", "marriage": 0}]}, {"id": "t6n_2", "at": 820, "text": "老婆：孩子数学测验 92，说要等你回来签字。", "replies": [{"key": "warm", "label": "签！我早点回。", "marriage": 1}, {"key": "curt", "label": "你签就行。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:50。你爸坐在沙发上看新闻，声音开得很大。"}, {"text": "孩子把卷子举到你面前：“签这儿！”", "when": "t6n_2:warm"}, {"text": "你签了名。他把卷子折了两折，塞进书包最里层。", "when": "t6n_2:warm"}, {"text": "卷子在茶几上，签名那栏已经是老婆的字了。", "when": "!t6n_2:warm"}, {"text": "你爸：小刘今天又打电话了。问你们公司下个月招不招正式的。"}, {"ask": "h6n_dad", "options": [{"key": "later", "label": "下个月的事，下个月再说。", "then": [{"text": "你爸：他说了，到时候让孩子直接投你。"}, {"text": "你爸：人家懂规矩。"}]}, {"key": "rules", "label": "爸，招人有规矩，我不能看是谁家的。", "then": [{"text": "你爸：规矩是人定的。"}, {"text": "他把电视声音又调大了一格。"}]}]}, {"text": "睡前你问你爸，下午那通电话怎么打了那么久。", "when": "d6n_eve:warm"}, {"text": "你爸：老刘，叙叙旧。", "when": "d6n_eve:warm"}, {"text": "他说这话的时候，没看你。", "when": "d6n_eve:warm"}, {"text": "十点，老婆对着日历数了数：“这个月还有三天。”"}]

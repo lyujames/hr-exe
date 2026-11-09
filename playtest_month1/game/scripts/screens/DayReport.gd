@@ -121,7 +121,8 @@ func _build_notice() -> void:
 		var due := pending.map(func(h: Dictionary) -> String: return "%s 第 %d 天" % [h.candidate.display_name, GameState.retention_due(h)])
 		footer.append("在路上：留任奖金（%s 满期）" % "、".join(PackedStringArray(due)))
 	if not GameState.passed_today.is_empty() and GameState.day < GameState.LAST_DAY:
-		footer.append("今天通过 %d 人，约明天面试。" % GameState.passed_today.size())
+		var n := GameState.passed_today.size()
+		footer.append("今天通过 %d 人，明天只能约一个来面。" % n if n > 1 else "今天通过 1 人，约明天面试。")
 	if s.exception != "" and GameState.day < GameState.LAST_DAY:
 		footer.append("破格：%s，明天 14:00 你单独面。" % s.exception)
 	if s.unprocessed > 0:

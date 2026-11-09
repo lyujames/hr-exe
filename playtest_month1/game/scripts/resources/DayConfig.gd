@@ -62,7 +62,10 @@ class_name DayConfig extends Resource
 @export var home_scene: Array = []
 ## 面试：赵主管入座时说的话、抢走的那个问题、候选人的反问。
 @export var chief_opener: String
-## 赵主管开场拍在桌上的便签 {item: 评分项, note: 便签上的话}：录用的人在他心里这一项够了，发主管推荐奖（pay.chief_bonus）。空表示今天没有。
+## 赵主管的便签 {note: 便签上的话, short: 桌角那张小便签上的要点, item: 评分表上打★的那项, project / role / months: 他要的经历, seed_projects: 往简历里多撒的项目名}：
+## 早上贴在你桌上，写的是今天筛的人里他明天想见什么样的；第二天面试拍在桌上，录用的人简历第二页对得上
+## （Candidate.fits，只看纸面），发主管推荐奖（pay.chief_bonus）。最后一天没有明天，不写。
+## 组长（interviewer 不空）的便签还是当天面试用、只写 item，看他自己心里那一项。空表示今天没有。
 @export var chief_need: Dictionary = {}
 @export var chief_question: QuestionCard
 ## 招程序员起主管每场先问一道尖锐题，从今天及之前每天的这一张里抽（见 InterviewRoom._plan_chief）。
@@ -71,7 +74,7 @@ class_name DayConfig extends Resource
 ## 第 11 天起程序员按组招：面试的人换成用人那个组的组长，空表示还是赵主管。
 ## {name: 头像旁的名字, seed: 头像种子, cut_in / cut_in_again: 插话前那句旁白, next_line: 第二场开场, bonus: 日结单上推荐奖的叫法}
 ## 组长和赵主管反着来：说实话、说得出细节的加分，背标准答案、露破绽的扣分（QuestionCard.lead_reaction）。
-## 他不碰老板评分表，只记自己心里的“技术 / 协作”，填表时直接告诉你要不要（chief_need 的 item 写这两项之一）。
+## 他不碰老板评分表，只记自己心里的“技术 / 协作”，填表时直接告诉你要不要（这时 chief_need 的 item 写这两项之一；赵主管面试时写评分表上的一项，如“稳定性”“狼性”）。
 @export var interviewer: Dictionary = {}
 ## 组长自己带来的问题，第一张是尖锐题，每场抢两问；只在 interviewer 不空时用。
 @export var lead_cards: Array[QuestionCard] = []

@@ -106,6 +106,8 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 			event.body = "全员邮件：在王总的英明领导下，项目提前上线。\n其中 %s 贡献突出。顺便感谢 HR 同事。" % c.display_name
 			event.fine = 0
 			event.blame = false
+	if c.event_line != "":
+		event.body += "\n" + c.event_line
 	if not GameState.fines_on():
 		event.fine = 0
 	if hire.get("chief_pick", false):

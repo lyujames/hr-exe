@@ -44,6 +44,8 @@ func _show_people() -> void:
 			var line: String = c.epilogue.get(key, "")
 			if line == "" and key == "hired":
 				line = c.epilogue.get("pass", "")
+			if key == "pass" and outcome.unbooked:
+				line = c.epilogue.get("unbooked", "你放了 TA，可那天晚上你约的是别人。")
 			if key == "unseen":
 				line = "这份简历你没来得及看。"
 			if outcome.chief_pick:

@@ -1,5 +1,5 @@
 extends Control
-## 流程控制：晨会邮件 → [老板对质] → 筛简历 → 面试 → 日结 → 报纸 → 回家 → 第二天。
+## 流程控制：晨会邮件 → [老板对质] → 筛简历 → 面试 → 日结 → [约面] → 报纸 → 回家 → 第二天。
 
 ## 标题和结尾没有暂停菜单。
 const NO_MENU := ["res://scenes/Title.tscn", "res://scenes/SliceEnd.tscn"]
@@ -95,7 +95,15 @@ func _after_interview() -> void:
 
 
 func show_report() -> void:
-	_swap("res://scenes/DayReport.tscn", show_news)
+	_swap("res://scenes/DayReport.tscn", show_booking)
+
+
+## 今天通过两个人以上、明天还有面试，才要挑；一个人自动约 TA（GameState.advance_day）。
+func show_booking() -> void:
+	if GameState.is_bankrupt() or GameState.day >= GameState.LAST_DAY or GameState.passed_today.size() < 2:
+		show_news()
+	else:
+		_swap("res://scenes/BookingScreen.tscn", show_news)
 
 
 func show_news() -> void:

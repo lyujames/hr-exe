@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"d1_no_project"
+display_name = "许嘉禾"
+applied_position = "产品运营实习生"
+birth_date = "2004-05-09"
+degree = 2
+school = "东江大学"
+skills = PackedStringArray("Excel", "SQL", "英语六级", "数据分析")
+is_intern = true
+major = "市场营销"
+gpa = 3.71
+projects = []
+intern_days = 5
+intern_months = 10
+salary_k = 0
+jobs = []
+self_eval = "绩点专业前 5%，连续三年一等奖学金。参与过多个校园项目，执行力强。"
+attachment = "成绩单（已盖教务处章）。"
+portrait_seed = 20260304
+ability = 55
+honesty = 50
+loyalty = 50
+pressure = 50
+performance = 55
+epilogue = {"reject": "许嘉禾第一页漂亮得挑不出毛病，第二页的项目栏一行没写。你翻了。", "pass": "你放了许嘉禾。第一页很漂亮，第二页项目栏空着——自评里那句“参与过多个项目”，没有一个写得出名字。"}
+is_story = true

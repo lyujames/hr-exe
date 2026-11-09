@@ -3,7 +3,7 @@ extends Node
 
 const START_DATE := "2026-03-02"
 const START_SAVINGS := 200
-const LAST_DAY := 7
+const LAST_DAY := 9
 const VIOLATION_FINE := 50
 const FREE_WARNINGS := 2
 ## 破格：从第 3 天起，每天能给一份不合规的简历盖一次破格章，第二天 14:00 你单独面 TA（赵主管不在），录用了算你担保。
@@ -14,8 +14,8 @@ const KNOWING_FINE := 100
 const MISS_COST := 50
 ## 晚到：每晚一小时扣多少（底薪按 8 小时折）。这是考勤，不是违规罚款，第一个月也扣。
 const LATE_PER_HOUR := 20
-## 每 7 个工作日算一个月，月底一次扣月供。
-const DAYS_PER_MONTH := 7
+## 每 9 个工作日算一个月，月底一次扣月供。
+const DAYS_PER_MONTH := 9
 const MORTGAGE := 1750
 
 var run_seed := 0
@@ -49,8 +49,12 @@ var boss_promised_rule := false
 var lawsuit_risk := 0
 ## 玩家回答候选人反问的原话，终章由 HireBot 原样复述。
 var reply_log: Array = []
-## 昨天筛简历通过、今天来面试的人：当天通过的人第二天才面试。
+## 昨天约来、今天来面试的人：当天通过的人里，晚上约一个，第二天才面试。
 var interviewees: Array[Candidate] = []
+## 今晚约了明天来的那个人（日结单之后的约面）；通过的只有一个人时自动约 TA。
+var booked_today: Candidate
+## 筛过了、但晚上没约的人（id）：进人才库，月底回顾按“没约”写。
+var unbooked: Array = []
 ## 昨天破格放进来、今天你单独面的人；不进赵主管那场。
 var vouched: Array[Candidate] = []
 ## 今天已经面过的人（display_name）：剧情候选人那场面完，有奇葩的日子再加一场（见 InterviewRoom.second_candidate）。
@@ -96,6 +100,7 @@ func new_game(game_seed := 0) -> void:
 	lawsuit_risk = 0
 	reply_log = []
 	interviewees = []
+	unbooked = []
 	vouched = []
 	kickbacks = []
 	wallet_out = 0
@@ -107,9 +112,16 @@ func new_game(game_seed := 0) -> void:
 	begin_day()
 
 
-## 今天通过的人约到明天面试。
+## 今晚约的人明天来面试；没约的进人才库。
 func advance_day() -> void:
-	interviewees = passed_today.duplicate()
+	if booked_today == null and passed_today.size() == 1:
+		booked_today = passed_today[0]
+	interviewees = [] as Array[Candidate]
+	if booked_today:
+		interviewees.append(booked_today)
+	for c in passed_today:
+		if c != booked_today and String(c.id) not in unbooked:
+			unbooked.append(String(c.id))
 	vouched = vouched_today.duplicate()
 	late_ps = ""
 	if not late_today.is_empty():
@@ -131,6 +143,7 @@ func begin_day() -> void:
 	# retained：今天满期、人还在的 {name, day_hired, days}
 	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "paid_bills": [], "left_early": false, "texts": [], "called": false, "edits": [], "rejects": [], "knowing": [], "exception": "", "solo_done": [], "vouch": [], "transfers": [], "sent": []}
 	passed_today = []
+	booked_today = null
 	vouched_today = []
 	interviewed_today = []
 	event_today = {}
@@ -179,6 +192,11 @@ func record_decision(c: Candidate, verdict: String, reason_rule: StringName, rea
 		passed_today.append(c)
 	EventBus.stamp_applied.emit(c, verdict)
 	return why
+
+
+## 约面：今晚只能约一个人明天来。
+func book(c: Candidate) -> void:
+	booked_today = c
 
 
 ## 今天还能不能盖破格章：第 3 天起，一天一次。
@@ -238,11 +256,13 @@ func took_kickback() -> bool:
 
 
 ## 手写人物的去向：hired（录用了）、pass、reject，没见过为空串。reason 是拒绝时选的那句（原样，带句号）。
+## unbooked：筛过了，但那晚约的是别人。
 func story_outcome(id: String) -> Dictionary:
-	var result := {"verdict": "", "reason": "", "chief_pick": false, "picked_by": "", "exception": false}
+	var result := {"verdict": "", "reason": "", "chief_pick": false, "picked_by": "", "exception": false, "unbooked": false}
 	for entry: Dictionary in decision_log:
 		if entry.candidate_id == id:
 			result = {"verdict": entry.verdict, "reason": entry.reason_text, "chief_pick": false, "picked_by": "", "exception": entry.get("exception", false)}
+	result.unbooked = id in unbooked
 	for h: Dictionary in hires:
 		if String(h.candidate.id) == id:
 			result.verdict = "hired"
@@ -252,8 +272,11 @@ func story_outcome(id: String) -> Dictionary:
 
 
 ## when 写成“id:pass”时录用了的也算 pass；“id:exception”是破格放进来的；
-## “id:exposed”是面试被你问穿、最后没录用；前面加“!”是反过来。
+## “id:exposed”是面试被你问穿、最后没录用；“id:seen”是这份简历你处理过（不管怎么判的）；
+## 前面加“!”是反过来；用“&”连起几条，要全对上。
 func echo_matches(when: String) -> bool:
+	if "&" in when:
+		return Array(when.split("&")).all(echo_matches)
 	if when.begins_with("!"):
 		return not echo_matches(when.substr(1))
 	var parts := when.split(":")
@@ -261,6 +284,8 @@ func echo_matches(when: String) -> bool:
 		return story_outcome(parts[0]).exception
 	if parts[1] == "exposed":
 		return parts[0] in exposed and story_outcome(parts[0]).verdict != "hired"
+	if parts[1] == "seen":
+		return story_outcome(parts[0]).verdict != ""
 	var verdict: String = story_outcome(parts[0]).verdict
 	return verdict == parts[1] or (parts[1] == "pass" and verdict == "hired")
 
@@ -271,7 +296,7 @@ func story_echo() -> Dictionary:
 	for echo: Dictionary in config.story_echoes:
 		if not echo_matches(echo.when):
 			continue
-		var reason: String = story_outcome(echo.when.split(":")[0]).reason.trim_suffix("。")
+		var reason: String = story_outcome(echo.when.split(":")[0].trim_prefix("!")).reason.trim_suffix("。")
 		if echo.get("headline", "") != "" and not merged.has("headline"):
 			merged.headline = echo.headline.replace("{reason}", reason)
 			merged.body = echo.get("body", "").replace("{reason}", reason)
@@ -599,7 +624,7 @@ func to_dict() -> Dictionary:
 		"boss_trust": boss_trust, "family_state": family_state, "family": family, "marriage": marriage, "deferred_bonus": deferred_bonus,
 		"decision_log": decision_log, "hires": hires, "rejects": rejects, "boss_promised_rule": boss_promised_rule,
 		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log, "kickbacks": kickbacks, "wallet_out": wallet_out, "exposed": exposed,
-		"late_next": late_next, "late_today": late_today, "late_count": late_count, "late_ps": late_ps,
+		"late_next": late_next, "late_today": late_today, "late_count": late_count, "late_ps": late_ps, "unbooked": unbooked,
 		"interviewees": interviewees.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 		"vouched": vouched.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 	}
@@ -628,6 +653,7 @@ func load_dict(data: Dictionary) -> void:
 	late_today = data.get("late_today", {})
 	late_count = int(data.get("late_count", 0))
 	late_ps = data.get("late_ps", "")
+	unbooked = data.get("unbooked", [])
 	interviewees = []
 	interviewed_today = []
 	for c: Dictionary in data.get("interviewees", []):

@@ -15,6 +15,7 @@ const ITEMS := {
 	"exception": {"name": "破格章", "pos": Vector2(4, 272), "size": Vector2(92, 40)},
 	"inspect": {"name": "质询", "pos": Vector2(536, 296), "size": Vector2(60, 48)},
 	"printer": {"name": "打印机", "pos": Vector2(536, 262), "size": Vector2(100, 32)},
+	"chief": {"name": "主管便签", "pos": Vector2(2, 168), "size": Vector2(94, 40)},
 }
 ## 顶上那条状态栏不让放。
 const TOP := 18.0

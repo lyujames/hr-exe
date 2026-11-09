@@ -4,7 +4,7 @@ extends CanvasLayer
 ## 不改游戏逻辑，只调 GameState / Main / Desk 已有的函数和变量。
 
 const PANEL_RECT := Rect2(4, 4, 300, 352)
-const LAST_DAY := 7
+const LAST_DAY := 9
 
 var _root: Control
 var _panel: Control
