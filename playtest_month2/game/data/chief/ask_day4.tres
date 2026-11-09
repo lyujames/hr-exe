@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1")
 question = "实习补贴什么时候发？"
+student_question = "实习有补贴吗？不好意思，我室友让我一定要问一下。"
 lie = "每月准时发，另外还有餐补。"
 safe = "按公司流程走。"
 truth = "要等你交完实习报告，我这边盖章以后。"

@@ -132,22 +132,29 @@ func _note(text: String, line: int) -> int:
 
 func _render_back() -> void:
 	var c := candidate
-	if c.is_intern:
-		_render_projects()
-	else:
+	# 自评有长有短：项目少就往上提，附件接在自评实际的最后一行下面，不叠字
+	var y := float(_render_projects() if c.is_intern else 172)
+	if not c.is_intern:
 		_render_jobs()
-	UI.label(_content, "自我评价", Vector2(8, 172), UI.INK_SOFT)
-	UI.label(_content, c.self_eval, Vector2(8, 188), UI.INK, 216)
-	UI.label(_content, "附：" + c.attachment, Vector2(8, 222), UI.INK_SOFT, 216)
+	y = maxf(minf(y, 172.0), 110.0)
+	UI.label(_content, "自我评价", Vector2(8, y), UI.INK_SOFT)
+	var eval := UI.label(_content, c.self_eval, Vector2(8, y + 16), UI.INK, 216)
+	y += 16.0 + eval.get_line_count() * (eval.get_line_height() + 1) + 4.0
+	UI.label(_content, "附：" + c.attachment, Vector2(8, y), UI.INK_SOFT, 216)
 
 
-func _render_projects() -> void:
+## 返回项目下面空出来的那一行。
+func _render_projects() -> int:
 	UI.label(_content, "在校项目（从新到旧）", Vector2(8, 8), UI.INK_SOFT)
 	var line := 26
+	if candidate.projects.is_empty():
+		UI.label(_content, "（未填写）", Vector2(8, line), UI.INK)
+		line += 20
 	for project: Dictionary in candidate.projects:
 		UI.label(_content, "%s – %s" % [project.start.replace("-", "."), project.end.replace("-", ".")], Vector2(8, line), UI.INK)
 		UI.label(_content, "%s · %s" % [project.name, project.role], Vector2(16, line + 14), UI.INK_SOFT, 208)
 		line += 44
+	return line + 2
 
 
 func _render_jobs() -> void:
@@ -175,7 +182,8 @@ func _drop_data(at: Vector2, data: Variant) -> void:
 	stamp(data.verdict, at)
 
 
-func stamp(verdict: String, at: Vector2) -> void:
+## label：章上的字；空就按 verdict 写“通过 / 破格 / 拒绝”。按组招的日子放进文件夹，盖的是组名。
+func stamp(verdict: String, at: Vector2, label := "") -> void:
 	is_stamped = true
 	var ink: Color = {"pass": UI.GREEN.darkened(0.3), "exception": UI.YELLOW.darkened(0.35)}.get(verdict, UI.RED)
 	var mark := Control.new()
@@ -184,7 +192,7 @@ func stamp(verdict: String, at: Vector2) -> void:
 	mark.rotation = randf_range(-0.2, 0.2)
 	UI.panel(mark, Rect2(-38, -15, 76, 30), Color(ink, 0.12), ink)
 	UI.panel(mark, Rect2(-36, -13, 72, 26), Color.TRANSPARENT, ink)
-	var text := UI.label(mark, {"pass": "通 过", "exception": "破 格"}.get(verdict, "拒 绝"), Vector2(-36, -8), ink)
+	var text := UI.label(mark, label if label != "" else {"pass": "通 过", "exception": "破 格"}.get(verdict, "拒 绝"), Vector2(-36, -8), ink)
 	text.size.x = 72
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(mark)

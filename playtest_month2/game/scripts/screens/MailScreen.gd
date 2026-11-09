@@ -16,20 +16,25 @@ func _ready() -> void:
 	for extra: Dictionary in cfg.mail_ps_by:
 		if GameState.family_matches(extra.when):
 			ps = extra.ps if ps == "" else ps + "\n" + extra.ps
+	if GameState.late_ps != "":
+		ps = GameState.late_ps if ps == "" else ps + "\n" + GameState.late_ps
 	if ps != "":
-		mail += "\n\n" + ps
+		mail += "\n" + ps
 	UI.label(self, mail, Vector2(72, 72), UI.TEXT, 340)
 	# 便签高度跟着字数走：先放字，再按行数撑开底下的黄纸
 	var sticky := UI.panel(self, Rect2(418, 150, 148, 118), UI.YELLOW)
 	sticky.rotation = 0.03
 	var note := UI.label(self, cfg.coworker_note, Vector2(426, 156), UI.INK, 132)
 	note.rotation = 0.03
-	# 太长的便签（第 12 天那种）往右加宽，贴出显示器边上：像素字不能再缩小
-	if note.get_line_count() * (note.get_line_height() + 1) + 12.0 > 328.0 - 50.0:
+	# 刚建的 Label 还没排版，size.y 不准：按行数算高度
+	var note_h := note.get_line_count() * (note.get_line_height() + 1) + 12.0
+	# 太长的便签往右加宽，贴出显示器边上：像素字不能再缩小
+	if note_h > 328.0 - 50.0:
 		note.custom_minimum_size.x = 196
 		note.size = Vector2(196, 0)
 		sticky.size.x = 212
-	sticky.size.y = maxf(118.0, note.get_line_count() * (note.get_line_height() + 1) + 12.0)
+		note_h = note.get_line_count() * (note.get_line_height() + 1) + 12.0
+	sticky.size.y = maxf(118.0, note_h)
 	# 便签太长、底边出了屏幕：整张往上挪，压住推送；推送几秒后自己收走
 	var lift := minf(sticky.position.y + sticky.size.y - 328.0, sticky.position.y - 50.0)
 	var covers_push := lift > 0.0
@@ -39,6 +44,19 @@ func _ready() -> void:
 	if cfg.morning_push != "":
 		_show_push(cfg.morning_push, covers_push)
 	UI.button(self, "开始筛简历", Rect2(250, 298, 140, 24), finished.emit)
+	if not GameState.late_today.is_empty():
+		_show_morning()
+
+
+## 晚到的早上：先是家里那一幕，进公司时邮件早就躺在收件箱里了。
+func _show_morning() -> void:
+	var cover := UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK_DARK)
+	var d := DateUtil.parse(GameState.today)
+	UI.label(cover, "%d 月 %d 日（%s），早上" % [d.y, d.z, DateUtil.weekday(GameState.today)], Vector2(40, 18), UI.GREEN)
+	UI.label(cover, GameState.late_today.get("morning", ""), Vector2(40, 46), UI.TEXT_DIM, 560)
+	# 早上那段不超过五六行，到公司那句压在下面固定的位置
+	UI.label(cover, "你到公司，%s。早上那几个钟头的简历没看成，迟到按小时扣钱。" % GameState.arrival_time(), Vector2(40, 200), UI.YELLOW, 560)
+	UI.button(cover, "进公司", Rect2(484, 328, 110, 24), cover.queue_free)
 
 
 ## 早间推送：手机从右边滑进来，标题预告今天的新规则。

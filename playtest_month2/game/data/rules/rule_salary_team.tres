@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RuleSalary" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleSalary.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_salary_team"
+day_added = 13
+title_key = "各组薪资上限"
+text_key = "期望月薪不能超过放进去那个组的上限，写在文件夹上。写区间的看上限。技能对得上的组里一个都放不下，就拒。"
+reject_reason_key = "期望薪资超出岗位预算。"
+is_absurd = false
+max_monthly_k = 18
+per_team = true

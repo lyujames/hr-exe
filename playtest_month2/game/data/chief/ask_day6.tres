@@ -4,7 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-question = "实习结束能开实习证明吗？"
-lie = "当然，离职当天就开。"
-safe = "按公司流程走。"
-truth = "要干满六个月才开。提前走的，一个字都没有。"
+question = "实习生能写进项目成员里吗？"
+student_question = "我做的东西，项目成员那栏能写我的名字吗？上次在学校就没写。"
+lie = "当然，谁做的写谁。"
+safe = "按项目的规范来。"
+truth = "一般写带你的人。"

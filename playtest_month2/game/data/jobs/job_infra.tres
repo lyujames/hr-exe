@@ -1,15 +1,27 @@
-[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="JobPosting" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="qc"]
+[ext_resource type="Resource" path="res://data/leads/lead_infra_sharp.tres" id="lead_infra_sharp"]
+[ext_resource type="Resource" path="res://data/leads/lead_infra_oom.tres" id="lead_infra_oom"]
+[ext_resource type="Resource" path="res://data/leads/lead_infra_doc.tres" id="lead_infra_doc"]
 
 [resource]
 script = ExtResource("1")
-title = "后端开发工程师（基础架构组）"
+title = "运维工程师（基础架构组）"
 pay_text = "月薪 12–18k"
 majors = PackedStringArray()
 lookalikes = PackedStringArray()
-requirements = PackedStringArray("5 年以上经验", "接受 on-call")
-keywords = PackedStringArray("Go", "Linux", "Docker")
-keyword_lookalikes = PackedStringArray("Golang", "Unix", "Docker Desktop")
-skill_pool = PackedStringArray("Go", "Linux", "Docker", "Kubernetes", "Nginx", "Prometheus", "Python", "Java", "MySQL", "Shell", "Git", "Golang", "Unix")
-job_titles = PackedStringArray("运维开发", "SRE", "后端开发", "外包驻场开发", "平台开发")
+requirements = PackedStringArray("5 年以上经验", "接受 on-call", "管过 500 台以上机器优先")
+keywords = PackedStringArray("Linux", "Shell", "Docker")
+keyword_lookalikes = PackedStringArray("Unix", "PowerShell", "Docker Desktop")
+skill_pool = PackedStringArray("Linux", "Shell", "Docker", "Kubernetes", "Nginx", "Prometheus", "Ansible", "Jenkins", "Zabbix", "Python", "Go", "MySQL", "Git", "Terraform")
+job_titles = PackedStringArray("运维工程师", "SRE", "系统运维", "外包驻场运维", "运维开发")
+role = "运维"
+team = "基础架构组"
+salary_cap_k = 18
+hc = 3
+workload = 4
+folder_note = "唐组长：我们组的人，手机睡觉也开着声音。"
+lead = {"name": "唐组长", "seed": 3317, "cut_in": "唐组长从告警群里抬起头：", "cut_in_again": "唐组长又放下手机：", "next_line": "下一个。我还得回去看告警。", "bonus": "组长推荐奖", "opener": "基础架构，唐敏。我们组不写业务，是修路的。", "need": {"item": "技术", "note": "唐组长：半夜机器挂了，要能自己修的。"}, "delay": {"at": "mid", "minutes": 15, "line": "唐组长的手机响了：告警。他出去了一刻钟才回来。"}}
+lead_cards = Array[ExtResource("qc")]([ExtResource("lead_infra_sharp"), ExtResource("lead_infra_oom"), ExtResource("lead_infra_doc")])

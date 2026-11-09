@@ -4,11 +4,14 @@ class_name InterviewRoom extends Control
 ## 实习生和社招各有一套问题卡：实习生问的是 TA 知不知道来干什么、项目里做了什么、能来多久。
 ## 在读研究生多问 2 问，还多一套问题卡：导师放不放人、读不读博、研究方向和岗位的关系。
 ## 每个回答刚说完可以追问一次（占一问）：背的接不上，说实话的越说越具体，露破绽的越问越慌。
-## 招程序员（第 8 天）起，主管抢的第一问总是一道尖锐题（DayConfig.chief_sharp），玩家手里也混着尖锐题卡。
+## 招程序员（第 10 天）起，主管抢的第一问总是一道尖锐题（DayConfig.chief_sharp），玩家手里也混着尖锐题卡。
 ## 当天没有剧情候选人进面试，抽中的普通人可能是个奇葩（DayConfig.quirk）：简历正常，一开口才知道。
 ## 剧情候选人进了面试、今天又有奇葩，就面两场：剧情候选人 15:00–16:30，奇葩 16:30–18:00。
-## 第 3 天起主管开场拍一张便签（DayConfig.chief_need），录用的人在他自己心里那一项够了，发主管推荐奖。
-## 第 11 天起程序员按组招，坐在主管位置上的换成用人组的组长（DayConfig.interviewer）：他带自己的题、每场抢两问，
+## 第 6 天起主管每天早上在你桌上贴一张便签（DayConfig.chief_need），写他明天要什么经历；第二天面试他把这张拍在桌上，
+## 录用的人简历第二页对得上，发主管推荐奖。只看纸面，项目掺没掺水不管。
+## 破格的人（GameState.vouched）第二天 14:00–15:00 你单独面：主管的椅子空着，没人抢问、没人改表，
+## 评分表是空的 3 分，红笔照样只改一处；录用了记作你担保（GameState.add_hire 的 vouched）。
+## 第 13 天起程序员按组招，坐在主管位置上的换成用人组的组长（DayConfig.interviewer）：他带自己的题、每场抢两问，
 ## 听的是真话不是官话（QuestionCard.lead_reaction），不碰老板评分表，填表时直接说这个人他要不要。
 ##
 ## 画面学《Papers, Please》：上半屏是对面坐着的人和赵主管，下半屏是桌面。
@@ -38,6 +41,8 @@ const CHIEF_ASKS_MAX := 2
 const LEAD_ASKS := 2
 const CHIEF_CUT_IN_LINES := ["等一下，我问一句。", "我插一句。", "这个我来问。", "你先停一下。"]
 const SCORE_ITEMS := ["狼性", "格局", "稳定性", "颜值"]
+## 表上每一项的小字：王总的词，底下其实问的是什么。颜值没有底下。
+const SCORE_HINTS := {"狼性": "扛得住吗", "格局": "干得了吗", "稳定性": "待得住吗", "颜值": "王总加的"}
 const CHIEF_SEED := 4101
 const LIE_LOYALTY_HIT := 25
 const SAFE_LOYALTY_HIT := 10
@@ -85,6 +90,9 @@ var lead := false
 var scorecard := {}
 ## 主管自己当场加减的分，-2..+2；评分表上的数是 3 加它，玩家改评分表动不了这里。
 var chief_marks := {}
+## 进评分表那一刻主管填好的样子；你只能用红笔改其中一处：{item, from, to}，空表示没改。
+var _filled := {}
+var hr_edit := {}
 ## 刚说完的那一问，可以追问：{card, reply, by_chief}；空表示没得追问。
 var _last := {}
 var _followups := 0
@@ -92,8 +100,18 @@ var _followups := 0
 var _lead_won := false
 var _promise := ""
 var _loyalty_hit := 0
+## 候选人要反问的几个问题：社会人一个，学生一到两个。
+var _asks: Array[CandidateAsk] = []
+var _ask_index := 0
 ## 笔录：每一问一条 {who, question, reply}。
 var transcript: Array[Dictionary] = []
+## 开场的自我介绍（SelfIntro.build），说到第几句；划过的句子按简历行 key 记，对质过的就划掉。
+var intro: Array[Dictionary] = []
+var _intro_at := 0
+var underlined := {}
+var _confronted: PackedStringArray = []
+## 笔录上自我介绍那几行的 Label，划线时改颜色；按句子下标。
+var _intro_labels := {}
 var _portrait: PortraitView
 var _speech: Label
 var _chief_line: Label
@@ -130,6 +148,20 @@ var _scorecard_at := 17 * 60 + 45
 ## 评分表是空的 3 分，你自己填；录用了记作你担保（GameState.add_hire 的 vouched_hire）。
 var solo := false
 const SOLO_START := 14 * 60
+## 按组招的日子（DayConfig.team_folders）：钟按实际走。每问 10 分钟，追问多 5 分钟，反问和填表 10 分钟；
+## 组长有自己的事（JobPosting.lead.delay）。一场接一场，下一场从上一场交表开始，过了 18:00 照样面。
+const QUESTION_MINUTES := 10
+const FOLLOWUP_EXTRA := 5
+const WRAP_MINUTES := 10
+const PHONE_RECT := Rect2(336, 158, 146, 40)
+var timed := false
+## 这一场来面的组（候选人放进的文件夹，或者投的那个岗位）；组长写在它的 lead 里。
+var _team: JobPosting
+## 组长那边耽误掉的分钟。
+var _waited := 0
+var _mid_delay_done := false
+var _eta: Label
+var _phone_note: Control
 
 
 func _ready() -> void:
@@ -145,13 +177,18 @@ func _ready() -> void:
 		slot = GameState.interviewed_today.size()
 		candidate = pick_candidate()
 		GameState.interviewed_today.append(candidate.display_name)
-	if not solo and (slot > 0 or second_candidate()):
+	timed = GameState.config.team_folders
+	# 破格那场没有组长（_who 为空），表头照样写 TA 放进的组
+	_team = GameState.team_posting(candidate)
+	if timed:
+		_start = maxi(SOLO_START if solo else START_MINUTES, int(GameState.stats.clock))
+	elif not solo and (slot > 0 or second_candidate()):
 		_start = START_MINUTES + slot * SLOT_MINUTES
 		_scorecard_at = _start + SLOT_MINUTES - 8
 		_questions_end = _scorecard_at - 7
 	if candidate.is_grad():
 		questions_allowed = GRAD_QUESTIONS_ALLOWED
-	lead = not solo and not GameState.config.interviewer.is_empty()
+	lead = not solo and not _who().is_empty()
 	for item in SCORE_ITEMS:
 		scorecard[item] = 3
 		chief_marks[item] = 0
@@ -163,7 +200,9 @@ func _ready() -> void:
 	_build_desk()
 	_tick(_start)
 	_draw_hand()
-	_show_hand()
+	_start_intro()
+	if timed and lead and _who().get("delay", {}).get("at", "") == "start" and not _seen_lead_today():
+		_delay()
 
 
 ## 能问的卡洗成牌堆，种子跟着这一天走：读档重来，手里还是那几张。
@@ -271,9 +310,20 @@ func _build_chief() -> void:
 	UI.panel(self, r, UI.PAPER_DIM)
 	_tail(r.position + Vector2(14, -6), UI.PAPER_DIM, false)
 	var opener: String = GameState.config.chief_opener if slot == 0 else _who().get("next_line", "下一个。抓紧，六点我还有会。")
+	if timed and _who().has("opener"):
+		opener = _who().next_line if _seen_lead_today() else _who().opener
 	_chief_line = UI.label(self, "“%s”" % opener, r.position + Vector2(5, 0), UI.INK, r.size.x - 8)
 	_chief_line.add_theme_constant_override("line_spacing", -5)
 	_chief_line.max_lines_visible = 3
+
+
+## 这个组长今天前面已经面过一场了（开场白只说一次）。
+func _seen_lead_today() -> bool:
+	for i in mini(slot, GameState.sessions.size()):
+		var t := GameState.team_posting(GameState.sessions[i])
+		if t and t.lead.get("name", "") == _who().get("name", ""):
+			return true
+	return false
 
 
 ## 破格那场：主管的位置上是一把空椅子，小气泡里是旁白。
@@ -291,6 +341,10 @@ func _build_empty_chair() -> void:
 
 ## 坐在主管位置上的人：赵主管，或者今天这个组的组长。
 func _who() -> Dictionary:
+	if solo:
+		return {}
+	if _team and not _team.lead.is_empty():
+		return _team.lead
 	return GameState.config.interviewer
 
 
@@ -324,18 +378,34 @@ func _build_need_note() -> void:
 	note.max_lines_visible = 2
 
 
+## 赵主管的便签是昨天早上贴在你桌上的：昨天筛的人，今天来面。组长的便签当天写。
 func chief_need() -> Dictionary:
-	return {} if solo else GameState.config.chief_need
+	if solo:
+		return {}
+	if _team and not _team.lead.is_empty():
+		return _team.lead.get("need", {})
+	# 第一个月：赵主管的便签头一天就贴在桌上，面的是昨天筛的人，看昨天那张；第二个月起他当天开场拍便签
+	if lead or GameState.day <= 1 or GameState.month() > 1:
+		return GameState.config.chief_need
+	return RuleEngine.load_day(GameState.day - 1).chief_need
 
 
-## 他要的那一项，他自己心里够了没有。
+## 他要的人：便签写的是经历，就看简历第二页对不对得上（只看纸面）；写的是评分项，看他自己心里那一项够了没有。
 func is_chief_pick() -> bool:
 	var need := chief_need()
-	return not need.is_empty() and int(chief_marks.get(need.item, 0)) >= CHIEF_PICK_MARK
+	if need.is_empty():
+		return false
+	if need.has("project") or need.has("role") or need.has("months"):
+		return candidate.fits(need)
+	return int(chief_marks.get(need.item, 0)) >= CHIEF_PICK_MARK
 
 
 ## 第一场优先剧情候选人，否则从昨天通过的人里随机抽，今天有奇葩就是这个人；第二场就是奇葩。
 func pick_candidate() -> Candidate:
+	if GameState.config.team_folders:
+		if GameState.sessions.is_empty() and slot == 0:
+			GameState.plan_sessions()
+		return GameState.sessions[mini(slot, GameState.sessions.size() - 1)]
 	if slot > 0:
 		return second_candidate()
 	for c in GameState.interviewees:
@@ -344,13 +414,18 @@ func pick_candidate() -> Candidate:
 	return _plain_pick()
 
 
-## 第二场的人：第一场是剧情候选人、今天有奇葩、昨天还过了别的普通人才有，否则 null。
+## 第二场的人：今天有奇葩、昨晚约了两个人才有（第一场是剧情候选人时第二场是奇葩），否则 null。
 static func second_candidate() -> Candidate:
 	if GameState.config.quirk == null:
 		return null
-	if not GameState.interviewees.any(func(c: Candidate) -> bool: return c.is_story):
-		return null
-	return _plain_pick()
+	if GameState.interviewees.any(func(c: Candidate) -> bool: return c.is_story):
+		return _plain_pick()
+	# 第二个月晚上约了两个普通人：奇葩套在抽中的那个身上，另一个第二场来
+	var first := _plain_pick()
+	for c in GameState.interviewees:
+		if c != first:
+			return c
+	return null
 
 
 ## 从昨天通过的普通人里抽一个，种子跟着这一天走；今天有奇葩就套上。没有普通人返回 null。
@@ -403,7 +478,8 @@ func _plan_chief() -> void:
 
 ## 组长只问自己带来的题：第一张尖锐题必问，剩下的抽一张；插在哪一问随机。
 func _plan_lead() -> void:
-	var cards := GameState.config.lead_cards.filter(func(c: QuestionCard) -> bool: return c.available_for(candidate))
+	var source: Array[QuestionCard] = _team.lead_cards if _team and not _team.lead.is_empty() else GameState.config.lead_cards
+	var cards := source.filter(func(c: QuestionCard) -> bool: return c.available_for(candidate))
 	var slots := range(1, questions_allowed)
 	for i in mini(LEAD_ASKS, cards.size()):
 		chief_slots.append(slots.pop_at(_rng.randi_range(0, slots.size() - 1)))
@@ -463,6 +539,7 @@ func _notification(what: int) -> void:
 
 
 func ask(card: QuestionCard) -> void:
+	_just_caught = false
 	hand.erase(card)
 	deck.erase(card)
 	_draw_hand()
@@ -491,6 +568,8 @@ func _flip_paper() -> void:
 	_pen.visible = resume.visible
 	Sfx.paper()
 	_draw_tabs()
+	if _transcript_box.visible:
+		_scroll_log()
 
 
 ## 纸顶上露出的两个页签：当前这一面亮，另一面暗；笔录上写着问了几问。
@@ -556,14 +635,171 @@ func ask_line_sharp(line: Dictionary, sharp_card: QuestionCard) -> void:
 
 
 func _ask_about(line: Dictionary, card: QuestionCard) -> void:
+	_just_caught = false
+	var said := {} if line.key in _confronted else SelfIntro.hook(intro, line.key, underlined, resume.circled)
+	if not said.is_empty():
+		card = SelfIntro.confront(candidate, line, card, said)
+		_confronted.append(line.key)
+	# 先怀疑、后问：划过线（对质）或者红笔先圈了，问出东西来才算你说中
+	var committed: bool = not said.is_empty() or line.key in resume.circled
 	asked += 1
 	_tick()
 	var reply := _flavor(card.answer(candidate), String(card.id))
 	var tag := _line_tag(line, card, reply, false)
-	_say("你·简历", card.text_key, reply, tag)
-	_chief_react(card, _reaction(card, reply))
+	var caught := committed and tag != ""
+	var broke: PackedStringArray = []
+	if tag == "认了":
+		broke = _surface(line)
+	if card.has_meta("petty"):
+		tag = "抓字眼"
+	elif caught:
+		tag += " · 被你说中"
+	elif not said.is_empty() and reply.kind == "standard":
+		tag = "圆过去了"
+	if not broke.is_empty():
+		tag += " · 按规则不该过"
+	_say("你·对质" if not said.is_empty() else "你·简历", card.text_key, reply, tag)
+	var reaction := _reaction(card, reply)
+	if card.has_meta("petty"):
+		# 划了一句没毛病的话去顶人：TA 心里记一笔，主管嫌你抠字眼
+		candidate.loyalty = maxi(0, candidate.loyalty - SelfIntro.PETTY_LOYALTY)
+		reaction = {"line": SelfIntro.PETTY_LINE, "delta": 0}
+	_chief_react(card, reaction)
+	if caught:
+		_caught(line, broke)
 	_last = {"card": card, "reply": reply, "line": line}
 	_next()
+
+
+## 说中了：简历那一行盖红戳“查实”，候选人当场冒汗，主管把手机放下。
+## 这一下只给你先下过判断的（划线对质、红笔先圈），没下判断就问出来的，只是一个灰色的“认了”。
+const CAUGHT_FIRST := "（%s把手机扣在桌上。）嗯？你再说一遍？"
+const CAUGHT_AGAIN := ["有意思。接着问。", "这个记下来。", "（%s没再看手机。）"]
+const CAUGHT_RULE := "等等——按规定，这个人本来就不该进面试。"
+var _catches := 0
+
+## 刚说中：主管紧接着插话时，不拿“我插一句”盖掉他放下手机那一下。
+var _just_caught := false
+
+func _caught(line: Dictionary, broke: PackedStringArray) -> void:
+	_catches += 1
+	_just_caught = true
+	GameState.stats.called_out += 1
+	resume.stamp(line.key)
+	_portrait.tic = QuestionCard.escalate(_portrait.tic if _portrait.tic != "none" else "eyes")
+	Sfx.stamp()
+	if solo:
+		return
+	var said: String = CAUGHT_FIRST if _catches == 1 else CAUGHT_AGAIN[(_catches - 2) % CAUGHT_AGAIN.size()]
+	if not broke.is_empty():
+		said = CAUGHT_RULE
+	said = said.replace("%s", interviewer_name())
+	# 旁白（括号开头的）不加引号
+	_chief_line.text = said if said.begins_with("（") else "“%s”" % said
+
+
+## 真相浮出来：简历上那一项红笔划掉、写上真的；拿真的重新过一遍今天的规则，返回原来过了、现在过不了的那几条。
+## found 里记着，评分表的疑点栏抄过去。一行只浮一次。
+var found := {}
+
+func _surface(line: Dictionary) -> PackedStringArray:
+	var out: PackedStringArray = []
+	if found.has(line.key):
+		return out
+	var t := SelfIntro.truth(candidate, line)
+	if t.is_empty():
+		return out
+	resume.set_truth(line.key, t.show)
+	if not t.patch.is_empty():
+		var real := candidate.duplicate() as Candidate
+		real.doc_overrides = {}
+		for k: String in t.patch:
+			real.set(k, t.patch[k])
+		var before: Array = RuleEngine.evaluate(candidate).failed
+		for rule: Rule in RuleEngine.evaluate(real).failed:
+			if rule not in before:
+				out.append(rule.title_key)
+	found[line.key] = {"paper": line.text, "real": t.show, "broke": out}
+	return out
+
+
+## 坐下先让 TA 自我介绍：一句一句出在气泡里，同时打进笔录。手牌压着，简历和红笔照常能看能圈。
+func _start_intro() -> void:
+	intro = SelfIntro.build(candidate)
+	_intro_at = 0
+	_show_hand(false)
+	_hand_hint.text = "先听 TA 说 · 觉得不对就划这句"
+	var opening := _speech.text
+	_speech.text = "%s\n你：%s" % [opening, SelfIntro.ask_text(candidate)]
+	_chip("请 TA 开始 ▸", UI.YELLOW, UI.INK, _intro_step, ACTION_POS.x)
+
+
+## 说下一句；绕开不说的那条不出声，直接跳过。
+func _intro_step() -> void:
+	while _intro_at < intro.size() and intro[_intro_at].text == "":
+		_intro_at += 1
+	if _intro_at >= intro.size():
+		_end_intro()
+		return
+	var i := _intro_at
+	_intro_at += 1
+	var s := intro[i]
+	_speech.text = "（自我介绍）\n%s：%s" % [candidate.display_name, s.text]
+	_portrait.tic = "none"
+	Sfx.key()
+	_log_intro(i)
+	_draw_intro_chips(i)
+
+
+func _draw_intro_chips(i: int) -> void:
+	UI.clear(_action)
+	var s := intro[i]
+	var x := ACTION_POS.x
+	if s.key != "":
+		var on: bool = underlined.has(s.key) and underlined[s.key] == s
+		x = _chip("已划 ✓" if on else "划这句", UI.RED if on else Color("6b2a24"), UI.PAPER, _toggle_underline.bind(i), x) + 6
+	var more := intro.slice(_intro_at).any(func(t: Dictionary) -> bool: return t.text != "")
+	_chip("接着说 ▸" if more else "说完了，开始问 ▸", UI.YELLOW, UI.INK, _intro_step, x)
+
+
+## 划线：这句话连上简历那一行（行上画一道红波浪），问那一行时拿它对质。再点擦掉。
+func _toggle_underline(i: int) -> void:
+	var s := intro[i]
+	if underlined.has(s.key) and underlined[s.key] == s:
+		underlined.erase(s.key)
+	else:
+		underlined[s.key] = s
+	if underlined.has(s.key):
+		resume.set_conflict(s.key, s, "没提" if s.slip == "skip" else "对不上")
+	else:
+		resume.clear_conflict(s.key)
+	var label: Label = _intro_labels.get(i)
+	if label:
+		var on: bool = underlined.has(s.key)
+		label.text = ("～ " if on else "") + "“%s”" % s.text
+		label.add_theme_color_override("font_color", UI.RED if on else UI.INK)
+	Sfx.paper()
+	_draw_intro_chips(i)
+
+
+func _end_intro() -> void:
+	_speech.text = "%s：……就这些。" % candidate.display_name
+	_hand_hint.text = ""
+	_show_hand()
+
+
+## 笔录最上面一段“自我介绍”，不编号、不算问。
+func _log_intro(i: int) -> void:
+	var empty := _transcript_list.get_node_or_null("Empty")
+	if empty:
+		empty.queue_free()
+	var width := TRANSCRIPT_RECT.size.x - 24
+	if _intro_labels.is_empty():
+		UI.label(_transcript_list, "自我介绍", Vector2.ZERO, UI.INK_SOFT, width)
+	var a := UI.label(_transcript_list, "“%s”" % intro[i].text, Vector2.ZERO, UI.INK, width)
+	a.custom_minimum_size.x = width
+	_intro_labels[i] = a
+	_scroll_log()
 
 
 ## 问简历问出来的反应，只看得见的：自己认了水分、支支吾吾、一追问就答不上细节。
@@ -578,12 +814,7 @@ func _line_tag(line: Dictionary, card: QuestionCard, reply: Dictionary, followup
 	elif not followup and reply.kind == "honest" and not candidate.answers.has(key) and ResumeQuestions.padded(candidate, line):
 		tag = "认了"
 	if tag != "":
-		var fresh: bool = not resume.was_hit(line.key)
 		resume.mark(line.key, tag)
-		# 红笔先圈、后问出来：被你说中。一行只算一次
-		if fresh and resume.was_hit(line.key):
-			GameState.stats.called_out += 1
-			tag += " · 被你说中"
 	return tag
 
 
@@ -620,9 +851,13 @@ func _log(who: String, question: String, said: String, tag := "") -> void:
 	var a := UI.label(entry, "“%s”" % _clip(said, 60), Vector2.ZERO, UI.INK, width)
 	a.custom_minimum_size.x = width
 	if tag != "":
-		var base := tag.get_slice(" · ", 0)
-		UI.label(entry, "▲ " + tag, Vector2.ZERO, InterviewResume.HIT_COLOR if base != tag else InterviewResume.MARK_COLORS[base], width)
+		UI.label(entry, "▲ " + tag, Vector2.ZERO, InterviewResume.tag_color(tag), width)
 	_draw_tabs()
+	_scroll_log()
+
+
+## 笔录卷到最底下：新的一行总在眼前。纸翻在背面时没有高度，翻过来再卷一次。
+func _scroll_log() -> void:
 	await get_tree().process_frame
 	_transcript_scroll.scroll_vertical = int(_transcript_scroll.get_v_scroll_bar().max_value)
 
@@ -695,6 +930,7 @@ func _skip_follow_up() -> void:
 
 
 func follow_up() -> void:
+	_just_caught = false
 	var card: QuestionCard = _last.card
 	var first: Dictionary = _last.reply
 	var line: Dictionary = _last.get("line", {})
@@ -705,9 +941,39 @@ func follow_up() -> void:
 	# 顺着主管的违法问题往下问，你也算问了
 	GameState.lawsuit_risk += card.lawsuit_risk
 	var reply := _flavor(card.follow_up(candidate, first), String(card.id) + "+")
+	var cracks := candidate.crack_lines
+	if _followups <= cracks.size():
+		# 背得再熟，追到第二次就接不住了；第一层的完美回答主管全加了分，这里他在回消息
+		var last := _followups == cracks.size()
+		reply = {"text": cracks[_followups - 1], "tic": "shake" if last else "sweat", "kind": "flaw", "strong": first.strong}
+		if last:
+			GameState.expose(candidate)
 	var tag := "" if line.is_empty() else _line_tag(line, card, reply, true)
+	var broke: PackedStringArray = []
+	var caught := false
+	var truth := {} if line.is_empty() else SelfIntro.truth(candidate, line)
+	if line.get("key", "") in _confronted and not truth.is_empty() and not found.has(line.key) \
+			and _followups > cracks.size() and not candidate.answers.has(String(card.id) + "+"):
+		# 对质完了再追一句：刚才圆的、支吾的，这下圆不住了，自己把真的说出来
+		reply = {"text": "（TA 不说话了。过了一会儿。）" + truth.confess, "tic": "shake", "kind": "honest", "strong": first.strong}
+		tag = "破防"
+		caught = true
+	if tag in ["认了", "破防"]:
+		broke = _surface(line)
+	if not caught and tag != "" and line.key in _confronted:
+		caught = true
+	if caught:
+		tag += " · 被你说中"
+	if not broke.is_empty():
+		tag += " · 按规则不该过"
 	_say("追问", card.followup_text, reply, tag)
-	_chief_react(card, card.lead_followup_reaction(reply, _followups) if lead else card.chief_followup_reaction(reply, _followups))
+	var reaction: Dictionary = card.lead_followup_reaction(reply, _followups) if lead else card.chief_followup_reaction(reply, _followups)
+	if tag.begins_with("破防"):
+		# 被拆穿的人不该因为“说了实话”加分；这一下主管只看着，不动表
+		reaction = {"line": "", "delta": 0}
+	_chief_react(card, reaction)
+	if caught:
+		_caught(line, broke)
 	_next()
 
 
@@ -744,7 +1010,9 @@ func _show_chief_cut_in() -> void:
 	_show_hand(false)
 	var again := _chief_asked > 0
 	var line: String = "还有一个。" if again else CHIEF_CUT_IN_LINES[_rng.randi_range(0, CHIEF_CUT_IN_LINES.size() - 1)]
-	_chief_line.text = "“%s”" % line
+	if not _just_caught:
+		_chief_line.text = "“%s”" % line
+	_just_caught = false
 	var who := _who()
 	var cue: String = who.get("cut_in_again", "赵主管又抬起头：") if again else who.get("cut_in", "赵主管放下手机：")
 	var said := UI.label(_action, cue, ACTION_POS + Vector2(0, 3), UI.TEXT_DIM)
@@ -753,6 +1021,7 @@ func _show_chief_cut_in() -> void:
 
 ## 主管的问题照样占名额，玩家拦不住；他自己问的，他也当场打分。问完你可以接着追问。
 func chief_ask() -> void:
+	_just_caught = false
 	chief_slots.pop_front()
 	var card: QuestionCard = chief_cards[_chief_asked]
 	_chief_asked += 1
@@ -779,15 +1048,21 @@ func _clear_hand() -> void:
 
 
 func _show_candidate_ask() -> void:
-	var question := GameState.config.candidate_ask
-	_tick(_questions_end)
+	if _asks.is_empty():
+		_prepare_asks()
+	if _asks.is_empty():
+		_show_scorecard()
+		return
+	var question := _asks[_ask_index]
+	_tick(_now() if timed else _questions_end)
 	_chief_mark.text = ""
 	_clear_hand()
 	UI.clear(_side)
 	var top := END_TOP
 	var box := UI.panel(_side, Rect2(END_X, top, END_WIDTH, 0), UI.PAPER, UI.BLACK)
-	UI.label(_side, "你：“你有什么想问我们的？”", Vector2(END_X + 10, top + 6), UI.INK_SOFT)
-	var asked_line := UI.label(_side, "%s：%s" % [candidate.display_name, question.question], Vector2(END_X + 10, top + 24), UI.INK, END_WIDTH - 20)
+	var opener := "你：“你有什么想问我们的？”" if _ask_index == 0 else "%s：“那……我还能再问一个吗？”" % candidate.display_name
+	UI.label(_side, opener, Vector2(END_X + 10, top + 6), UI.INK_SOFT)
+	var asked_line := UI.label(_side, "%s：%s" % [candidate.display_name, question.asked_by(candidate.is_intern)], Vector2(END_X + 10, top + 24), UI.INK, END_WIDTH - 20)
 	var y := top + 24.0 + asked_line.get_line_count() * 15.0 + 8.0
 	for choice: String in ["lie", "safe", "truth"]:
 		var b := UI.text_button(_side, "“%s”" % question.get(choice), Rect2(END_X + 10, y, END_WIDTH - 20, 26), answer_candidate.bind(choice))
@@ -795,21 +1070,33 @@ func _show_candidate_ask() -> void:
 	box.size.y = y + 4.0 - top
 
 
+## 社会人只问当天那一题；在校生青涩，想到什么问什么，问一到两个。
+func _prepare_asks() -> void:
+	var day_ask := GameState.config.candidate_ask
+	if candidate.is_intern:
+		var before := GameState.reply_log.map(func(r: Dictionary) -> String: return r.question)
+		_asks = StudentAsks.for_candidate(candidate, GameState.day, day_ask, before)
+	elif day_ask:
+		_asks = [day_ask]
+	_ask_index = 0
+
+
 func answer_candidate(choice: String) -> void:
-	var question := GameState.config.candidate_ask
+	var question := _asks[_ask_index]
 	var text: String = question.get(choice)
+	var student := candidate.is_intern
 	GameState.record_reply(candidate, question, choice, text)
 	var response := ""
 	match choice:
 		"lie":
-			_promise = text
-			_loyalty_hit = LIE_LOYALTY_HIT
-			response = "太好了，这正是我想要的。"
+			_promise = text if _promise == "" else _promise + "；" + text
+			_loyalty_hit = maxi(_loyalty_hit, LIE_LOYALTY_HIT)
+			response = "哇，真的吗！那太好了！" if student else "太好了，这正是我想要的。"
 			if not solo:
 				_chief_line.text = "（看了你一眼，没说话。）" if lead else "（点了点头。）"
 		"safe":
-			_loyalty_hit = SAFE_LOYALTY_HIT
-			response = "……明白了。"
+			_loyalty_hit = maxi(_loyalty_hit, SAFE_LOYALTY_HIT)
+			response = "哦哦……好的，谢谢老师。" if student else "……明白了。"
 			if not solo:
 				_chief_line.text = "（低头记了一笔。）" if lead else "“滴水不漏。”"
 		"truth":
@@ -817,12 +1104,17 @@ func answer_candidate(choice: String) -> void:
 				GameState.boss_trust -= 1
 				_chief_line.text = "“说得对。这话别让赵主管听见。”" if lead else "“这话，下来我们单独聊。”"
 			if candidate.ability >= WALK_OUT_ABILITY:
-				_speech.text = "你：%s\n\n%s：谢谢，我再考虑一下。\n（TA 合上笔记本，走了。）" % [text, candidate.display_name]
+				var leave := "啊……这样啊。谢谢您跟我说实话，我回去再想想。\n（TA 把简历收回书包，走了。）" if student else "谢谢，我再考虑一下。\n（TA 合上笔记本，走了。）"
+				_speech.text = "你：%s\n\n%s：%s" % [text, candidate.display_name, leave]
 				_show_walk_out()
 				return
-			response = "……没关系，我能接受。"
+			response = "啊？……没、没关系，我能接受的。" if student else "……没关系，我能接受。"
 	_speech.text = "你：%s\n\n%s：%s" % [text, candidate.display_name, response]
-	_show_scorecard()
+	_ask_index += 1
+	if _ask_index < _asks.size():
+		_show_candidate_ask()
+	else:
+		_show_scorecard()
 
 
 func _show_walk_out() -> void:
@@ -832,24 +1124,40 @@ func _show_walk_out() -> void:
 	UI.button(_side, "送客", Rect2(END_X + 10, 274, END_WIDTH - 20, 30), finished.emit)
 
 
+## 评分表主管已经填好了（他当场加减的分），你手里的红笔只能改一处：改了签你的名，留任期满那天对账。
+## 点另一行的数，等于把红笔挪过去，前一处还原；点回主管原来的数，就是不改了。
 func _show_scorecard() -> void:
-	_tick(_scorecard_at)
+	if _filled.is_empty():
+		_filled = scorecard.duplicate()
+	_tick(_now() + WRAP_MINUTES / 2 if timed else _scorecard_at)
 	UI.clear(_side)
 	var top := END_TOP
 	UI.panel(_side, Rect2(END_X, top, END_WIDTH, 196), UI.PAPER, UI.BLACK)
-	var who := "老板评分表（赵主管开会，没来）" if lead else "老板评分表（主管已动过）"
+	var who := "赵主管开会，没来，表是空的" if lead else "%s填好了" % interviewer_name()
 	if solo:
-		who = "老板评分表（你单独面的，表是空的）"
-	UI.label(_side, who, Vector2(END_X + 10, top + 6), UI.INK)
+		who = "你单独面的，表是空的"
+	UI.label(_side, "老板评分表（%s）" % who, Vector2(END_X + 10, top + 6), UI.INK)
 	var need: String = chief_need().get("item", "")
 	var y := top + 26.0
 	for item: String in SCORE_ITEMS:
-		UI.label(_side, item + ("★" if item == need else ""), Vector2(END_X + 14, y + 4), UI.RED if item == need else UI.INK)
+		var edited: bool = hr_edit.get("item", "") == item
+		UI.label(_side, item + ("★" if item == need else ""), Vector2(END_X + 10, y + 4), UI.RED if item == need else UI.INK)
+		UI.label(_side, SCORE_HINTS[item], Vector2(END_X + 78, y + 4), UI.INK_SOFT)
 		for score in range(1, 6):
-			var b := UI.button(_side, str(score), Rect2(END_X + 76 + score * 34, y, 30, 24), set_score.bind(item, score))
+			var rect := Rect2(END_X + 122 + score * 28, y, 25, 24)
+			var b := UI.button(_side, str(score), rect, set_score.bind(item, score))
 			b.toggle_mode = true
 			b.button_pressed = scorecard[item] == score
-		y += 30.0
+			# 主管原来填的那格，被你改掉以后划一道红线
+			if edited and _filled[item] == score:
+				var strike := UI.panel(_side, Rect2(rect.position + Vector2(3, 11), Vector2(rect.size.x - 6, 2)), UI.RED)
+				strike.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if edited:
+			UI.label(_side, "✎", Vector2(END_X + 296, y + 4), UI.RED)
+		y += 28.0
+	var hint := "红笔只能改一处 · 改了签你的名，留任期满对账" if hr_edit.is_empty() \
+		else "已改：%s %d → %d（你签字）· 点回原来的数就是不改" % [hr_edit.item, hr_edit.from, hr_edit.to]
+	UI.label(_side, hint, Vector2(END_X + 14, top + 138), UI.RED if not hr_edit.is_empty() else UI.INK_SOFT)
 	_draw_doubts(top)
 	if lead:
 		_draw_lead_verdict(top)
@@ -862,6 +1170,18 @@ func _draw_doubts(top: float) -> void:
 	var x := END_X + 330
 	UI.label(_side, "疑点（红笔）", Vector2(x, top + 26), UI.RED)
 	var doubts := resume.doubt_texts()
+	for key: String in underlined:
+		if not found.has(key):
+			doubts.append("嘴上：" + String(underlined[key].said))
+	# 查实的放最前面：划掉的、真的、违了哪条
+	var facts: PackedStringArray = []
+	for key: String in found:
+		var f: Dictionary = found[key]
+		facts.append("查实：%s → %s" % [_clip(f.paper, 10), f.real])
+		for rule: String in f.broke:
+			facts.append("  违反：" + rule)
+	facts.append_array(doubts)
+	doubts = facts
 	if doubts.is_empty():
 		UI.label(_side, "没圈。", Vector2(x, top + 44), UI.INK_SOFT)
 		return
@@ -883,23 +1203,38 @@ func _draw_lead_verdict(top: float) -> void:
 
 
 func set_score(item: String, score: int) -> void:
-	scorecard[item] = score
+	if not hr_edit.is_empty():
+		scorecard[hr_edit.item] = _filled[hr_edit.item]
+		hr_edit = {}
+	if score != _filled[item]:
+		hr_edit = {"item": item, "from": int(_filled[item]), "to": score}
+		scorecard[item] = score
+	Sfx.paper()
 	_show_scorecard()
 
 
 func decide(hire: bool) -> void:
+	if timed:
+		GameState.stats.clock = _now() + WRAP_MINUTES
+		GameState.stats.held = int(GameState.stats.held) + (0 if solo else 1)
+	var pick := is_chief_pick()
+	var evidence := {"found": found.keys(), "caught": _catches}
 	if hire:
-		var pick := is_chief_pick()
-		GameState.add_hire(candidate, scorecard, _promise, _loyalty_hit, pick, "你" if solo else interviewer_name(), solo)
+		GameState.add_hire(candidate, scorecard, _promise, _loyalty_hit, pick, "你" if solo else interviewer_name(), hr_edit.duplicate(), solo, evidence)
 		if pick:
 			GameState.stats.chief_picks.append(candidate.display_name)
 		Sfx.stamp()
+	else:
+		GameState.add_reject(candidate, evidence, pick)
 	finished.emit()
 
 
 ## 墙上的钟：开场 15:00，每问一题往后走，反问 17:30，评分表 17:45，交表就是 18:00 下班。
 ## 右上角的方块是问题额度：问掉一问亮一格。
 func _tick(minutes := -1) -> void:
+	if timed:
+		_timed_tick(_now() if minutes < 0 else minutes)
+		return
 	if minutes < 0:
 		minutes = _start + int(float(_questions_end - _start) * asked / questions_allowed)
 	_header.text = "%02d:%02d 面试 · %s · %s" % [minutes / 60, minutes % 60, candidate.display_name, candidate.applied_position]
@@ -907,3 +1242,74 @@ func _tick(minutes := -1) -> void:
 	var x := 630.0 - questions_allowed * 10.0
 	for i in questions_allowed:
 		UI.panel(_quota, Rect2(x + i * 10, 5, 8, 8), UI.YELLOW if i < asked else Color("46524d"), UI.BLACK)
+
+
+
+# ---------------------------------------------------------------- 按组招的日子：钟按实际走
+
+## 这一场到现在几点：开场 + 组长耽误的 + 每问 10 分钟 + 每次追问多 5 分钟。
+func _now() -> int:
+	return _start + _waited + asked * QUESTION_MINUTES + _followups * FOLLOWUP_EXTRA
+
+
+## 后面还有几场正式面试（不含这一场）。
+func _sessions_left() -> int:
+	if solo:
+		return GameState.sessions.size() if not GameState.sessions.is_empty() else mini(GameState.interviewees.size(), GameState.MAX_SESSIONS)
+	return maxi(0, GameState.sessions.size() - slot - 1)
+
+
+func _timed_tick(minutes: int) -> void:
+	var total := GameState.sessions.size()
+	var which := "破格" if solo else ("第%d场/共%d场" % [slot + 1, total] if total > 1 else "")
+	var team := _team.team if _team and _team.team != "" else candidate.applied_position
+	var parts := PackedStringArray([which] if which != "" else [])
+	parts.append_array([candidate.display_name, team])
+	_header.text = "%s 面试 %s" % [GameState.clock_text(minutes), " · ".join(parts)]
+	_header.add_theme_color_override("font_color", UI.RED if minutes >= GameState.CLOCK_OUT else UI.GREEN)
+	# 这一场剩下的问题 + 收尾，再加后面每场一个钟头，最早 18:00
+	var left := maxi(0, questions_allowed - asked) * QUESTION_MINUTES + WRAP_MINUTES
+	var eta := maxi(GameState.CLOCK_OUT, minutes + left + _sessions_left() * (QUESTION_MINUTES * QUESTIONS_ALLOWED + WRAP_MINUTES))
+	if _eta == null:
+		_eta = UI.label(self, "", Vector2(392, 2), UI.YELLOW)
+	_eta.text = "预计下班 " + GameState.clock_text(eta)
+	UI.clear(_quota)
+	var x := 630.0 - questions_allowed * 10.0
+	for i in questions_allowed:
+		UI.panel(_quota, Rect2(x + i * 10, 5, 8, 8), UI.YELLOW if i < asked else Color("46524d"), UI.BLACK)
+	if lead and not _mid_delay_done and _who().get("delay", {}).get("at", "") == "mid" and asked >= questions_allowed / 2 and not _seen_lead_today():
+		_delay()
+	if minutes >= GameState.CLOCK_OUT:
+		_wife_texts(minutes)
+
+
+## 组长那边的事：等发布、被告警叫走、被王总叫出去。钟往后拨，气泡里写一句。一个组长一天只出一次这种事。
+func _delay() -> void:
+	var d: Dictionary = _who().get("delay", {})
+	if d.is_empty():
+		return
+	if d.get("at", "") == "mid":
+		if _mid_delay_done:
+			return
+		_mid_delay_done = true
+	_waited += int(d.get("minutes", 0))
+	_chief_line.text = "（%s）" % d.get("line", "")
+	_tick()
+
+
+## 过了六点，老婆发来消息；过了七点又一条。只看，不能回：你在面试。
+func _wife_texts(minutes: int) -> void:
+	var late := minutes >= GameState.CLOCK_OUT + 60
+	var key := "wife_late" if late else "wife_six"
+	if GameState.stats.get(key, false) and _phone_note:
+		return
+	GameState.stats[key] = true
+	var line := "饭我先热上了。你几点？" if late else "几点回？孩子等你吃饭。"
+	if _phone_note:
+		_phone_note.queue_free()
+	_phone_note = Control.new()
+	_phone_note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_phone_note)
+	UI.panel(_phone_note, PHONE_RECT, UI.BLACK, UI.GREEN_DIM)
+	UI.label(_phone_note, "老婆 " + GameState.clock_text(minutes), PHONE_RECT.position + Vector2(5, 2), UI.GREEN)
+	UI.label(_phone_note, line, PHONE_RECT.position + Vector2(5, 19), UI.TEXT, PHONE_RECT.size.x - 10)

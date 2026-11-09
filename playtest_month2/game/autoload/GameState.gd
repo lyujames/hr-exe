@@ -3,17 +3,21 @@ extends Node
 
 const START_DATE := "2026-03-02"
 const START_SAVINGS := 200
-const LAST_DAY := 14
+const LAST_DAY := 16
 ## 第二个月从第几天开始（标题页可以直接从这里开）。
-const MONTH2_START := 8
+const MONTH2_START := 10
 const VIOLATION_FINE := 50
 const FREE_WARNINGS := 2
 ## 破格：从第 3 天起，每天能给一份不合规的简历盖一次破格章，第二天 14:00 你单独面 TA（主管 / 组长不在），录用了算你担保。
 ## 担保的人留任期满出事，不管这个月扣不扣钱，都扣 VOUCH_FINE；干得好，老板记你一笔。第二个月从第一天起就有。
 const EXCEPTION_DAY := 3
 const VOUCH_FINE := 100
-## 每 7 个工作日算一个月，月底一次扣月供。
-const DAYS_PER_MONTH := 7
+const KNOWING_FINE := 100
+const MISS_COST := 50
+## 晚到：每晚一小时扣多少（底薪按 8 小时折）。这是考勤，不是违规罚款，第一个月也扣。
+const LATE_PER_HOUR := 20
+## 每个月几个工作日：第一个月 9 天，第二个月 7 天；月底那天扣月供。
+const MONTH_LENGTHS := [9, 7]
 const MORTGAGE := 1750
 ## 猎头（李哲他爸）的价目：放进面试当晚转一笔，录用后满试用期再转一笔（人走了就没有）。
 const BROKER_FROM := "李哲的爸爸"
@@ -21,6 +25,12 @@ const BROKER_FROM := "李哲的爸爸"
 const BROKER_FROM_THREAD := "李哲他爸"
 const BROKER_PASS := 100
 const BROKER_RETAIN := 200
+## 按组招的日子（DayConfig.team_folders）：一天最多面几场；公司 18:00 打卡，面完才下班，路上 50 分钟。
+const MAX_SESSIONS := 3
+const CLOCK_OUT := 18 * 60
+const COMMUTE := 50
+## 到家晚过这两个点，老婆那边各扣一次感情。
+const LATE_HOME := [19 * 60 + 30, 20 * 60 + 30]
 
 var run_seed := 0
 var day := 1
@@ -40,9 +50,12 @@ var marriage := 0
 const REPLY_MINUTES := 2
 ## 决策日志：从第一天起完整记录，为终章服务。
 var decision_log: Array = []
-## 已录用员工 {candidate, day_hired, scorecard, promise, event_resolved, retention_due, chief_pick}
+## 已录用员工 {candidate, day_hired, scorecard, promise, event_resolved, retention_due, chief_pick, hr_edit}
+## hr_edit：评分表上你用红笔改的那一处 {item, from, to}，空表示没改；留任期满那天对账（见 EmployeeEvents.settle_edit）。
 ## chief_pick：赵主管（或当天的组长）要的人（拿了推荐奖），出了事他说“人是你面的”；picked_by 是谁要的。
 var hires: Array = []
+## 面试后没录的人：满期那天按 TA 的底子对账，拒对了有证据发识人奖，拒掉好人记错失（EmployeeEvents.settle_rejects）
+var rejects: Array = []
 ## 延发月份没进存款的留任奖金，最终“在离职补偿中抵扣”。
 var deferred_bonus := 0
 var boss_promised_rule := false
@@ -50,16 +63,34 @@ var boss_promised_rule := false
 var lawsuit_risk := 0
 ## 玩家回答候选人反问的原话，终章由 HireBot 原样复述。
 var reply_log: Array = []
-## 昨天筛简历通过、今天来面试的人：当天通过的人第二天才面试。
+## 昨天约来、今天来面试的人：当天通过的人里，晚上约一个，第二天才面试。
 var interviewees: Array[Candidate] = []
-## 昨天破格放进来、今天你单独面的人；不进主管那场。
+## 今晚约了明天来的人（日结单之后的约面）；通过的人不比名额多时自动全约（见 book_slots()）。
+var booked_today: Array[Candidate] = []
+## 筛过了、但晚上没约的人（id）：进人才库，月底回顾按“没约”写。
+var unbooked: Array = []
+## 昨天破格放进来、今天你单独面的人；不进主管 / 组长那场。
 var vouched: Array[Candidate] = []
 ## 今天已经面过的人（display_name）：剧情候选人那场面完，有奇葩的日子再加一场（见 InterviewRoom.second_candidate）。
 var interviewed_today: PackedStringArray = []
 ## 夹在简历里的信封 {day, from, amount, candidate_id, taken}：第一个月只收不追，下个月有人来“惦记”。
 var kickbacks: Array = []
-## 手机零钱转出去的累计：零钱 = 收下的猎头转账 − 这个数（见 wallet()）。钱本身当天就进了存款，零钱只是手机上看得见的那一块。
+## 手机零钱转出去的累计：零钱 = 收下的转账 − 这个数（见 wallet()）。第一个月没有转账，零钱一直是 0；第二个月猎头的钱从这里进。
 var wallet_out := 0
+## 每个组（岗位标题）一共放进去几个人：名额满了组长退回（JobPosting.hc）。
+var folder_filled := {}
+## 今天按组排好的面试（不含破格那场）：第一场开始前排好，见 plan_sessions()。
+var sessions: Array[Candidate] = []
+## 面试时被你追问问穿了的手写人物 id（Candidate.crack_lines 说完最后一句）。
+var exposed: Array = []
+## 晚上答应了家里、明天晚到：{minutes, morning}（回家那一幕选项的 late / morning）。
+var late_next := {}
+## 今天晚到了多少：同上，空表示 08:00 准时到。
+var late_today := {}
+## 这个月迟到过几次；第二次起老板印象 −1。
+var late_count := 0
+## 迟到第二天早上邮件末尾老板那句，空表示没有。
+var late_ps := ""
 ## 当天清晨的状态快照：手动存档存的是它，今天做到一半的进度不进存档。
 var morning := {}
 
@@ -81,23 +112,32 @@ func new_game(game_seed := 0, start_day := 1) -> void:
 	marriage = 0
 	decision_log = []
 	hires = []
+	rejects = []
 	deferred_bonus = 0
 	boss_promised_rule = false
 	lawsuit_risk = 0
 	reply_log = []
 	interviewees = []
+	unbooked = []
 	vouched = []
 	kickbacks = []
+	folder_filled = {}
+	sessions = []
 	wallet_out = 0
+	exposed = []
+	late_next = {}
+	late_today = {}
+	late_count = 0
+	late_ps = ""
 	begin_day()
 
 
 ## 直接从第二个月开始：没玩第一个月的人，按一个“还过得去”的第一个月补上家底。
-## kickback：上个月第 6 天李哲他爸的信封收了没有；xiaoliu：你爸说小刘的事，你是让他投（try）还是说不上话（hard）。
+## kickback：上个月第 7 天李哲他爸的信封收了没有；xiaoliu：你爸说小刘的事，你是让他投（try）还是说不上话（hard）。
 const MONTH2_SAVINGS := 240
 const MONTH2_MARRIAGE := 6
-## [id, 名字, 岗位, 录用那天]
-const MONTH2_CARRYOVER := [["carry_1", "林晓雨", "产品运营实习生", 6], ["carry_2", "高子涵", "内容运营实习生", 7]]
+## [id, 名字, 岗位, 录用那天]：第一个月最后两天录的
+const MONTH2_CARRYOVER := [["carry_1", "林晓雨", "产品运营实习生", 8], ["carry_2", "高子涵", "内容运营实习生", 9]]
 
 
 func new_game_month2(kickback: bool, xiaoliu: String, game_seed := 0) -> void:
@@ -105,7 +145,7 @@ func new_game_month2(kickback: bool, xiaoliu: String, game_seed := 0) -> void:
 	savings = MONTH2_SAVINGS
 	marriage = MONTH2_MARRIAGE
 	family = {"h5_dad": xiaoliu, "d4_left": "yes"}
-	kickbacks = [{"day": 6, "from": "李哲的爸爸", "amount": 300, "candidate_id": "story_headhunter", "taken": kickback}]
+	kickbacks = [{"day": 7, "from": "李哲的爸爸", "amount": 300, "candidate_id": "story_headhunter", "taken": kickback}]
 	# 上个月月底录用的两个实习生，留任期跨到这个月：奖金还在路上
 	for h: Array in MONTH2_CARRYOVER:
 		var c := Candidate.new()
@@ -122,24 +162,43 @@ func new_game_month2(kickback: bool, xiaoliu: String, game_seed := 0) -> void:
 	begin_day()
 
 
-## 第几个月（每 DAYS_PER_MONTH 天一个月）。
-func month() -> int:
-	return (day - 1) / DAYS_PER_MONTH + 1
+## 今晚能约几个人明天来面：第一个月一个；第二个月看明天——按组招的日子最多 MAX_SESSIONS 场，
+## 不按组的日子一场，明天有奇葩再加一场（剧情人物那场之后的第二场）。
+func book_slots() -> int:
+	if month() == 1 or day >= LAST_DAY:
+		return 1
+	var tomorrow := RuleEngine.load_day(day + 1)
+	if tomorrow.team_folders:
+		return MAX_SESSIONS
+	return 2 if tomorrow.quirk else 1
 
 
-## 这个月第几天，1 起。
-func day_in_month() -> int:
-	return (day - 1) % DAYS_PER_MONTH + 1
+## 明天面不满两场王总要记一笔（今天、明天都按组招，见 end_day 里的 few_sessions）。
+func few_sessions_noted_tomorrow() -> bool:
+	return month() > 1 and day < LAST_DAY and config.team_folders and RuleEngine.load_day(day + 1).team_folders
 
 
-## 今天通过的人约到明天面试；月底通过的人不跨月（下个月换岗位了）。
+## 今晚约的人明天来面试，没约的进人才库（这个月不会再来）；通过的人不比名额多时全约。
+## 月底通过的人不跨月（下个月换岗位了）。
 func advance_day() -> void:
-	if is_month_end():
-		interviewees.clear()
-	else:
-		interviewees = passed_today.duplicate()
+	if booked_today.is_empty() and passed_today.size() <= book_slots():
+		booked_today = passed_today.duplicate()
+	interviewees = [] as Array[Candidate]
+	if not is_month_end():
+		interviewees = booked_today.duplicate()
+		for c in passed_today:
+			if c not in booked_today and String(c.id) not in unbooked:
+				unbooked.append(String(c.id))
 	# 破格的人跨月也来：月底那天破格的，下个月第一天 14:00 面
 	vouched = vouched_today.duplicate()
+	late_ps = ""
+	if not late_today.is_empty():
+		late_count += 1
+		late_ps = "PS：听说昨天有人%s才到？" % arrival_time() if late_count == 1 else "PS：又迟到。我记下了。"
+		if late_count >= 2:
+			boss_trust -= 1
+	late_today = late_next
+	late_next = {}
 	day += 1
 	begin_day()
 
@@ -150,10 +209,12 @@ func begin_day() -> void:
 	pay = RuleEngine.pay(day)
 	RuleEngine.set_day(day)
 	# retained：今天满期、人还在的 {name, day_hired, days}
-	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "broker": [], "broker_retained": [], "paid_bills": [], "left_early": false, "texts": [], "called": false, "transfers": [], "sent": [], "exception": "", "solo_done": [], "vouch": [], "ats_agree": 0, "ats_override": 0, "ats_override_ok": 0, "intake_left": [], "called_out": 0}
+	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "broker": [], "broker_retained": [], "paid_bills": [], "left_early": false, "texts": [], "called": false, "edits": [], "rejects": [], "knowing": [], "transfers": [], "sent": [], "exception": "", "solo_done": [], "vouch": [], "ats_agree": 0, "ats_override": 0, "ats_override_ok": 0, "intake_left": [], "called_out": 0, "clock": 0, "held": 0, "late_home": 0, "few_sessions": false}
 	passed_today = []
+	booked_today = []
 	vouched_today = []
 	interviewed_today = []
+	sessions = []
 	event_today = {}
 	morning = to_dict().duplicate(true)
 
@@ -163,10 +224,22 @@ func day_seed() -> int:
 
 
 ## 返回违规原因，判对时为空串。
-func record_decision(c: Candidate, verdict: String, reason_rule: StringName, reason_text: String, extra := {}) -> String:
+## folder：按组招的日子放进了哪个组（通过时才有）。放进对不上的组也算违规；能进的组都满了，拒掉不算错。
+func record_decision(c: Candidate, verdict: String, reason_rule: StringName, reason_text: String, extra := {}, folder: JobPosting = null) -> String:
 	var result := RuleEngine.evaluate(c)
 	var expected := "pass" if result.pass else "reject"
+	var full_only := false
+	if result.pass and RuleEngine.folder_mode:
+		full_only = RuleEngine.fitting_folders(c).all(folder_full)
+		if full_only:
+			expected = "reject"
 	var violated: bool = verdict != expected
+	var folder_why := ""
+	if verdict == "pass" and folder and result.pass and not full_only:
+		var problem := RuleEngine.folder_problem(c, folder)
+		if problem != "":
+			violated = true
+			folder_why = "放错组：" + problem
 	var failed_ids: Array = []
 	var all_absurd: bool = not result.pass
 	for rule: Rule in result.failed:
@@ -178,19 +251,26 @@ func record_decision(c: Candidate, verdict: String, reason_rule: StringName, rea
 		"expected": expected, "failed_rules": failed_ids, "violated_rule": violated,
 	}
 	entry.merge(extra)
+	if folder:
+		entry.folder = folder.team
 	_tally_ats(c, verdict, violated, entry)
 	decision_log.append(entry)
 	stats.processed += 1
 	var why := ""
 	if violated:
 		stats.wrong += 1
-		why = "应拒绝：" + result.failed[0].title_key if verdict == "pass" else "不应拒绝：未违反任何规则"
+		if folder_why != "":
+			why = folder_why
+		elif verdict == "pass" and full_only:
+			why = "应拒绝：能进的组都满了"
+		else:
+			why = "应拒绝：" + result.failed[0].title_key if verdict == "pass" else "不应拒绝：未违反任何规则"
 		stats.errors.append({"name": c.display_name, "why": why})
 		if verdict == "pass" and all_absurd:
 			conscience += 1
 	else:
 		stats.correct += 1
-		if verdict == "reject" and reason_rule != &"generic":
+		if verdict == "reject" and reason_rule != &"generic" and not full_only:
 			if reason_hits(reason_rule, failed_ids, extra.get("flagged", [])):
 				stats.reason_ok += 1
 				entry.reason_ok = true
@@ -198,7 +278,7 @@ func record_decision(c: Candidate, verdict: String, reason_rule: StringName, rea
 				var titles: Array = result.failed.map(func(r: Rule) -> String: return r.title_key)
 				stats.reason_off.append({"name": c.display_name, "why": "理由不准，应为：" + "、".join(PackedStringArray(titles))})
 	if verdict == "pass":
-		passed_today.append(c)
+		passed_today.append(place(c, folder))
 		if c.broker:
 			broker_paid(c, BROKER_PASS)
 	EventBus.stamp_applied.emit(c, verdict)
@@ -226,7 +306,7 @@ func _tally_ats(c: Candidate, verdict: String, violated: bool, entry: Dictionary
 func ats_overrides(in_month := month()) -> Dictionary:
 	var out := {"agree": 0, "override": 0, "ok": 0}
 	for e: Dictionary in decision_log:
-		if not e.has("ats") or (int(e.day) - 1) / DAYS_PER_MONTH + 1 != in_month:
+		if not e.has("ats") or month_of(int(e.day)) != in_month:
 			continue
 		if e.get("ats_override", false):
 			out.override += 1
@@ -235,6 +315,17 @@ func ats_overrides(in_month := month()) -> Dictionary:
 		else:
 			out.agree += 1
 	return out
+
+
+## 约面：今晚约这些人明天来（不超过 book_slots()）。
+func book(people: Array[Candidate]) -> void:
+	booked_today = people.duplicate()
+
+
+## 面试时被你问穿了：记下来，回响里用“id:exposed”。
+func expose(c: Candidate) -> void:
+	if String(c.id) not in exposed:
+		exposed.append(String(c.id))
 
 
 ## 理由选中了 TA 实际违反的任一条；“材料不一致”要标出的矛盾正好牵扯到违反的那条才算。万能理由不算。
@@ -320,7 +411,7 @@ func can_vouch() -> bool:
 ## 破格：明知不合规，你签字放进来。不算违规、不出违规单，但也没有判断奖金；计件照算。
 ## 决策日志记 verdict pass、exception true，回响和月底回顾按“pass”对得上。TA 明天单独面。
 ## 猎头推来的人破格放进去，也算放进面试，他照样转钱。
-func record_exception(c: Candidate) -> void:
+func record_exception(c: Candidate, folder: JobPosting = null) -> void:
 	var result := RuleEngine.evaluate(c)
 	var failed_ids: Array = result.failed.map(func(r: Rule) -> String: return String(r.id))
 	decision_log.append({
@@ -330,10 +421,97 @@ func record_exception(c: Candidate) -> void:
 	})
 	stats.processed += 1
 	stats.exception = c.display_name
-	vouched_today.append(c)
+	if folder:
+		decision_log.back().folder = folder.team
+	vouched_today.append(place(c, folder))
 	if c.broker:
 		broker_paid(c, BROKER_PASS)
 	EventBus.stamp_applied.emit(c, "pass")
+
+
+## 放进文件夹：占一个名额，复制一份记下是哪个组（候选人资源是共享的，不能直接改）。没分组原样返回。
+func place(c: Candidate, folder: JobPosting) -> Candidate:
+	if folder == null:
+		return c
+	folder_filled[folder.title] = folder_count(folder) + 1
+	var placed: Candidate = c.duplicate()
+	placed.folder = folder.resource_path
+	return placed
+
+
+func folder_count(p: JobPosting) -> int:
+	return int(folder_filled.get(p.title, 0))
+
+
+func folder_full(p: JobPosting) -> bool:
+	return folder_count(p) >= p.hc
+
+
+## 来面这个人的是哪个组：放进过文件夹的看文件夹，没分组的看简历上投的岗位（组撤了也找得到）。
+func team_posting(c: Candidate) -> JobPosting:
+	if c.folder != "":
+		return load(c.folder)
+	return RuleEngine.find_posting(c.applied_position)
+
+
+## 按组招的日子：今天面谁、按什么顺序。剧情人物先面，然后每个组轮流出一个人，最多 MAX_SESSIONS 场。
+## 今天有奇葩，就套在第一个普通人身上。顺序跟着这一天的种子走。
+func plan_sessions() -> void:
+	sessions = []
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([day_seed(), "sessions"])
+	var pool := interviewees.duplicate()
+	for i in range(pool.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var t: Candidate = pool[i]
+		pool[i] = pool[j]
+		pool[j] = t
+	var story := pool.filter(func(c: Candidate) -> bool: return c.is_story)
+	var plain := pool.filter(func(c: Candidate) -> bool: return not c.is_story)
+	for c: Candidate in story:
+		if sessions.size() < MAX_SESSIONS:
+			sessions.append(c)
+	# 每个组轮流出一个：这一轮出过人的组先跳过，都出过了就开下一轮
+	var round_teams := {}
+	for c: Candidate in sessions:
+		round_teams[_team_key(c)] = true
+	while sessions.size() < MAX_SESSIONS and not plain.is_empty():
+		var picked := -1
+		for i in plain.size():
+			if not round_teams.has(_team_key(plain[i])):
+				picked = i
+				break
+		if picked < 0:
+			round_teams = {}
+			picked = 0
+		var next: Candidate = plain.pop_at(picked)
+		round_teams[_team_key(next)] = true
+		sessions.append(next)
+	var quirk := config.quirk
+	if quirk:
+		for c: Candidate in sessions:
+			if not c.is_story:
+				if c.quirk == &"":
+					quirk.apply(c)
+				break
+
+
+func _team_key(c: Candidate) -> String:
+	return c.folder if c.folder != "" else c.applied_position
+
+
+## 今天几点下班：没面试 18:00；按组招的日子面到几点算几点，不早于 18:00。
+func off_minutes() -> int:
+	return maxi(CLOCK_OUT, int(stats.get("clock", 0)))
+
+
+func clock_text(minutes: int) -> String:
+	return "%02d:%02d" % [minutes / 60, minutes % 60]
+
+
+## 今天几点到家。
+func home_minutes() -> int:
+	return off_minutes() + COMMUTE
 
 
 ## 今天还没单独面的破格的人，没有返回 null。
@@ -350,15 +528,17 @@ func took_kickback() -> bool:
 
 ## 某个月收下或退回的信封和东西。
 func kickbacks_in(in_month: int) -> Array:
-	return kickbacks.filter(func(k: Dictionary) -> bool: return (int(k.day) - 1) / DAYS_PER_MONTH + 1 == in_month)
+	return kickbacks.filter(func(k: Dictionary) -> bool: return month_of(int(k.day)) == in_month)
 
 
 ## 手写人物的去向：hired（录用了）、pass、reject，没见过为空串。reason 是拒绝时选的那句（原样，带句号）。
+## unbooked：筛过了，但那晚约的是别人。
 func story_outcome(id: String) -> Dictionary:
-	var result := {"verdict": "", "reason": "", "chief_pick": false, "picked_by": "", "exception": false}
+	var result := {"verdict": "", "reason": "", "chief_pick": false, "picked_by": "", "exception": false, "unbooked": false}
 	for entry: Dictionary in decision_log:
 		if entry.candidate_id == id:
 			result = {"verdict": entry.verdict, "reason": entry.reason_text, "chief_pick": false, "picked_by": "", "exception": entry.get("exception", false)}
+	result.unbooked = id in unbooked
 	for h: Dictionary in hires:
 		if String(h.candidate.id) == id:
 			result.verdict = "hired"
@@ -367,12 +547,23 @@ func story_outcome(id: String) -> Dictionary:
 	return result
 
 
-## when 写成“id:pass”时录用了的也算 pass。
-## “id:exception”是破格放进来的。
+## when 写成“id:pass”时录用了的也算 pass；“id:exception”是破格放进来的；
+## “id:exposed”是面试被你问穿、最后没录用；“id:seen”是这份简历你处理过（不管怎么判的）；
+## “a|b”任一条对上，“a&b”都对上，“!a”没对上（| 比 & 松）。
 func echo_matches(when: String) -> bool:
+	if "|" in when:
+		return Array(when.split("|")).any(echo_matches)
+	if "&" in when:
+		return Array(when.split("&")).all(echo_matches)
+	if when.begins_with("!"):
+		return not echo_matches(when.substr(1))
 	var parts := when.split(":")
 	if parts[1] == "exception":
 		return story_outcome(parts[0]).exception
+	if parts[1] == "exposed":
+		return parts[0] in exposed and story_outcome(parts[0]).verdict != "hired"
+	if parts[1] == "seen":
+		return story_outcome(parts[0]).verdict != ""
 	var verdict: String = story_outcome(parts[0]).verdict
 	return verdict == parts[1] or (parts[1] == "pass" and verdict == "hired")
 
@@ -383,7 +574,7 @@ func story_echo() -> Dictionary:
 	for echo: Dictionary in config.story_echoes:
 		if not echo_matches(echo.when):
 			continue
-		var reason: String = story_outcome(echo.when.split(":")[0]).reason.trim_suffix("。")
+		var reason: String = story_outcome(echo.when.split(":")[0].trim_prefix("!")).reason.trim_suffix("。")
 		if echo.get("headline", "") != "" and not merged.has("headline"):
 			merged.headline = echo.headline.replace("{reason}", reason)
 			merged.body = echo.get("body", "").replace("{reason}", reason)
@@ -392,6 +583,22 @@ func story_echo() -> Dictionary:
 				var text: String = echo[key].replace("{reason}", reason)
 				merged[key] = text if not merged.has(key) else merged[key] + "\n" + text
 	return merged
+
+
+## 今天对上的回响里老板发的钱 [{label, amount}]。
+func echo_bonuses() -> Array:
+	var result := []
+	for echo: Dictionary in config.story_echoes:
+		if echo.has("bonus") and echo_matches(echo.when):
+			result.append(echo.bonus)
+	return result
+
+
+func echo_bonus() -> int:
+	var total := 0
+	for b: Dictionary in echo_bonuses():
+		total += int(b.amount)
+	return total
 
 
 ## 家里的事。when 写成“标记:选项”，比如“d2_dad:weekend”；“标记:”表示还没回过。
@@ -465,6 +672,15 @@ func settle_family() -> void:
 		answer_transfer(t, false)
 	if stats.called and not stats.left_early:
 		marriage += int(config.midday_call.get("stayed", -1))
+	# 按组招的日子：回家晚了老婆那边扣；放进去的人太少、面不满两场，王总记一笔（第 13 天的面试是第 12 天招的，不算）
+	if config.team_folders and not stats.left_early:
+		for at: int in LATE_HOME:
+			if home_minutes() >= at:
+				stats.late_home += 1
+				marriage -= 1
+		if day > 1 and RuleEngine.load_day(day - 1).team_folders and int(stats.held) < 2:
+			stats.few_sessions = true
+			boss_trust -= 1
 
 
 ## 这个月老婆发来的、能回的消息，回了几条。消息 id 写成“t天_序号”，按天归到月份。
@@ -473,7 +689,7 @@ func text_counts(in_month := month()) -> Dictionary:
 	var replied := 0
 	for id: String in family:
 		var d := int(id.substr(1).get_slice("_", 0)) if id.begins_with("t") else 0
-		if d > 0 and (d - 1) / DAYS_PER_MONTH + 1 == in_month:
+		if d > 0 and month_of(d) == in_month:
 			got += 1
 			if family[id] != "ignored":
 				replied += 1
@@ -515,6 +731,19 @@ func answer_home(flag: String, option: Dictionary) -> void:
 		kickbacks.append({"day": day, "from": gray.get("from", ""), "amount": int(gray.amount), "candidate_id": gray.get("candidate_id", ""), "taken": bool(gray.get("taken", true))})
 		if gray.get("taken", true):
 			savings += int(gray.amount)
+	if option.has("late"):
+		late_next = {"minutes": int(option.late), "morning": option.get("morning", "")}
+
+
+## 今天几点到的公司，比如“10:30”。
+func arrival_time() -> String:
+	var at := 8 * 60 + int(late_today.get("minutes", 0))
+	return "%02d:%02d" % [at / 60, at % 60]
+
+
+## 迟到扣款：按分钟折，晚 150 分钟扣 ¥50。
+func late_fine() -> int:
+	return int(late_today.get("minutes", 0)) * LATE_PER_HOUR / 60
 
 
 ## 第 4 天上午家里来电，玩家提前下班：剩下的简历和今天的面试都不做了。
@@ -528,15 +757,28 @@ func leave_early() -> void:
 
 
 ## loyalty_hit 只作用于入职记录：候选人资源是共享的，不能改。
-## vouched_hire：破格进来、你单独面的人，出了事算你的（EmployeeEvents）。
-func add_hire(c: Candidate, scorecard: Dictionary, promise := "", loyalty_hit := 0, chief_pick := false, picked_by := "赵主管", vouched_hire := false) -> void:
+## vouched：破格进来、你单独面的人，出了事算你的（EmployeeEvents）。
+## evidence：面试里查出来的 {found: 查实的行, caught: 说中几次}；查实了还录、人又出事，算明知故犯（EmployeeEvents）。
+func add_hire(c: Candidate, scorecard: Dictionary, promise := "", loyalty_hit := 0, chief_pick := false, picked_by := "赵主管", hr_edit := {}, vouched_hire := false, evidence := {}) -> void:
 	var data := c.to_dict()
 	data.loyalty = maxi(0, data.loyalty - loyalty_hit)
 	hires.append({
 		"candidate": data, "day_hired": day, "scorecard": scorecard, "promise": promise,
 		"event_resolved": false, "retention_due": day + int(pay.retention_days), "chief_pick": chief_pick, "picked_by": picked_by,
-		"vouched": vouched_hire,
+		"hr_edit": hr_edit, "vouched": vouched_hire, "evidence": evidence,
 	})
+
+
+## 面试完没录：和录用的人同一天对账。chief_pick：主管当时想要这个人。
+func add_reject(c: Candidate, evidence := {}, chief_pick := false) -> void:
+	rejects.append({
+		"candidate": c.to_dict(), "day": day, "due": day + int(pay.retention_days),
+		"evidence": evidence, "chief_pick": chief_pick, "resolved": false,
+	})
+
+
+static func has_evidence(evidence: Dictionary) -> bool:
+	return not evidence.get("found", []).is_empty() or int(evidence.get("caught", 0)) > 0
 
 
 ## 留任期按录用那天的标准算；旧存档没有这一项，按 3 天补。
@@ -605,6 +847,28 @@ func chief_bonus() -> int:
 	return stats.chief_picks.size() * int(pay.get("chief_bonus", 0))
 
 
+## 识人奖：今天满期的人里，你在评分表上改的那一处比主管填的更接近 TA 的真实情况；没写算 0。
+func edit_bonus() -> int:
+	return stats.edits.filter(func(e: Dictionary) -> bool: return e.verdict == "right").size() * int(pay.get("edit_bonus", 0))
+
+
+## 拒对了、面试里又有证据（说中/查实）：发识人奖；没证据不发，免得“全拒最安全”。
+func reject_bonus() -> int:
+	return stats.rejects.filter(func(r: Dictionary) -> bool: return not r.good and r.evidence).size() * int(pay.get("edit_bonus", 0))
+
+
+## 拒掉好人：招聘成本。第一个月不扣钱。
+func reject_cost() -> int:
+	if not fines_on():
+		return 0
+	return stats.rejects.filter(func(r: Dictionary) -> bool: return r.good).size() * MISS_COST
+
+
+## 查实了还录、人又出事：第一个月也扣（明知故犯，和破格担保一个道理）。
+func knowing_fine() -> int:
+	return stats.knowing.size() * KNOWING_FINE
+
+
 ## 今天满期、人还在的留任奖金；延发的月份不进今天的收入。
 func retention_bonus() -> int:
 	return 0 if pay.retention_deferred else retained_count() * int(pay.retention)
@@ -612,16 +876,54 @@ func retention_bonus() -> int:
 
 ## 罚款开着时第 1–2 次违规只警告；未处理的简历拿不到绩效和判断奖金。
 func income() -> int:
-	return base_pay() + performance_pay() + judge_bonus() + reason_bonus() + chief_bonus() + retention_bonus() - fines() - stats.event_fine + stats.gray + broker_income() - sent_total()
+	return base_pay() + performance_pay() + judge_bonus() + reason_bonus() + chief_bonus() + edit_bonus() + retention_bonus() + echo_bonus() + reject_bonus() - reject_cost() - knowing_fine() - late_fine() - fines() - stats.event_fine + stats.gray + broker_income() - sent_total()
+
+
+## 第 d 天是第几个月，1 起（月份长短见 MONTH_LENGTHS；超出的按最后一个月的长度往后排）。
+static func month_of(d: int) -> int:
+	var m := 1
+	var first := 1
+	while d >= first + month_length(m):
+		first += month_length(m)
+		m += 1
+	return m
+
+
+## 第 m 个月有几个工作日。
+static func month_length(m: int) -> int:
+	return MONTH_LENGTHS[clampi(m - 1, 0, MONTH_LENGTHS.size() - 1)]
+
+
+## 第 m 个月的第一天是第几天。
+static func month_first_day(m: int) -> int:
+	var first := 1
+	for i in range(1, m):
+		first += month_length(i)
+	return first
+
+
+## 第 m 个月的最后一天（月底，还房贷那天）。
+static func month_last_day(m: int) -> int:
+	return month_first_day(m) + month_length(m) - 1
+
+
+## 第几个月，1 起。
+func month() -> int:
+	return month_of(day)
+
+
+## 这个月第几天，1 起。
+func day_in_month() -> int:
+	return day - month_first_day(month()) + 1
 
 
 func is_month_end() -> bool:
-	return day % DAYS_PER_MONTH == 0
+	return day == month_last_day(month())
 
 
 ## 距月底还房贷还有几个工作日；今天就是还款日时为 0。
 func days_to_mortgage() -> int:
-	return (DAYS_PER_MONTH - day % DAYS_PER_MONTH) % DAYS_PER_MONTH
+	return month_last_day(month()) - day
 
 
 func mortgage_today() -> int:
@@ -657,8 +959,10 @@ func to_dict() -> Dictionary:
 	return {
 		"run_seed": run_seed, "day": day, "savings": savings, "conscience": conscience,
 		"boss_trust": boss_trust, "family_state": family_state, "family": family, "marriage": marriage, "deferred_bonus": deferred_bonus,
-		"decision_log": decision_log, "hires": hires, "boss_promised_rule": boss_promised_rule,
-		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log, "kickbacks": kickbacks, "wallet_out": wallet_out,
+		"month_lengths": MONTH_LENGTHS, "decision_log": decision_log, "hires": hires, "rejects": rejects, "boss_promised_rule": boss_promised_rule,
+		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log, "kickbacks": kickbacks, "wallet_out": wallet_out, "exposed": exposed,
+		"late_next": late_next, "late_today": late_today, "late_count": late_count, "late_ps": late_ps, "unbooked": unbooked,
+		"folder_filled": folder_filled,
 		"interviewees": interviewees.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 		"vouched": vouched.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 	}
@@ -675,12 +979,20 @@ func load_dict(data: Dictionary) -> void:
 	marriage = int(data.get("marriage", 0))
 	decision_log = data.decision_log
 	hires = data.hires
+	rejects = data.get("rejects", [])
 	boss_promised_rule = data.boss_promised_rule
 	lawsuit_risk = int(data.get("lawsuit_risk", 0))  # 旧存档没有这两项
 	reply_log = data.get("reply_log", [])
 	deferred_bonus = int(data.get("deferred_bonus", 0))
 	kickbacks = data.get("kickbacks", [])
 	wallet_out = int(data.get("wallet_out", 0))
+	folder_filled = data.get("folder_filled", {})
+	exposed = data.get("exposed", [])
+	late_next = data.get("late_next", {})
+	late_today = data.get("late_today", {})
+	late_count = int(data.get("late_count", 0))
+	late_ps = data.get("late_ps", "")
+	unbooked = data.get("unbooked", [])
 	interviewees = []
 	interviewed_today = []
 	for c: Dictionary in data.get("interviewees", []):

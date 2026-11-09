@@ -5,6 +5,8 @@ class_name RuleKeywords extends Rule
 const FILLERS := ["Python", "Go", "Spring Boot", "Kafka", "Docker", "Linux", "Git", "Vue", "MongoDB", "Kubernetes", "Nginx", "Elasticsearch"]
 
 @export var max_skills := 8
+## 按组招的版本（第 13 天起）：技能对得上今天任何一个组就算过；放进哪个组另算（RuleEngine.folder_problem）。
+@export var per_team := false
 
 
 func applies_to(c: Candidate) -> bool:
@@ -14,6 +16,8 @@ func applies_to(c: Candidate) -> bool:
 func check(c: Candidate) -> bool:
 	if c.skills.size() > max_skills:
 		return false
+	if per_team and RuleEngine.folder_mode:
+		return RuleEngine.folders().any(func(p: JobPosting) -> bool: return RuleEngine.skills_fit(c, p, max_skills))
 	for keyword in _posting_keywords(c):
 		if keyword not in c.skills:
 			return false
@@ -36,8 +40,16 @@ static func fillers() -> Array:
 
 func shape(c: Candidate, form: Shape, rng: RandomNumberGenerator) -> void:
 	var keywords := Array(_posting_keywords(c))
-	# 填充技能里不能有必备技能：基础架构组要的 Go、Linux、Docker 本来就在填充名单里，少写的那两项不能又被补回来
-	var pool := fillers().filter(func(s: String) -> bool: return s not in keywords)
+	var lookalikes_all := Array(_lookalikes(c))
+	# 填充技能从这个岗位自己的技能池里抽（前端填 TypeScript、React，运维填 Kubernetes、Nginx），没有池才用通用的。
+	# 不能有必备技能（少写的那两项不能又被补回来），也不能有长得像的（陷阱只由 EDGE_FAIL 放）
+	var posting := RuleEngine.posting_for(c.applied_position)
+	var source: Array = Array(posting.skill_pool) if posting and not posting.skill_pool.is_empty() else fillers()
+	var pool := source.filter(func(s: String) -> bool: return s not in keywords and s not in lookalikes_all)
+	if pool.size() < max_skills + 1 - keywords.size():
+		for s: String in fillers():
+			if s not in pool and s not in keywords and s not in lookalikes_all:
+				pool.append(s)
 	var picked: Array = keywords.duplicate()
 	var total := rng.randi_range(4, 6)
 	match form:

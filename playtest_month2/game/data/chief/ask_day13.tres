@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-question = "你们核心系统用的什么？多久没升级了？"
-lie = "我们一直跟着最新的技术走。"
-safe = "技术选型会根据业务需要持续迭代。"
-truth = "八年前写的，写的人都走了。上面在说要换新框架。"
+question = "公积金按全额交吗？"
+lie = "全额交。"
+safe = "按当地规定。"
+truth = "按最低基数交。"

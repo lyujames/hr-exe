@@ -5,8 +5,14 @@ const SAVE_PATH := "user://save.json"
 const PLAYTEST_PATH := "user://playtest.jsonl"
 
 
+## 月份长短（GameState.MONTH_LENGTHS）不一样的旧存档不算：第一个月从 7 天改成 9 天以后，旧档里的第几天对不上了。
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	if not FileAccess.file_exists(SAVE_PATH):
+		return false
+	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	if data is not Dictionary:
+		return false
+	return Array(data.get("month_lengths", [])).map(func(x: Variant) -> int: return int(x)) == GameState.MONTH_LENGTHS
 
 
 func save_game(data := GameState.to_dict()) -> void:
@@ -40,7 +46,7 @@ func load_game() -> bool:
 
 
 func clear() -> void:
-	if has_save():
+	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
 
 

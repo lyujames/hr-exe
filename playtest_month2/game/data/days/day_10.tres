@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DayConfig" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="DayConfig" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
@@ -8,39 +8,40 @@
 [ext_resource type="Resource" path="res://data/chief/question_day10.tres" id="chief_q"]
 [ext_resource type="Resource" path="res://data/chief/ask_day10.tres" id="chief_a"]
 [ext_resource type="Resource" path="res://data/chief/sharp_day10.tres" id="chief_s"]
-[ext_resource type="Resource" path="res://data/quirks/quirk_hei_hua.tres" id="quirk"]
-[ext_resource type="Resource" path="res://data/rules/rule_keywords.tres" id="r_rule_keywords"]
-[ext_resource type="Resource" path="res://data/story/candidate_chenmo_2.tres" id="s_candidate_chenmo_2"]
-[ext_resource type="Resource" path="res://data/jobs/job_backend_v2.tres" id="j_job_backend_v2"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_hai_tou.tres" id="quirk"]
+[ext_resource type="Resource" path="res://data/rules/rule_degree_pro.tres" id="r_rule_degree_pro"]
+[ext_resource type="Resource" path="res://data/rules/rule_salary.tres" id="r_rule_salary"]
+[ext_resource type="Resource" path="res://data/rules/rule_plug_play.tres" id="r_rule_plug_play"]
+[ext_resource type="Resource" path="res://data/story/candidate_chenmo_1.tres" id="s_candidate_chenmo_1"]
+[ext_resource type="Resource" path="res://data/jobs/job_backend.tres" id="j_job_backend"]
 
 [resource]
 script = ExtResource("1")
 day = 10
-date = "2026-04-03"
-resume_count = 6
-screening_seconds = 185.0
-new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_keywords")])
-story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_chenmo_2")])
-story_slot = 3
-new_postings = Array[ExtResource("jp")]([ExtResource("j_job_backend_v2")])
+date = "2026-04-01"
+resume_count = 5
+screening_seconds = 165.0
+retire = PackedStringArray("rule_degree", "rule_projects", "rule_gpa", "rule_major", "rule_internship", "rule_age", "birth_resume", "产品运营实习生", "内容运营实习生")
+new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_degree_pro"), ExtResource("r_rule_salary"), ExtResource("r_rule_plug_play")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_chenmo_1")])
+story_slot = 2
+new_postings = Array[ExtResource("jp")]([ExtResource("j_job_backend")])
 candidate_mix = {"regular": 70, "laid_off": 20, "changer": 10}
-morning_push = "求职者热衷“简历关键词优化”：教程称“照着改，通过率翻倍”"
-boss_mail = "各位家人：\nJD 改版了，桌上那份换了新的。这批 HC 是交易组要的，从明天起各组自己提需求、自己派组长来面。从今天起简历先过关键词：技能栏要写全 JD 上的必备技能，一字不差。\n写了一大堆技能的，一看就是网上抄的模板，也不要。\nJD 上我加了一句“有大厂背景优先”。优先就是优先，不是必须。\n—— 王总"
-coworker_note = "老周的便签：\n必备技能是 Java、MySQL、Redis，一个字都不能差。JavaScript 不是 Java，SQL 不是 MySQL。\n技能数一数：8 项正好，9 项就算堆砌。\n“有大厂背景优先”看看就行，规则里没它。"
-bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}, {"id": "checkup", "label": "父亲复查", "amount": 120}]
-headline = "教程作者：照着改，通过率翻倍"
-news_body = "“系统只认关键词。你会什么不重要，你写了什么才重要。”该教程已有十万人付费。"
-story_echoes = [{"when": "story_chenmo_2:reject", "headline": "教程作者：照着改，通过率翻倍", "body": "“系统只认关键词。你会什么不重要，你写了什么才重要。”评论区有人留言：照着改了，还是没过。回复我的是：{reason}"}]
-family_sms = "老婆：你爸说复查他自己去，不用你请假。他说你刚换工作。\n孩子：老师说编程班下学期要涨价。"
-family_sms_by = [{"when": "d9_eve:warm", "sms": "老婆：你说要陪你爸复查，他高兴了一晚上，嘴上还说不用。\n孩子：老师说编程班下学期要涨价。"}]
+pay = {"base": 160, "per_resume": 15, "per_correct": 5, "per_reason": 0, "chief_bonus": 100, "retention": 150, "retention_days": 4, "retention_deferred": false, "fines": true}
+morning_push = "互联网行业“降本增效”进入第二年"
+boss_mail = "各位家人：\n实习生招满了。实习那几条规矩收起来，三月的 JD 撤了。\n从今天起招程序员：后端开发工程师，JD 在桌上。要即插即用的，进来就能干活。期望薪资超出 JD 的不要。\n另外，公司薪酬结构优化，大家底薪从本月起微调，详见日结单。\n我们是一家人。\n—— 王总"
+coworker_note = "老周的便签：\n社招简历第一页有期望薪资：写区间的看上限，15–20k 就是 20k。\n学历换了说法：社招要本科，成人教育拿到证的算。\n“即插即用”翻第二页，只看最上面那段的职位名，别看他投的什么。\n从这个月起打印机吐的违规单带编号，一天第三次起每张扣钱。\n今天愚人节。看到离谱的简历，别当真，也别不当真。"
+bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}]
+headline = "大厂校招缩减，社招要求“即插即用”"
+news_body = "某招聘平台称：企业更愿意为“来了就能干”的人付钱。“没人有空带新人。”"
+family_sms = "孩子：爸爸！编程班第一节课，老师说以后程序员最吃香！\n孩子：我的机器人撞了三次墙。\n老婆：编程班的钱我先垫了。这个月账单多，你看一下。"
 sms_flag = "d10_eve"
-sms_replies = [{"key": "warm", "label": "我陪他去，请半天假没事。", "marriage": 1}, {"key": "curt", "label": "那让他自己去吧。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
-desk_texts = [{"id": "t10_1", "at": 540, "text": "老婆：你爸说小刘家今晚要来家里坐坐，你早点回来。", "replies": [{"key": "warm", "label": "好，我准点走。", "marriage": 1}, {"key": "curt", "label": "我尽量。", "marriage": 0}]}, {"id": "t10_2", "at": 860, "text": "老婆：他们拎了好多东西来。我说不要，放下就走了。", "replies": [{"key": "warm", "label": "先放着，我回来处理。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}]
-home_scene = [{"text": "到家 18:50。你爸也在。茶几上摆着两条烟、一盒茶叶，还有一个信封，里面是一张购物卡，¥800。"}, {"text": "你爸：小刘他们家刚走。他儿子的简历，下礼拜投你那儿。"}, {"text": "你爸：你上回说让他投，人家当真了。", "when": "h5_dad:try"}, {"text": "你爸：你上回说说不上话，人家还是来了。我也不好拦。", "when": "h5_dad:hard"}, {"text": "你爸：小刘说了，烟是给我的，卡是给孩子交学费的，不是给你的。"}, {"ask": "h10_gift", "options": [{"key": "keep", "label": "收下吧。卡先拿去交编程班。", "then": [{"text": "你爸松了口气：“我就说嘛，都是自己人。”"}, {"text": "老婆看了你一眼，进厨房了。"}], "say": "你把购物卡收进了抽屉。", "gray": {"from": "小刘家", "amount": 800, "candidate_id": "story_xiaoliu", "taken": true}}, {"key": "return", "label": "爸，东西退回去。简历我按规矩看。", "then": [{"text": "你爸：你这孩子，我这张老脸往哪搁？"}, {"text": "他把东西一样一样装回袋子里，装了很久。"}, {"text": "老婆送他下楼。回来跟你说，你爸在楼下站了好一会儿。"}], "marriage": 1, "gray": {"from": "小刘家", "amount": 800, "candidate_id": "story_xiaoliu", "taken": false}}]}, {"text": "夜里你想起来，抽屉里还有一个信封，是三月李哲他爸的。他也说是心意。", "when": "took:story_headhunter"}, {"text": "夜里你想起三月李哲他爸那个信封。那个你退回去了。", "when": "!took:story_headhunter"}]
-chief_opener = "关键词？我们那时候招人看眼缘。现在都看机器了。"
-chief_need = {"item": "格局", "note": "要懂新东西的。"}
+sms_replies = [{"key": "warm", "label": "撞墙也是在往前走。周末我陪你练。", "marriage": 1}, {"key": "curt", "label": "好，早点睡。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "t10_1", "at": 560, "text": "老婆：今天愚人节，孩子在你枕头底下放了只塑料蟑螂。回家别骂他。", "replies": [{"key": "warm", "label": "哈哈，我配合他叫一声。", "marriage": 1}, {"key": "curt", "label": "知道了。", "marriage": 0}]}, {"id": "t10_2", "at": 830, "text": "老婆：我们公司这个月也降薪了，百分之十。说是“共克时艰”。", "replies": [{"key": "warm", "label": "没事，我这边还行。你别太累。", "marriage": 1}, {"key": "curt", "label": "大家都降。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:50。你一进门，孩子就躲到沙发后面偷看。"}, {"ask": "h10_bug", "options": [{"key": "play", "label": "掀开枕头，大叫一声。", "then": [{"text": "孩子笑得在地上打滚：“愚人节快乐！”"}, {"text": "老婆站在厨房门口，也笑了。"}], "marriage": 1, "say": "你掀开枕头，大叫了一声。"}, {"key": "tired", "label": "把蟑螂拿出来，放回他桌上。", "then": [{"text": "孩子：……你都不怕的吗。"}, {"text": "他把蟑螂收进了抽屉。"}], "say": "你把塑料蟑螂拿出来，放回他桌上。"}]}, {"text": "孩子：爸爸，你们公司招程序员吗？编程班老师说，程序员是最不会失业的。"}, {"text": "你：招。今天刚开始招。"}, {"text": "孩子：那你招到了吗？"}, {"text": "你想起今天那份简历：一行学历，一个链接，角落里写着“Banyan 作者”。", "when": "story:story_chenmo_1:reject"}, {"text": "你想起今天那份简历：一行学历，一个链接。你把它放过去了，明天他来面试。", "when": "story:story_chenmo_1:pass"}, {"text": "老婆：先吃饭，菜要凉了。"}]
+chief_opener = "程序员我面过几百个了。会写代码的不稀奇，能扛事的稀奇。"
+chief_need = {}
 chief_question = ExtResource("chief_q")
 chief_sharp = ExtResource("chief_s")
 quirk = ExtResource("quirk")
 candidate_ask = ExtResource("chief_a")
-retire = PackedStringArray("后端开发工程师")

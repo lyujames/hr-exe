@@ -53,7 +53,8 @@ const LAID_OFF_EVALS := [
 ]
 
 
-static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> Array[Candidate]:
+## late：今天晚到，剧情人物排到最上面，来不及看的只是生成的人。
+static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int, late := false) -> Array[Candidate]:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = day_seed
 	var result: Array[Candidate] = []
@@ -66,13 +67,26 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int) -> A
 		var background := _pick_background(rng, cfg.candidate_mix)
 		var id := "gen_%d_%02d" % [cfg.day, i]
 		var c := _generate_broker(rng, rules, id, background, cfg.day) if i in broker_slots else _generate(rng, rules, id, background, cfg.day)
+		_seed_chief_need(c, cfg.chief_need, rng)
 		_attach_docs(c, rng)
 		result.append(c)
-	for story in cfg.story_candidates:
-		if story.skip_when != "" and GameState.echo_matches(story.skip_when):
-			continue
-		result.insert(mini(cfg.story_slot, result.size()), story)
+	# 倒着插，同一个位置上几个人按 story_candidates 的顺序排
+	var stories := cfg.story_candidates.filter(func(story: Candidate) -> bool: return story.skip_when == "" or not GameState.echo_matches(story.skip_when))
+	stories.reverse()
+	for story: Candidate in stories:
+		result.insert(0 if late else mini(cfg.story_slot, result.size()), story)
 	return result
+
+
+## 赵主管便签上要的那种项目，往几份简历里多撒一点，免得一整叠都对不上；角色和时长照旧随机，对不对得上还得看纸。
+const CHIEF_SEED_CHANCE := 0.35
+
+
+static func _seed_chief_need(c: Candidate, need: Dictionary, rng: RandomNumberGenerator) -> void:
+	var names: Array = need.get("seed_projects", [])
+	if names.is_empty() or c.projects.is_empty() or rng.randf() >= CHIEF_SEED_CHANCE:
+		return
+	c.projects[rng.randi_range(0, c.projects.size() - 1)].name = names[rng.randi_range(0, names.size() - 1)]
 
 
 ## 发材料，再按密度埋矛盾。矛盾只改材料上写的，事实不动，所以判定和陷阱密度不受影响。
@@ -295,18 +309,28 @@ static func build_jobs(c: Candidate, rng: RandomNumberGenerator) -> void:
 	var gap_after := 1 if career - maxi(left, 0) - gap < 60 or rng.randf() < 0.6 else 2
 	var cursor := now - maxi(left, 0)
 	var earliest := now - career
+	# 抗压规则在的时候每段至少一年（RulePressure.shape 定 min_stint）；没有规则管就照旧，最短半年
+	var floor_len := c.min_stint
 	c.jobs = []
-	while cursor - earliest >= 6 and c.jobs.size() < MAX_JOBS:
+	while cursor - earliest >= floor_len and c.jobs.size() < MAX_JOBS:
 		if gap > 0 and c.jobs.size() == gap_after:
 			cursor -= gap
 			gap = 0
-			if cursor - earliest < 6:
+			if cursor - earliest < floor_len:
 				break
-		var reserve := (gap + 6) * (gap_after - c.jobs.size()) if gap > 0 else 0
-		var length := clampi(rng.randi_range(14, 40), 6, maxi(cursor - earliest - reserve, 6))
+		var reserve := (gap + floor_len) * (gap_after - c.jobs.size()) if gap > 0 else 0
+		var room := maxi(cursor - earliest - reserve, floor_len)
+		var length := clampi(rng.randi_range(maxi(14, floor_len), 40), floor_len, room)
+		# 剩下的不够再排一段满 floor_len 的，就并进这一段，免得最早那段被截短
+		if floor_len > 6 and room - length < floor_len:
+			length = room
+		if c.stint_len > 0 and c.jobs.size() == c.stint_at:
+			length = c.stint_len
 		var posting := RuleEngine.posting_for(c.applied_position)
 		var titles: Array = Array(posting.job_titles) if posting and not posting.job_titles.is_empty() else TITLES
 		var title: String = titles[rng.randi_range(0, titles.size() - 1)]
+		if c.jobs.is_empty() and c.recent_title != "":
+			title = c.recent_title
 		c.jobs.append({
 			"company": COMPANIES[rng.randi_range(0, COMPANIES.size() - 1)],
 			"title": title,
@@ -314,18 +338,25 @@ static func build_jobs(c: Candidate, rng: RandomNumberGenerator) -> void:
 			"end": "" if c.jobs.is_empty() and left < 0 else DateUtil.month_string(cursor),
 		})
 		cursor -= length
+	# 经历太短、排不到要短的那一段：把最早那段截成这么长
+	if c.stint_len > 0 and c.jobs.size() <= c.stint_at and not c.jobs.is_empty():
+		var oldest: Dictionary = c.jobs.back()
+		var end := now if oldest.end == "" else DateUtil.month_index(oldest.end)
+		oldest.start = DateUtil.month_string(end - c.stint_len)
 	if not c.has_gap():
 		c.gap_note = ""
 
 
-## 在校项目：从今天往回排 2–3 段，每段 2–8 个月，彼此可以重叠一点，不算空窗。
+## 在校项目：从今天往回排 2–3 段（RuleProjects 可改成 0 或 1 段），每段 2–8 个月，彼此可以重叠一点，不算空窗。
 static func build_projects(c: Candidate, rng: RandomNumberGenerator) -> void:
 	var pool := PROJECTS.duplicate()
 	var cursor := DateUtil.month_index(GameState.today) - rng.randi_range(0, 4)
 	c.jobs = []
 	c.projects = []
-	for i in rng.randi_range(2, 3):
-		var length := rng.randi_range(2, 8)
+	var count := c.project_count if c.project_count >= 0 else rng.randi_range(2, 3)
+	for i in count:
+		# 只有一段的（压线）做得也短
+		var length := rng.randi_range(2, 3) if count == 1 else rng.randi_range(2, 8)
 		c.projects.append({
 			"name": pool.pop_at(rng.randi_range(0, pool.size() - 1)),
 			"role": PROJECT_ROLES[rng.randi_range(0, PROJECT_ROLES.size() - 1)],

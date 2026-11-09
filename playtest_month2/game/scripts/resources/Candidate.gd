@@ -6,8 +6,8 @@ const DEGREE_NAMES := ["高中", "大专", "本科", "硕士", "博士"]
 const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
-	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story", "broker",
-	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines",
+	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "event_line", "is_story", "broker",
+	"docs", "doc_overrides", "folder", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines", "crack_lines",
 ]
 ## 公民身份号码的校验位。
 const ID_WEIGHTS := [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
@@ -52,6 +52,9 @@ const ID_CHECK := "10X98765432"
 @export var docs: PackedStringArray
 ## 材料上和事实不一样的地方 {材料: {字段: 写的值}}：一处矛盾就是一条覆盖。上面的字段永远是事实。
 @export var doc_overrides: Dictionary = {}
+## 按组招的日子放进了哪个组的文件夹：那个岗位的资源路径（面试时找组长、留任期按加班强度算）。空表示没分组。
+## 候选人资源是共享的，放进文件夹时 GameState 先复制一份再写这一项。
+@export var folder: String
 
 @export_group("手写人物")
 ## 手写的面试回答 {问题卡 id: 原话}，盖过按属性抽的回答。没写的卡照常按属性答。
@@ -62,7 +65,7 @@ const ID_CHECK := "10X98765432"
 @export var envelope: Dictionary = {}
 ## 这一条对上就不出现（写法同 story_echoes 的 when，比如“story_chenmo_1:hired”：上回已经录用了，不会再投）。
 @export var skip_when: String
-## 主角看到这份简历心里动了一下（第一次出现破格章的那天用，第一个月第 3 天）：桌上弹出的一句内心独白。空表示没有。
+## 主角看到这份简历心里动了一下（第一次出现破格章的那天用）：桌上弹出的一句内心独白。空表示没有。
 @export var liked_line: String
 ## 月底回顾里这个人的结局 {hired, pass, reject, exception: 一句话}；exception 是你破格放进来的（录用了用 hired），“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var epilogue: Dictionary = {}
@@ -72,6 +75,8 @@ const ID_CHECK := "10X98765432"
 @export var asides: PackedStringArray
 ## 手写回答在主管耳朵里算什么：“honest”（默认）还是“standard”（黑话、表忠心，他爱听的那种）。
 @export var answer_kind := "honest"
+## 你追问到第几次就说第几句，不管追的是哪张卡；说完最后一句算问穿了（GameState.expose）。主管听不出来。
+@export var crack_lines: PackedStringArray
 ## 简历上掺了水的行（ResumeQuestions 的 key，如“skill:Banyan（8 年）”“job:0”“self_eval”）。
 ## 手写人物只认这里；普通人按诚信另抽，这里写了的也算。
 @export var padded_lines: PackedStringArray
@@ -84,6 +89,8 @@ const ID_CHECK := "10X98765432"
 @export_range(0, 100) var performance := 50
 ## 非空时覆盖按属性推导的员工事件（例如剧情候选人）。
 @export var event_override: StringName
+## 留任期满那天老板补的一句：出了事，把简历上本来就看得出的那几行拍到你面前；干得好，点名夸一句。空就不说。
+@export var event_line: String
 @export var is_story := false
 ## 猎头（李哲他爸）推来的人：简历右下角铅笔写着“钱”。都卡在某一条规则边上不合格，能力也差；
 ## 放进面试他转 ¥100，录用后满试用期再转 ¥200（GameState.BROKER_PASS / BROKER_RETAIN）。
@@ -94,6 +101,14 @@ var gap_months := 0
 var left_months_ago := -1
 ## 只供生成器用：应届、转行、被裁……决定年龄段和自我评价。
 var background := "regular"
+## 只供生成器用：在校项目排几段，-1 表示随机 2–3 段（RuleProjects 改）。
+var project_count := -1
+## 只供生成器排经历用：最近一段的职位名，空就从岗位的 job_titles 里抽（RulePlugPlay 改）。
+var recent_title := ""
+## 只供生成器排经历用：每段至少几个月；stint_len > 0 时第 stint_at 段（0 是最近一段）排成这么长（RulePressure 改）。
+var min_stint := 6
+var stint_at := -1
+var stint_len := 0
 
 
 ## 某份材料上写的某一项，没被改过就是事实。这个人没带那份材料时退回简历。
@@ -153,6 +168,28 @@ func degree_name() -> String:
 	return DEGREE_NAMES[degree]
 
 
+## 赵主管的便签（DayConfig.chief_need）要的经历，纸面上有没有：简历第二页的在校项目里，
+## 有一项同时对上 project（名字里有其中一个词）、role（角色是其中一个）、months（做满几个月），没写的那条不看。
+## 他只看纸上写的，真不真是你的事。
+func fits(need: Dictionary) -> bool:
+	if not (need.has("project") or need.has("role") or need.has("months")):
+		return false
+	for p: Dictionary in projects:
+		if need.has("project") and not Array(need.project).any(func(word: String) -> bool: return word in String(p.name)):
+			continue
+		if need.has("role") and String(p.role) not in Array(need.role):
+			continue
+		if need.has("months") and project_months(p) < int(need.months):
+			continue
+		return true
+	return false
+
+
+## 一段在校项目做了几个月，起止月都算。
+static func project_months(p: Dictionary) -> int:
+	return DateUtil.month_index(p.end) - DateUtil.month_index(p.start) + 1
+
+
 ## 两段工作之间的空窗：返回较新那段的下标，没有则 -1。目前离职不算空窗，归在职规则管。
 func gap_index() -> int:
 	for i in range(1, jobs.size()):
@@ -176,6 +213,7 @@ func to_dict() -> Dictionary:
 	data.quirk = String(quirk)
 	data.asides = Array(asides)
 	data.padded_lines = Array(padded_lines)
+	data.crack_lines = Array(crack_lines)
 	return data
 
 
@@ -191,4 +229,5 @@ static func from_dict(data: Dictionary) -> Candidate:
 	c.quirk = StringName(data.get("quirk", ""))
 	c.asides = PackedStringArray(data.get("asides", []))
 	c.padded_lines = PackedStringArray(data.get("padded_lines", []))
+	c.crack_lines = PackedStringArray(data.get("crack_lines", []))
 	return c

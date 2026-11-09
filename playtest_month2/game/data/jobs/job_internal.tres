@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="qc"]
+[ext_resource type="Resource" path="res://data/leads/lead_it_sharp.tres" id="lead_it_sharp"]
+[ext_resource type="Resource" path="res://data/leads/lead_it_legacy.tres" id="lead_it_legacy"]
+[ext_resource type="Resource" path="res://data/leads/lead_it_users.tres" id="lead_it_users"]
+
+[resource]
+script = ExtResource("1")
+title = "后端开发工程师（内部系统组）"
+pay_text = "月薪 9–13k"
+majors = PackedStringArray()
+lookalikes = PackedStringArray()
+requirements = PackedStringArray("5 年以上经验", "维护 OA、财务、人事系统", "准点下班")
+keywords = PackedStringArray("Java", "MySQL")
+keyword_lookalikes = PackedStringArray("JavaScript", "SQL")
+skill_pool = PackedStringArray("Java", "MySQL", "Spring Boot", "Oracle", "Tomcat", "Linux", "Git", "SQL", "JavaScript", "Excel", "Vue")
+job_titles = PackedStringArray("内部系统开发", "IT 支持", "后端开发", "外包驻场开发", "Java 开发工程师")
+role = "后端"
+team = "内部系统组"
+salary_cap_k = 13
+hc = 1
+workload = 1
+folder_note = "小孟：我们组不加班，也不评奖。整个月就这一个位置。"
+lead = {"name": "小孟", "seed": 6217, "cut_in": "小孟推了推眼镜：", "cut_in_again": "小孟又举了一下手：", "next_line": "下一个吧。我六点要接孩子。", "bonus": "", "opener": "内部系统组，小孟。OA、报销、考勤都是我们。系统老，人少，不加班。"}
+lead_cards = Array[ExtResource("qc")]([ExtResource("lead_it_sharp"), ExtResource("lead_it_legacy"), ExtResource("lead_it_users")])

@@ -14,6 +14,9 @@ var _hot: Control
 ## DeskLayout 里的名字；空的不记位置。
 var layout_key := ""
 var _press_pos := Vector2.ZERO
+## 拖着走时、松手时回调（全局坐标）。松手的回调返回 true 表示东西被收走了（放进了文件夹），不记位置。
+var on_drag: Callable
+var on_release: Callable
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -23,11 +26,15 @@ func _gui_input(event: InputEvent) -> void:
 			_grab_offset = position - event.global_position
 			_press_pos = position
 			move_to_front()
+		elif on_release.is_valid() and on_release.call(event.global_position):
+			return
 		elif layout_key != "" and position != _press_pos:
 			DeskLayout.set_pos(layout_key, position)
 	elif event is InputEventMouseMotion and _dragging:
 		var limit := get_viewport_rect().size - size
 		position = (event.global_position + _grab_offset).clamp(Vector2(0, 16), limit.max(Vector2(0, 16)))
+		if on_drag.is_valid():
+			on_drag.call(event.global_position)
 
 
 func set_inspecting(on: bool) -> void:

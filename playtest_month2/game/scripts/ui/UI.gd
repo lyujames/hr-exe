@@ -98,10 +98,43 @@ static func text_button(parent: Control, text: String, rect: Rect2, on_press: Ca
 	var font := b.get_theme_font("font")
 	var font_size := b.get_theme_font_size("font_size")
 	var inner := rect.size.x - 16.0
-	var lines := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, inner, font_size, -1, TextServer.BREAK_MANDATORY | TextServer.BREAK_GRAPHEME_BOUND)
+	# 自己先折好行：任意断行会把句号、右引号单独挤到下一行
+	b.text = wrap_cjk(text, font, font_size, inner)
+	var lines := font.get_multiline_string_size(b.text, HORIZONTAL_ALIGNMENT_CENTER, inner, font_size, -1, TextServer.BREAK_MANDATORY | TextServer.BREAK_GRAPHEME_BOUND)
 	b.custom_minimum_size = Vector2(rect.size.x, maxf(rect.size.y, lines.y + 8.0))
 	b.size = b.custom_minimum_size
 	return b
+
+
+## 不能出现在行首的标点（避头）和不能留在行尾的标点（避尾）
+const NO_LINE_START := "。，、；：！？）》」』”’…—.,;:!?)"
+const NO_LINE_END := "（《「『“‘("
+
+
+## 按宽度逐字折行，守中文排版的避头尾：标点打头时把上一行最后一个字一起带下来。
+static func wrap_cjk(text: String, font: Font, font_size: int, width: float) -> String:
+	var out := PackedStringArray()
+	for para in text.split("\n"):
+		var line := ""
+		for i in para.length():
+			var ch := para[i]
+			if line != "" and font.get_string_size(line + ch, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > width:
+				var carry := 0
+				if NO_LINE_START.contains(ch):
+					carry = 1
+				# 带下来的字前面要是左括号、左引号，也一起带下来
+				while carry < line.length() - 1 and NO_LINE_END.contains(line[line.length() - 1 - carry]):
+					carry += 1
+				if carry == 0 and NO_LINE_END.contains(line[line.length() - 1]) and line.length() > 1:
+					carry = 1
+				if carry >= line.length():
+					carry = 0
+				out.append(line.substr(0, line.length() - carry))
+				line = line.substr(line.length() - carry) + ch
+			else:
+				line += ch
+		out.append(line)
+	return "\n".join(out)
 
 
 static func clear(node: Node) -> void:

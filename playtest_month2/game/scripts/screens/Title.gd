@@ -10,7 +10,7 @@ func _ready() -> void:
 	logo.size.x = 640
 	logo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UI.label(self, "你按规则筛人。规则也在筛你。", Vector2(236, 116), UI.TEXT_DIM)
-	UI.label(self, "试玩版 · 第二个月（第 8–14 天）", Vector2(230, 134), UI.TEXT_DIM)
+	UI.label(self, "试玩版 · 第二个月（第 10–16 天）", Vector2(230, 134), UI.TEXT_DIM)
 	UI.button(self, "从第二个月开始", Rect2(250, 170, 140, 24), start_month2)
 	UI.button(self, "从第一个月开始", Rect2(250, 200, 140, 24), start_new)
 	var resume := UI.button(self, "继续", Rect2(250, 230, 140, 24), start_saved)

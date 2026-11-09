@@ -24,7 +24,32 @@ func _ready() -> void:
 	add_child(_page)
 	_next = UI.button(self, "……", Rect2(484, 328, 110, 24), _advance)
 	_queue = cfg.home_scene.duplicate(true)
+	if cfg.team_folders and not GameState.stats.left_early:
+		_fit_to_clock()
 	_advance()
+
+
+## 按组招的日子下班不固定：台词里写死的“到家 18:50”换成实际到家的钟点；回得晚，开头多一两句。
+func _fit_to_clock() -> void:
+	var home := GameState.home_minutes()
+	var at := GameState.clock_text(home)
+	var re := RegEx.create_from_string("到家 \\d{1,2}:\\d{2}")
+	for beat: Dictionary in _queue:
+		if beat.has("text"):
+			beat.text = re.sub(beat.text, "到家 " + at)
+	var extra: Array = []
+	if home >= GameState.LATE_HOME[1]:
+		extra = [{"text": "孩子已经睡了。门缝底下的灯是关的。"}, {"text": "老婆：饭在锅里。我先睡了。"}]
+	elif home >= GameState.LATE_HOME[0]:
+		extra = [{"text": "饭在锅里，老婆热过一遍了。"}, {"text": "老婆：又这么晚。"}]
+	# 接在“到家”那句后面；没有那句就放最前面
+	var after := 0
+	for i in _queue.size():
+		if str(_queue[i].get("text", "")).contains("到家"):
+			after = i + 1
+			break
+	for i in range(extra.size() - 1, -1, -1):
+		_queue.insert(after, extra[i])
 
 
 ## 往下走一拍：台词就印出来，问话就摆出选项，没有了就去睡觉。
@@ -67,7 +92,13 @@ func _ask(beat: Dictionary) -> void:
 	_next.visible = false
 	var options: Array = beat.options.filter(func(o: Dictionary) -> bool: return GameState.family_matches(o.get("when", "")))
 	for option: Dictionary in options:
-		_options.append(UI.text_button(self, option.label, Rect2(56, 0, 360, 22), _choose.bind(beat, option)))
+		var label: String = option.label
+		# 晚到的选项先说清楚代价；今天破格了的，明天下午还有你单独面的那场
+		if option.has("late"):
+			var at := 8 * 60 + int(option.late)
+			label += "（明天 %02d:%02d 才到公司" % [at / 60, at % 60]
+			label += "，14:00 还有你担保的面试）" if not GameState.vouched_today.is_empty() else "）"
+		_options.append(UI.text_button(self, label, Rect2(56, 0, 520, 22), _choose.bind(beat, option)))
 	var total := 0.0
 	for b in _options:
 		total += b.size.y + 4.0

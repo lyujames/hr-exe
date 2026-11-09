@@ -7,6 +7,8 @@ var active_docs := PackedStringArray()
 var active_discrepancies: Array[Discrepancy] = []
 ## 到今天为止开着的岗位，按开的先后排。
 var active_postings: Array[JobPosting] = []
+## 这一天是不是按组分文件夹（DayConfig.team_folders）。
+var folder_mode := false
 
 
 func set_day(day: int) -> void:
@@ -14,6 +16,7 @@ func set_day(day: int) -> void:
 	active_docs.clear()
 	active_discrepancies.clear()
 	active_postings.clear()
+	folder_mode = load_day(day).team_folders if day > 0 else false
 	for d in range(1, day + 1):
 		var cfg := load_day(d)
 		if not cfg.retire.is_empty():
@@ -69,3 +72,49 @@ func evaluate(c: Candidate) -> Dictionary:
 		if rule.applies_to(c) and not rule.check(c):
 			failed.append(rule)
 	return {"pass": failed.is_empty(), "failed": failed}
+
+
+## 今天桌上的文件夹：开着的、有组名的岗位。不是按组招的日子为空。
+func folders() -> Array[JobPosting]:
+	if not folder_mode:
+		return []
+	return active_postings.filter(func(p: JobPosting) -> bool: return p.team != "")
+
+
+## 这个组的必备技能齐不齐（一字不差），技能写没写超（堆砌）。
+func skills_fit(c: Candidate, p: JobPosting, max_skills := 8) -> bool:
+	if c.skills.size() > max_skills:
+		return false
+	for keyword in p.keywords:
+		if keyword not in c.skills:
+			return false
+	return true
+
+
+## 放进这个组哪里不行；能放返回空串。
+func folder_problem(c: Candidate, p: JobPosting) -> String:
+	if c.skills.size() > 8:
+		return "技能超过 8 项，算堆砌"
+	var missing := Array(p.keywords).filter(func(k: String) -> bool: return k not in c.skills)
+	if not missing.is_empty():
+		return "%s要 %s，简历上没有" % [p.team, "、".join(PackedStringArray(missing))]
+	if c.salary_k > p.salary_cap_k:
+		return "期望 %dk，%s上限 %dk" % [c.salary_k, p.team, p.salary_cap_k]
+	return ""
+
+
+## 技能和薪资都对得上的组（不管满没满）。
+func fitting_folders(c: Candidate) -> Array[JobPosting]:
+	return folders().filter(func(p: JobPosting) -> bool: return folder_problem(c, p) == "")
+
+
+## 按标题找岗位：开着的先找，找不到再往前翻每天新开的（组撤了，前一天放进去的人今天照样由那个组长面）。
+func find_posting(title: String) -> JobPosting:
+	var open := posting_for(title)
+	if open:
+		return open
+	for d in range(GameState.day, 0, -1):
+		for posting in load_day(d).new_postings:
+			if posting.title == title:
+				return posting
+	return null

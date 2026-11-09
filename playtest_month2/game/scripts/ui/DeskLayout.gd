@@ -13,8 +13,14 @@ const ITEMS := {
 	"pass": {"name": "通过章", "pos": Vector2(112, 306), "size": Vector2(92, 40)},
 	"reject": {"name": "拒绝章", "pos": Vector2(216, 306), "size": Vector2(92, 40)},
 	"exception": {"name": "破格章", "pos": Vector2(4, 272), "size": Vector2(92, 40)},
+	## 按组招的日子：左下一个印章托盘，破格章在上、拒绝章在下，两样“不进组”的决定放一起；
+	## 文件夹一排（最多四个组，104 宽、间隔 4）从托盘右边排到质询按钮前面，跟章分开。
+	"folders": {"name": "各组文件夹", "pos": Vector2(104, 316), "size": Vector2(428, 40)},
+	"reject_team": {"name": "拒绝章", "pos": Vector2(4, 318), "size": Vector2(92, 40)},
+	"exception_team": {"name": "破格章", "pos": Vector2(4, 278), "size": Vector2(92, 40)},
 	"inspect": {"name": "质询", "pos": Vector2(536, 296), "size": Vector2(60, 48)},
 	"printer": {"name": "打印机", "pos": Vector2(536, 262), "size": Vector2(100, 32)},
+	"chief": {"name": "主管便签", "pos": Vector2(2, 168), "size": Vector2(94, 40)},
 }
 ## 顶上那条状态栏不让放。
 const TOP := 18.0

@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-question = "团队现在多少人？还会扩招吗？"
-lie = "今年要扩一倍。"
-safe = "看业务发展。"
-truth = "上个月走了三个，我们在补。"
+question = "试用期工资打几折？"
+lie = "全额发，不打折。"
+safe = "按公司制度执行。"
+truth = "八折，六个月。"

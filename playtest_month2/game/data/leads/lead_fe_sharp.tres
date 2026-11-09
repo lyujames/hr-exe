@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_fe_sharp"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+lead_item = "技术"
+text_key = "商品列表一万条，往下一滑手机就卡死。你怎么办？"
+honest = "只渲染屏幕上那十几条，滑到哪儿换哪儿。上一家的订单列表就是这么救回来的。"
+honest_low = "……分页？我没做过那么多条的。"
+standard = "可以从性能优化的角度，采用多种手段综合提升用户体验。"
+flaw = "让后端少返回一点？"
+followup_text = "每条高度不一样，有图有字。还怎么算滑到哪儿？"
+honest_followup = "先按估的高度排，渲染出来量一次再记下真实高度，滚动位置跟着修。图片要先占位，不然一加载就跳。"
+honest_low_followup = "高度不一样……那我就不知道了。"
+standard_followup = "需要结合具体业务场景进一步分析。"
+flaw_followup = "统、统一成一样高？"
+lead_strong = "图片占位都想到了。行。"
+lead_weak = "分页运营不让。他们要一直往下刷。"

@@ -23,9 +23,10 @@ class_name DayConfig extends Resource
 @export var morning_push: String
 @export_multiline var boss_mail: String
 @export_multiline var coworker_note: String
-## 本月工资标准 {base, per_resume, per_correct, per_reason, chief_bonus, retention, retention_days, retention_deferred, fines}
+## 本月工资标准 {base, per_resume, per_correct, per_reason, chief_bonus, edit_bonus, retention, retention_days, retention_deferred, fines}
 ## chief_bonus：主管推荐奖，录用的人是赵主管要的（见 chief_need），当天发；没写算 0。，只在月初设置，之后沿用。
 ## fines 为 false 时不扣钱：违规只是拿不到判断奖金，老板对质也不罚款；没写算 true。
+## edit_bonus：识人奖，评分表上你改的那一处，留任期满对账时比主管填的准，每人发一次；没写算 0。
 ## per_reason：拒对且理由选中违反的那条，再加的钱；只有经济好的第 1 月有，没写算 0。
 ## 员工事件不再按天配置：每个录用的人在留任期满那天早上结算。
 @export var pay: Dictionary = {}
@@ -34,12 +35,15 @@ class_name DayConfig extends Resource
 @export var bills: Array = []
 ## 今天几份生成的简历是猎头推来的（Candidate.broker）：只从不是今天新加的规则里挑一条，卡在边上不合格。0 表示没有。
 @export var broker_count := 0
-## 人效指标（第 12 天起）：今天要处理完几份，底薪才拿全额；少几份按比例扣（GameState.base_pay）。0 表示没有指标。
+## 人效指标（第 14 天起）：今天要处理完几份，底薪才拿全额；少几份按比例扣（GameState.base_pay）。0 表示没有指标。
 @export var quota := 0
-## 关键词初筛系统（第 13 天起）：社招简历右上角盖一个系统标签（Ats.label），日结单记跟系统一致 / 推翻了几份。
+## 关键词初筛系统（第 15 天起）：社招简历右上角盖一个系统标签（Ats.label），日结单记跟系统一致 / 推翻了几份。
 @export var ats := false
-## 入职手续（第 11 天起，老周被抽走以后）：昨天录用的人，今天桌上各一张入职登记表，签一张扣 Desk.INTAKE_MINUTES；下班没签完，王总记一笔。
+## 入职手续（第 13 天起，老周被抽走以后）：昨天录用的人，今天桌上各一张入职登记表，签一张扣 Desk.INTAKE_MINUTES；下班没签完，王总记一笔。
 @export var intake := false
+## 按组分文件夹（第 13 天起）：桌上“通过”章换成今天开着的组（JobPosting.team 不空的岗位），简历拖进文件夹 = 放进那个组。
+## 面试按组排：每场是那个组的组长，一天最多 GameState.MAX_SESSIONS 场；钟按实际问的走，可以过 18:00，下班跟着最后一场走。
+@export var team_folders := false
 ## 按之前的事给邮件加附言 [{when, ps}]，when 见 GameState.family_matches；对上的都接在后面。
 @export var mail_ps_by: Array = []
 @export var headline: String
@@ -47,7 +51,7 @@ class_name DayConfig extends Resource
 ## 按当天员工事件 id 替换报纸头条：{event_id: [标题, 正文]}。
 @export var news_by_event: Dictionary = {}
 ## 之前那些手写人物的回响 [{when, headline, body, mail_ps, sms}]，when 是“候选人 id:pass/reject/hired”。
-## 第一条对上的生效；headline 让位给 news_by_event。文字里的“{reason}”换成玩家拒绝 TA 时选的那句。
+## 第一条对上的生效；headline 让位给 news_by_event。bonus {label, amount}：对上了，今天日结单多一行老板发的钱。文字里的“{reason}”换成玩家拒绝 TA 时选的那句。
 @export var story_echoes: Array = []
 @export_multiline var family_sms: String
 ## 按之前的家里事换掉 family_sms [{when, sms}]，when 是“标记:选项”（见 GameState.family），第一条对上的生效。
@@ -67,7 +71,7 @@ class_name DayConfig extends Resource
 @export var desk_texts: Array = []
 ## 上班时家里来电 {at, text, flag, left, stayed}：之后桌上多一个“提前下班”的按钮。flag 记进 GameState.family，值是“yes”，没走就没有这一项。
 ## left / stayed：走了、没走，夫妻感情各变多少（默认 +2 / −1）。
-## trust：走了老板信任变多少（第 13 天手术那天走，人效垫底，−1）。
+## trust：走了老板信任变多少（第 15 天手术那天走，人效垫底，−1）。
 @export var midday_call: Dictionary = {}
 ## 下班回家（18:00 下班，到家快七点）的一幕，一拍一拍往下点：
 ## {text, when}：一句台词或旁白，“老婆：”“孩子：”“你爸：”“你：”开头是有人说话，别的是旁白；{processed}{passed} 换成今天看了几份、过了几份。
@@ -76,16 +80,19 @@ class_name DayConfig extends Resource
 @export var home_scene: Array = []
 ## 面试：赵主管入座时说的话、抢走的那个问题、候选人的反问。
 @export var chief_opener: String
-## 赵主管开场拍在桌上的便签 {item: 评分项, note: 便签上的话}：录用的人在他心里这一项够了，发主管推荐奖（pay.chief_bonus）。空表示今天没有。
+## 赵主管的便签 {note: 便签上的话, short: 桌角那张小便签上的要点, item: 评分表上打★的那项, project / role / months: 他要的经历, seed_projects: 往简历里多撒的项目名}：
+## 早上贴在你桌上，写的是今天筛的人里他明天想见什么样的；第二天面试拍在桌上，录用的人简历第二页对得上
+## （Candidate.fits，只看纸面），发主管推荐奖（pay.chief_bonus）。最后一天没有明天，不写。
+## 组长（interviewer 不空）的便签还是当天面试用、只写 item，看他自己心里那一项。空表示今天没有。
 @export var chief_need: Dictionary = {}
 @export var chief_question: QuestionCard
 ## 招程序员起主管每场先问一道尖锐题，从今天及之前每天的这一张里抽（见 InterviewRoom._plan_chief）。
 @export var chief_sharp: QuestionCard
 ## 今天的奇葩面试者：没有剧情候选人进面试时，套在抽中的普通人身上。
-## 第 11 天起程序员按组招：面试的人换成用人那个组的组长，空表示还是赵主管。
+## 第 13 天起程序员按组招：面试的人换成用人那个组的组长，空表示还是赵主管。
 ## {name: 头像旁的名字, seed: 头像种子, cut_in / cut_in_again: 插话前那句旁白, next_line: 第二场开场, bonus: 日结单上推荐奖的叫法}
 ## 组长和赵主管反着来：说实话、说得出细节的加分，背标准答案、露破绽的扣分（QuestionCard.lead_reaction）。
-## 他不碰老板评分表，只记自己心里的“技术 / 协作”，填表时直接告诉你要不要（chief_need 的 item 写这两项之一）。
+## 他不碰老板评分表，只记自己心里的“技术 / 协作”，填表时直接告诉你要不要（这时 chief_need 的 item 写这两项之一；赵主管面试时写评分表上的一项，如“稳定性”“狼性”）。
 @export var interviewer: Dictionary = {}
 ## 组长自己带来的问题，第一张是尖锐题，每场抢两问；只在 interviewer 不空时用。
 @export var lead_cards: Array[QuestionCard] = []

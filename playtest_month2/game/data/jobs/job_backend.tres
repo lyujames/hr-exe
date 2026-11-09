@@ -11,3 +11,4 @@ lookalikes = PackedStringArray()
 requirements = PackedStringArray("本科及以上", "即插即用", "抗压能力强")
 skill_pool = PackedStringArray("Java", "MySQL", "Redis", "Spring Boot", "Python", "Go", "Kafka", "Docker", "Linux", "Git", "JavaScript", "SQL", "Vue", "MongoDB")
 job_titles = PackedStringArray("后端开发", "Java 开发工程师", "软件工程师", "外包驻场开发", "服务端开发")
+role = "后端"

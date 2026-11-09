@@ -64,18 +64,22 @@ func _show_people() -> void:
 	add_child(_lines)
 	UI.label(_lines, "这个月，你记得这些人吗？", Vector2(40, 18), UI.GREEN)
 	var y := 44.0
-	var first := (_month - 1) * GameState.DAYS_PER_MONTH + 1
-	for d in range(first, first + GameState.DAYS_PER_MONTH):
+	var first := GameState.month_first_day(_month)
+	for d in range(first, GameState.month_last_day(_month) + 1):
 		for c: Candidate in RuleEngine.load_day(d).story_candidates:
-			if c.skip_when != "" and GameState.echo_matches(c.skip_when):
+			if not c.is_story or (c.skip_when != "" and GameState.echo_matches(c.skip_when)):
 				continue
 			var outcome := GameState.story_outcome(String(c.id))
 			var key: String = outcome.verdict if outcome.verdict != "" else "unseen"
 			if outcome.exception and key == "pass" and c.epilogue.has("exception"):
 				key = "exception"
+			elif key == "pass" and c.epilogue.has("exposed") and GameState.echo_matches(String(c.id) + ":exposed"):
+				key = "exposed"
 			var line: String = c.epilogue.get(key, "")
 			if line == "" and key == "hired":
 				line = c.epilogue.get("pass", "")
+			if key == "pass" and outcome.unbooked:
+				line = c.epilogue.get("unbooked", "你放了 TA，可那天晚上你约的是别人。")
 			if key == "unseen":
 				line = "这份简历你没来得及看。"
 			if outcome.chief_pick:
@@ -137,7 +141,7 @@ func _work_notes() -> Array:
 		if ats.override > 0:
 			line += "你推翻了它 %d 次，判对 %d 次。这个数只有你知道。" % [ats.override, ats.ok]
 		notes.append(line)
-	match str(GameState.family.get("w14_table", "")):
+	match str(GameState.family.get("w16_table", "")):
 		"true":
 			notes.append("这个月你招了 %d 个人，月底交了一张表。表上每个人的学历、年龄都是真的。" % _hired_count())
 		"fudge":
@@ -148,7 +152,7 @@ func _work_notes() -> Array:
 
 
 func _hired_count() -> int:
-	var first := (_month - 1) * GameState.DAYS_PER_MONTH + 1
+	var first := GameState.month_first_day(_month)
 	return GameState.hires.filter(func(h: Dictionary) -> bool: return int(h.day_hired) >= first).size()
 
 
@@ -163,7 +167,10 @@ func _show_home() -> void:
 	var y := 46.0
 	var facts := "这个月她上班时给你发了 %d 条消息，你回了 %d 条。" % [counts.got, counts.replied]
 	facts += _month_facts()
-	y += UI.label(_lines, facts, Vector2(40, y), UI.TEXT_DIM, 560).get_line_count() * 16.0 + 18.0
+	UI.label(_lines, facts, Vector2(40, y), UI.TEXT_DIM, 560)
+	for line in facts.split("\n"):
+		y += ceili(line.length() / 34.0) * 16.0
+	y += 18.0
 	var m := GameState.marriage
 	var tiers := _tiers()
 	var text: Dictionary = MONTH_TEXT.get(_month, MONTH_TEXT[1])
@@ -178,6 +185,9 @@ func _show_home() -> void:
 	else:
 		scene = text.left
 		tag = "（婚姻结局）"
+	# 按组招的月底，下班不固定：“到家七点”换成实际钟点
+	if GameState.config.team_folders and GameState.off_minutes() > GameState.CLOCK_OUT:
+		scene = scene.replace("你到家七点", "你到家 " + GameState.clock_text(GameState.home_minutes()))
 	UI.label(_lines, scene, Vector2(40, y), UI.TEXT, 560)
 	# 标签刚建好时还没排版，行数按字数估：一行约 34 个字。
 	for line in scene.split("\n"):
@@ -195,11 +205,24 @@ func _month_facts() -> String:
 			if GameState.family.has("d4_left") or GameState.decision_log.any(func(e: Dictionary) -> bool: return e.day == 4):
 				return "\n3 月 5 日上午，她问你能不能早点回去。" + ("你走了。" if GameState.family.get("d4_left", "") == "yes" else "你没走。")
 		2:
-			# 钱不够的月底，她开始“加班”（第 14 天的短信同一个条件，见 day_14.tres）
+			# 钱不够的月底，她开始“加班”（第 16 天的短信同一个条件，见 day_16.tres）
+			var money := "\n还完房贷，卡里剩 ¥%d。" % GameState.savings
 			if GameState.savings < LATE_SAVINGS:
-				return "\n还完房贷，卡里剩 ¥%d。今晚她说要加班，十一点才到家。" % GameState.savings
-			return "\n还完房贷，卡里剩 ¥%d。" % GameState.savings
+				money = "\n还完房贷，卡里剩 ¥%d。今晚她说要加班，十一点才到家。" % GameState.savings
+			return _recital() + money
 	return ""
+
+
+## 第 2 月底：孩子编程班结课展示，晚上六点半在学校。你几点下班，决定你赶不赶得上（路上半小时）。
+func _recital() -> String:
+	if not GameState.config.team_folders:
+		return ""
+	var off := GameState.off_minutes()
+	if off <= GameState.CLOCK_OUT:
+		return "\n18:00 你直接去了学校。六点半，孩子的小猫走出了迷宫，他在台上找到了你，挥了一下手。"
+	if off <= GameState.CLOCK_OUT + 30:
+		return "\n%s 下班，你赶到学校，展示刚结束。孩子站在门口：“小猫走出来了，你没看到。”" % GameState.clock_text(off)
+	return "\n%s 下班。你到学校的时候，教室的灯已经关了。老婆发来一段视频，四十秒，你在地铁上看了三遍。" % GameState.clock_text(off)
 
 
 ## 你爸的话：第 1 月留话头，第 2 月看小刘的事你怎么办的。
@@ -221,7 +244,7 @@ func _show_summary() -> void:
 	_lines.queue_free()
 	var names := ["", "第一个月", "第二个月", "第三个月", "第四个月"]
 	UI.label(self, "%s结束　月供已扣，存款 ¥%d" % [names[mini(_month, names.size() - 1)], GameState.savings], Vector2(40, 18), UI.GREEN)
-	var first := (_month - 1) * GameState.DAYS_PER_MONTH + 1
+	var first := GameState.month_first_day(_month)
 	var rejects := GameState.decision_log.filter(func(e: Dictionary) -> bool: return e.verdict == "reject" and int(e.day) >= first)
 	UI.label(self, "这个月你写过的话，都存档了。共 %d 句：" % rejects.size(), Vector2(40, 40), UI.TEXT)
 	var y := 60.0

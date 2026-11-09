@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = &"rule_experience"
-day_added = 9
+day_added = 11
 title_key = "工作年限"
 text_key = "入门岗也要 5 年经验：看简历第一页的“工作年限”，满 5 年才算。小字“含实习”的不算，外包算。"
 reject_reason_key = "您的工作经验与岗位要求不符。"

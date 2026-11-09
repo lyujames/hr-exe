@@ -87,18 +87,31 @@ var arranging := false
 var day_end := DAY_END
 ## 破格章：第 3 天起有（第二个月一直在桌上）。第一个月第 3 天要等主角看到那份心动的简历，才从抽屉里拿出来。
 var _exception_stamp: StampTool
+## 按组招的日子左下那块印章托盘：跟着拒绝章走（布置桌面挪拒绝章，托盘一起挪）。
+var _stamp_tray: Control
 var _reveal: Control
 var _vouch_confirm: Control
+## 赵主管早上贴的便签，没有就是 null；_chief_open 是点开摊在桌上的那张。
+var _chief_note: Control
+var _chief_open: Panel
 ## 今天要签的入职登记表（昨天录用的人），签完的从这里拿掉。
 var _intake: Array = []
 var _intake_button: Button
 var _intake_form: Control
+## 按组招的日子：一排文件夹，和这一份正要放进哪个组。
+const FULL_MINUTES := 2
+var _folder_row: Control
+var _folders: Array[TeamFolder] = []
+var _filing: JobPosting
+var _folder_picker: Control
 
 
 func _ready() -> void:
 	if not GameState.vouched.is_empty():
 		day_end = VOUCH_DAY_END
-	queue = CandidateGenerator.generate_day(GameState.config, RuleEngine.active_rules, GameState.day_seed())
+	queue = CandidateGenerator.generate_day(GameState.config, RuleEngine.active_rules, GameState.day_seed(), not GameState.late_today.is_empty())
+	# 晚到：钟一样快，从到公司那一刻走起，早上那截没了
+	elapsed = int(GameState.late_today.get("minutes", 0)) * _seconds_per_minute()
 	_build_room()
 	_next()
 
@@ -107,7 +120,7 @@ func _build_room() -> void:
 	UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK)
 	UI.panel(self, Rect2(0, 0, 640, 18), UI.DESK_DARK)
 	UI.label(self, "第 %d 天　%s" % [GameState.day, GameState.today], Vector2(6, 1), UI.TEXT_DIM)
-	_clock = UI.label(self, "08:00", Vector2(304, 1), UI.GREEN)
+	_clock = UI.label(self, GameState.arrival_time(), Vector2(304, 1), UI.GREEN)
 	UI.label(self, "存款 ¥%d / 月供 ¥%d" % [GameState.savings, GameState.MORTGAGE], Vector2(496, 1), UI.TEXT_DIM)
 
 	_pile = Control.new()
@@ -115,16 +128,23 @@ func _build_room() -> void:
 	add_child(_pile)
 	_count = UI.label(self, "", Vector2(10, 26), UI.TEXT)
 
-	# 处理完的简历飞进这里
-	UI.panel(self, Rect2(344, 322, 186, 32), UI.DESK_DARK, UI.BLACK)
-	_hint = UI.label(self, "已处理 0", Vector2(352, 326), UI.TEXT_DIM)
+	# 处理完的简历飞进这里；按组招的日子底下摆文件夹，计数挪到顶上那条
+	if RuleEngine.folder_mode:
+		_hint = UI.label(self, "已处理 0", Vector2(352, 1), UI.TEXT_DIM)
+	else:
+		UI.panel(self, Rect2(344, 322, 186, 32), UI.DESK_DARK, UI.BLACK)
+		_hint = UI.label(self, "已处理 0", Vector2(352, 326), UI.TEXT_DIM)
 
-	# 咖啡杯：隐形的时间流逝提示
+	# 咖啡杯：隐形的时间流逝提示。按组招的日子底下一排是文件夹，杯子挪到简历下沿、文件夹上面
+	var cups := Vector2(104, 294) if RuleEngine.folder_mode else Vector2(14, 318)
 	for i in GameState.day_in_month():
-		UI.panel(self, Rect2(14 + i * 22, 318, 16, 18), UI.PAPER_DIM, UI.BLACK)
-		UI.panel(self, Rect2(16 + i * 22, 320, 12, 4), Color("3a2f2a"))
+		UI.panel(self, Rect2(cups.x + i * 22, cups.y, 16, 18), UI.PAPER_DIM, UI.BLACK)
+		UI.panel(self, Rect2(cups.x + 2 + i * 22, cups.y + 2, 12, 4), Color("3a2f2a"))
+	if RuleEngine.folder_mode:
+		_build_stamp_tray()
 
 	_build_family()
+	_build_chief_note()
 
 	# 桌上所有纸都在同一层：按下哪张哪张置顶；新递上来的简历、身份证接替上一份那一层，玩家压上去的不会被盖住；
 	# 这一层整个在印章、质询按钮下面，手册点得再多也盖不住它们。
@@ -147,7 +167,8 @@ func _build_room() -> void:
 	_lines = InspectLines.new()
 	add_child(_lines)
 	_toast = UI.label(self, "", Vector2(150, 1), UI.YELLOW)
-	if "id_card" in RuleEngine.active_docs:
+	# 身份证先上桌、只核年龄；材料之间开始有矛盾的那天，才有质询
+	if _can_inspect():
 		var at := DeskLayout.pos("inspect")
 		_inspect_button = UI.button(self, "质询", Rect2(at, Vector2(60, 22)), toggle_inspect)
 		_call_button = UI.button(self, "打电话", Rect2(at + Vector2(0, 26), Vector2(60, 22)), call_candidate)
@@ -156,9 +177,11 @@ func _build_room() -> void:
 		_inspect_button.pressed.disconnect(toggle_inspect)
 		DeskDrag.attach(_inspect_button, "inspect", toggle_inspect, [_call_button])
 
-	for verdict: String in ["pass", "reject"]:
+	if RuleEngine.folder_mode:
+		_build_folders()
+	for verdict: String in (["reject"] if RuleEngine.folder_mode else ["pass", "reject"]):
 		var stamp := StampTool.new()
-		stamp.position = DeskLayout.pos(verdict)
+		stamp.position = DeskLayout.pos("reject_team" if RuleEngine.folder_mode else verdict)
 		add_child(stamp)
 		stamp.setup(verdict)
 		_stamps[verdict] = stamp
@@ -203,6 +226,9 @@ func _next() -> void:
 	_insert_doc(doc, _last_doc)
 	doc.setup(queue.pop_front())
 	doc.stamped.connect(_on_stamped)
+	if RuleEngine.folder_mode:
+		doc.on_drag = _hover_folders
+		doc.on_release = _drop_on_folder
 	Sfx.paper()
 	var tween := create_tween().set_parallel()
 	tween.tween_property(doc, "position", doc_pos, 0.16).set_trans(Tween.TRANS_QUAD)
@@ -268,7 +294,7 @@ func _ask_vouch() -> void:
 	var result := RuleEngine.evaluate(c)
 	if result.pass:
 		doc.unstamp()
-		_show_toast("这份合规，不用破格，盖通过就行", UI.YELLOW)
+		_show_toast("这份合规，不用破格，拖进文件夹就行" if RuleEngine.folder_mode else "这份合规，不用破格，盖通过就行", UI.YELLOW)
 		return
 	var broken: Array = result.failed.map(func(r: Rule) -> String: return r.title_key)
 	var when := "下个月第一天" if GameState.day >= GameState.LAST_DAY else "明天 14:00"
@@ -286,7 +312,95 @@ func _ask_vouch() -> void:
 func _confirm_vouch() -> void:
 	_vouch_confirm.queue_free()
 	_vouch_confirm = null
+	if RuleEngine.folder_mode:
+		_open_folder_picker()
+		return
 	commit("exception", &"", "")
+
+
+## 按组招的日子，破格的人也得放进一个组：规则管不着了，放哪个组你定，满了的放不进。
+func _open_folder_picker() -> void:
+	_folder_picker = Control.new()
+	add_child(_folder_picker)
+	UI.panel(_folder_picker, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.35)).mouse_filter = Control.MOUSE_FILTER_STOP
+	var height := 34.0 + 24.0 * (_folders.size() + 1)
+	var top := 180.0 - height / 2.0
+	UI.panel(_folder_picker, Rect2(170, top, 300, height), UI.PAPER, UI.BLACK)
+	UI.label(_folder_picker, "破格放进哪个组？", Vector2(180, top + 6), UI.INK)
+	var y := top + 26.0
+	for f in _folders:
+		var p := f.posting
+		var b := UI.button(_folder_picker, "%s%s　%s　≤%dk　%d/%d" % [p.role + "·" if p.role != "" else "", p.team, "★".repeat(p.workload), p.salary_cap_k, GameState.folder_count(p), p.hc], Rect2(178, y, 284, 22), _vouch_into.bind(p))
+		b.disabled = GameState.folder_full(p)
+		y += 24.0
+	UI.button(_folder_picker, "← 算了，不破格", Rect2(178, y, 284, 22), _cancel_folder_pick)
+
+
+func _vouch_into(p: JobPosting) -> void:
+	_folder_picker.queue_free()
+	_folder_picker = null
+	_filing = p
+	commit("exception", &"", "")
+
+
+func _cancel_folder_pick() -> void:
+	_folder_picker.queue_free()
+	_folder_picker = null
+	doc.unstamp()
+	if closing:
+		_finish()
+
+
+func _build_folders() -> void:
+	_folder_row = Control.new()
+	_folder_row.position = DeskLayout.pos("folders")
+	_folder_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_folder_row)
+	var x := 0.0
+	for p in RuleEngine.folders():
+		var f := TeamFolder.new()
+		f.position = Vector2(x, 0)
+		_folder_row.add_child(f)
+		f.setup(p)
+		_folders.append(f)
+		x += TeamFolder.SIZE.x + 4.0
+
+
+func _folder_at(global_point: Vector2) -> TeamFolder:
+	for f in _folders:
+		if f.contains(global_point):
+			return f
+	return null
+
+
+## 拖着简历经过文件夹，那个文件夹亮框。
+func _hover_folders(global_point: Vector2) -> void:
+	var under := _folder_at(global_point) if doc and not doc.is_stamped else null
+	for f in _folders:
+		f.set_hot(f == under)
+
+
+## 简历在文件夹上松手：放进那个组。满了组长退回，扣一点钟；不在文件夹上就照常记位置。
+func _drop_on_folder(global_point: Vector2) -> bool:
+	for f in _folders:
+		f.set_hot(false)
+	var f := _folder_at(global_point)
+	if f == null or doc == null or doc.is_stamped or closing or arranging or _picker or _vouch_confirm or _folder_picker:
+		return false
+	var p := f.posting
+	if GameState.folder_full(p):
+		_spend(FULL_MINUTES)
+		_show_toast("%s：满了，退回来。　−%d 分钟" % [p.lead.get("name", p.team), FULL_MINUTES], UI.YELLOW)
+		create_tween().tween_property(doc, "position", DeskLayout.pos("resume"), 0.15).set_trans(Tween.TRANS_QUAD)
+		return true
+	file_into(p)
+	return true
+
+
+## 把这一份放进这个组（修改器也走这里）。
+func file_into(p: JobPosting) -> void:
+	_filing = p
+	doc.stamp("pass", doc.size / 2.0, TeamFolder.short_name(p.team))
 
 
 func _cancel_vouch() -> void:
@@ -297,9 +411,24 @@ func _cancel_vouch() -> void:
 		_finish()
 
 
+const TRAY_OFFSET := Vector2(-4, -58)
+
+
+## 印章托盘：一块深色底，上面写“印章”，破格章、拒绝章默认一上一下摆在里面。
+func _build_stamp_tray() -> void:
+	_stamp_tray = Control.new()
+	_stamp_tray.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamp_tray.position = DeskLayout.pos("reject_team") + TRAY_OFFSET
+	add_child(_stamp_tray)
+	UI.panel(_stamp_tray, Rect2(0, 0, 100, 100), UI.DESK_DARK, UI.BLACK).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := UI.label(_stamp_tray, "印章", Vector2(0, 1), UI.TEXT_DIM)
+	title.size.x = 100
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+
 func _add_exception_stamp() -> void:
 	_exception_stamp = StampTool.new()
-	_exception_stamp.position = DeskLayout.pos("exception")
+	_exception_stamp.position = DeskLayout.pos("exception_team" if RuleEngine.folder_mode else "exception")
 	add_child(_exception_stamp)
 	_exception_stamp.setup("exception")
 	_stamps["exception"] = _exception_stamp
@@ -375,19 +504,27 @@ func commit(verdict: String, reason_rule: StringName, reason_text: String) -> vo
 	if _envelope and not _envelope_answered:
 		GameState.answer_envelope(doc.candidate, false)
 	var why := ""
+	var folder := _filing if verdict != "reject" else null
+	_filing = null
 	if verdict == "exception":
-		GameState.record_exception(doc.candidate)
+		GameState.record_exception(doc.candidate, folder)
 	else:
-		why = GameState.record_decision(doc.candidate, verdict, reason_rule, reason_text, extra)
+		why = GameState.record_decision(doc.candidate, verdict, reason_rule, reason_text, extra, folder)
+	for f in _folders:
+		f.refresh()
 	if why != "":
 		_print_slip(doc.candidate.display_name, why)
 	_reset_inspect()
 	_done_count += 1
 	_hint.text = "已处理 %d" % _done_count
+	var away := Vector2(400, 330)
+	for f in _folders:
+		if folder and f.posting == folder:
+			away = f.global_position + Vector2(10, -20)
 	for leaving: Control in [doc, id_card, _envelope]:
 		if leaving:
 			var tween := create_tween()
-			tween.tween_property(leaving, "position", Vector2(400, 330), 0.18).set_trans(Tween.TRANS_QUAD)
+			tween.tween_property(leaving, "position", away, 0.18).set_trans(Tween.TRANS_QUAD)
 			tween.tween_callback(leaving.queue_free)
 	_last_doc = doc
 	_last_id = id_card
@@ -404,8 +541,8 @@ func _close_day() -> void:
 	if closing:
 		return
 	closing = true
-	if _picker or _vouch_confirm:
-		return  # 等玩家选完理由、签完字
+	if _picker or _vouch_confirm or _folder_picker:
+		return  # 等玩家选完理由、签完字、选完组
 	_finish()
 
 
@@ -436,18 +573,28 @@ func _finish() -> void:
 		_leave_button.disabled = true
 	GameState.stats.unprocessed = queue.size()
 	var interview := not GameState.interviewees.is_empty() or not GameState.vouched.is_empty()
+	if GameState.config.team_folders and not GameState.interviewees.is_empty():
+		GameState.plan_sessions()
 	var note := ("15:00，该去面试了。今天两场。" if InterviewRoom.second_candidate() else "15:00，该去面试了。") if interview else "15:00。今天没有面试，你整理材料到六点下班。"
+	if GameState.config.team_folders and not GameState.sessions.is_empty():
+		var names := PackedStringArray(GameState.sessions.map(func(c: Candidate) -> String:
+			var t := GameState.team_posting(c)
+			return t.lead.get("name", "赵主管") if t else "赵主管"))
+		note = "15:00 面试，今天 %d 场：%s。面完才下班。" % [names.size(), "、".join(names)]
 	if not GameState.vouched.is_empty():
-		note = "14:00，去面你破格的 %s。" % GameState.vouched[0].display_name
-		if not GameState.interviewees.is_empty():
+		var later := note
+		note = "14:00，先去面你破格的 %s。" % GameState.vouched[0].display_name
+		if GameState.config.team_folders and not GameState.sessions.is_empty():
+			note += later
+		elif not GameState.interviewees.is_empty():
 			note += "15:00 还有%s那场。" % GameState.config.interviewer.get("name", "赵主管")
 	if not queue.is_empty():
 		note += "还有 %d 份简历没看，计件没了。" % queue.size()
 	if GameState.stats.left_early:
 		note = "你提前下班了。" + ("" if queue.is_empty() else "还有 %d 份简历没看。" % queue.size())
-	UI.panel(self, Rect2(170, 146, 300, 76), UI.BLACK, UI.GREEN_DIM)
-	UI.label(self, note, Vector2(182, 154), UI.GREEN, 276)
-	UI.button(self, "去面试" if interview and not GameState.stats.left_early else "继续", Rect2(280, 194, 80, 20), finished.emit)
+	UI.panel(self, Rect2(170, 132, 300, 100), UI.BLACK, UI.GREEN_DIM)
+	UI.label(self, note, Vector2(182, 140), UI.GREEN, 276)
+	UI.button(self, "去面试" if interview and not GameState.stats.left_early else "继续", Rect2(280, 204, 80, 20), finished.emit)
 
 
 ## 盖错章，桌角的打印机当场吐一张违规单。点一下扔掉；下一张来了旧的就收走。
@@ -693,6 +840,47 @@ func _close_intake() -> void:
 	if _intake_form:
 		_intake_form.queue_free()
 		_intake_form = null
+## 赵主管早上贴在桌角的便签：今天筛的人里，他明天想见什么样的。
+## 桌角窄，便签上只写一句要点（need.short）；点一下摊开整张，再点收起。
+func _build_chief_note() -> void:
+	var need: Dictionary = GameState.config.chief_need
+	# 第二个月起赵主管不提前贴，面试开场才拍便签（InterviewRoom）
+	if need.is_empty() or not GameState.config.interviewer.is_empty() or GameState.month() > 1:
+		return
+	_chief_note = Control.new()
+	_chief_note.position = DeskLayout.pos("chief")
+	_chief_note.size = DeskLayout.size_of("chief")
+	add_child(_chief_note)
+	for node: Control in [
+		UI.panel(_chief_note, Rect2(Vector2(2, 2), _chief_note.size), Color(0, 0, 0, 0.3)),
+		UI.panel(_chief_note, Rect2(Vector2.ZERO, _chief_note.size), UI.YELLOW),
+		UI.label(_chief_note, "赵主管要：", Vector2(4, 1), UI.INK_SOFT),
+		UI.label(_chief_note, String(need.get("short", need.note)), Vector2(4, 17), UI.INK, _chief_note.size.x - 8),
+	]:
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	DeskDrag.attach(_chief_note, "chief", _toggle_chief_note)
+
+
+func _toggle_chief_note() -> void:
+	if _chief_open:
+		_chief_open.queue_free()
+		_chief_open = null
+		return
+	var need: Dictionary = GameState.config.chief_need
+	_chief_open = UI.panel(self, Rect2(_chief_note.position + Vector2(_chief_note.size.x + 4, -24), Vector2(220, 0)), UI.YELLOW, UI.BLACK)
+	_chief_open.rotation = -0.02
+	# 两段都会折行：先入树量高度，再往下排，纸跟着长
+	var note := UI.label(_chief_open, "赵主管：" + String(need.note), Vector2(8, 6), UI.INK, 204)
+	var y := 6.0 + note.get_line_count() * (note.get_line_height() + 1) + 6.0
+	var tip := UI.label(_chief_open, "明天面试录了对得上的人，推荐奖 ¥%d。对不对得上，看简历第二页。" % int(GameState.pay.get("chief_bonus", 0)), Vector2(8, y), UI.INK_SOFT, 204)
+	_chief_open.size.y = y + tip.get_line_count() * (tip.get_line_height() + 1) + 8.0
+	_chief_open.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			_toggle_chief_note())
+
+
+func _can_inspect() -> bool:
+	return "id_card" in RuleEngine.active_docs and not RuleEngine.active_discrepancies.is_empty()
 
 
 ## 全家福：你、老婆、孩子、你爸。
@@ -896,19 +1084,24 @@ func _bubble_pos() -> Vector2:
 
 ## 布置桌面（从菜单进）：钟停着，拖占位框摆东西，存下来以后每天都这么摆。
 func start_arrange() -> void:
-	if closing or arranging or _picker or _leave_confirm or _reveal or _vouch_confirm or _intake_form:
+	if closing or arranging or _picker or _leave_confirm or _reveal or _vouch_confirm or _folder_picker or _intake_form:
 		return
 	arranging = true
 	_close_bubble()
 	_close_inbox()
 	_hang_up()
-	var keys := ["resume", "rulebook", "photo", "phone", "pass", "reject"]
+	var keys := ["resume", "rulebook", "photo", "phone"]
+	keys.append_array(["folders", "reject_team"] if RuleEngine.folder_mode else ["pass", "reject"])
 	if _exception_stamp:
-		keys.append("exception")
+		keys.append("exception_team" if RuleEngine.folder_mode else "exception")
 	if _posting:
 		keys.append("posting")
 	if "id_card" in RuleEngine.active_docs:
-		keys.append_array(["id_card", "inspect"])
+		keys.append("id_card")
+	if _inspect_button:
+		keys.append("inspect")
+	if _chief_note:
+		keys.append("chief")
 	_arranger = DeskArranger.new()
 	add_child(_arranger)
 	_arranger.setup(keys, _place)
@@ -935,6 +1128,15 @@ func _place(key: String, at: Vector2) -> void:
 			_home_phone.position = at
 		"pass", "reject", "exception":
 			_stamps[key].position = at
+		"reject_team":
+			_stamps["reject"].position = at
+			_stamp_tray.position = at + TRAY_OFFSET
+		"exception_team":
+			_stamps["exception"].position = at
+		"folders":
+			_folder_row.position = at
+		"chief":
+			_chief_note.position = at
 		"inspect":
 			_inspect_button.position = at
 			_call_button.position = at + Vector2(0, 26)

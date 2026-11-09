@@ -1,5 +1,7 @@
 class_name ResumeQuestions
 ## 面试桌上摊着的简历：哪几行能问、每一行有没有水分、问这一行时 TA 怎么答。
+## 第一个月招实习生：学历、专业、绩点、每周几天、技能、项目、自评都能问；社招那几行（年限、工作、空窗）第二个月才有。
+## 第二个月招程序员（社招）：学历、技能、自评换成 SOCIAL 里的问法。
 ## 每一行现做一张 QuestionCard（id 是“r_”加行的 key），追问、主管反应、手写回答都照问题卡的老规矩走。
 ##
 ## 水分：普通人按诚信抽，种子跟着头像种子和行走，读档重来还是那几行；手写人物写在 Candidate.padded_lines。
@@ -48,38 +50,6 @@ const KINDS := {
 		"standard_followup": "这个……涉及前公司的信息，不太方便说吧。",
 		"flaw_followup": "叫、叫王……王总。大家都叫他王总。",
 	},
-	"skill": {
-		"probe": "ability", "chief_item": "格局",
-		"q": "技能写了 {skill}，用它做过什么？",
-		"sharp_q": "{skill}，你踩过最深的坑是什么？当时怎么查的？",
-		"honest": "上一份工作天天用 {skill}。线上出过一次问题，是我查出来的。",
-		"honest_low": "{skill} 会用，深的说不上。跟着文档能做。",
-		"admit": "{skill}……我就跟着教程做过一个 demo。写上去是因为 JD 里有。",
-		"standard": "{skill} 我非常熟练，有丰富的项目实战经验。",
-		"flaw": "{skill}……用、用过的。挺好用的。",
-		"followup": "上次用 {skill} 是什么时候？做的什么？",
-		"honest_followup": "上个月。查一个慢接口，最后改了三行。（TA 把那三行在空中比划了一下。）",
-		"honest_low_followup": "半年前吧。改了一个小功能，大部分是照着别人的抄的。",
-		"admit_followup": "教程是去年看的。……之后就没打开过。",
-		"standard_followup": "最近项目比较多，具体是哪一次……一下想不起来。",
-		"flaw_followup": "上、上次……挺久了。",
-	},
-	"self_eval": {
-		"probe": "ability", "chief_item": "格局",
-		"q": "自我评价写“{eval}”，举个例子。",
-		"sharp_q": "“{eval}”——哪件事能证明？谁能作证？",
-		"honest": "去年项目延期，全组压在我这一块。我拆成三段，每天下班前报进度，最后晚了两天，没再往后拖。",
-		"honest_low": "例子……我想想。其实也就是领导交代的事，我都做完了。",
-		"admit": "这句是模板上抄的。说实话，我不知道该写什么。",
-		"standard": "在过往工作中，我始终以高标准要求自己，多次获得领导认可。",
-		"flaw": "例、例子……很多。一下说不上来。",
-		"followup": "那年谁给你打的绩效？打了几？",
-		"honest_followup": "组长打的，B+。他说要是早点报风险，能拿 A。",
-		"honest_low_followup": "B。我们组大部分人都是 B。",
-		"admit_followup": "绩效是 C。所以我才出来找。",
-		"standard_followup": "绩效……我们公司不太公开这个。",
-		"flaw_followup": "几、几分……挺高的。",
-	},
 	"gap": {
 		"probe": "pressure", "chief_item": "稳定性",
 		"q": "空窗这段写的“{gap}”，那几个月在做什么？",
@@ -99,16 +69,96 @@ const KINDS := {
 	"edu": {
 		"probe": "ability", "chief_item": "格局",
 		"q": "{school}，在学校主要学了什么？",
-		"sharp_q": "{school}那几年，学到的哪样东西现在还在用？",
-		"honest": "{school}，{degree}。课上学的用到的不多，但写代码是那时候学会的。",
-		"honest_low": "{school}。说实话，大学没怎么好好学。",
-		"standard": "在{school}系统学习了专业知识，打下了扎实的基础。",
-		"flaw": "{school}……就、就正常读完的。",
-		"followup": "毕业设计做的什么？",
-		"honest_followup": "一个排课系统。答辩的时候老师当场找出两个 bug，我当场修了一个。",
-		"honest_low_followup": "抄了一个学长的，改了改。",
-		"standard_followup": "毕业设计……时间有点久了。",
-		"flaw_followup": "做、做的……一个系统。",
+		"sharp_q": "{school}这几年，哪门课你现在还能讲给我听？现在就讲。",
+		"honest": "{school}，{degree}。专业课一般，但我在学校公众号干了两年，排版、选题、催稿都是那时候学的。",
+		"honest_low": "{school}。说实话，课没怎么好好上，大部分时间在宿舍。",
+		"standard": "在{school}系统学习了专业知识，打下了扎实的理论基础。",
+		"flaw": "{school}……就、就正常上课。",
+		"followup": "你们系主任叫什么？",
+		"honest_followup": "（TA 报了名字，还顺口说了那人上课爱拖堂。）",
+		"honest_low_followup": "姓……姓陈吧。我只在开学典礼上见过。",
+		"standard_followup": "这个……老师比较多，我一下说不全。",
+		"flaw_followup": "叫、叫……（TA 低头看了一眼自己的简历，上面没写。）",
+	},
+	"major": {
+		"probe": "loyalty", "chief_item": "稳定性",
+		"q": "你学{major}，怎么想到来做运营？",
+		"sharp_q": "{major}和运营八竿子打不着。说实话，是不是本专业找不到工作？",
+		"honest": "{major}的课教会我看人想要什么。运营不就是干这个的吗。",
+		"honest_low": "本专业的岗位少。运营门槛低一点，我先进来再说。",
+		"admit": "说实话，是本专业找不到。投了四十多份，只有运营回了我。",
+		"standard": "我对互联网行业充满热情，运营是我一直以来的职业理想。",
+		"flaw": "就、就是喜欢。挺喜欢运营的。",
+		"followup": "你同学现在都去哪了？",
+		"honest_followup": "一半考公，一半考研，剩下几个跟我一样在投互联网。",
+		"honest_low_followup": "大部分还在找。我算找得早的。",
+		"admit_followup": "专业对口的那几个，都是家里帮忙找的。",
+		"standard_followup": "同学们都有很好的发展，我们经常交流。",
+		"flaw_followup": "去、去……各个地方。",
+	},
+	"gpa": {
+		"probe": "honesty", "chief_item": "颜值",
+		"q": "绩点 {gpa}，在你们专业排第几？",
+		"sharp_q": "绩点 {gpa}，挂过科吗？挂过几门？哪几门？",
+		"honest": "专业前百分之二十。有一门统计学重修过，写在成绩单上了。",
+		"honest_low": "中间吧。不算好，没挂过。",
+		"admit": "这个绩点是去掉了两门选修算的。全算的话只有 {real}。",
+		"standard": "我的成绩一直名列前茅，多次获得奖学金。",
+		"flaw": "排、排……挺靠前的。",
+		"followup": "成绩单带了吗？",
+		"honest_followup": "（TA 从文件袋里抽出一张盖了教务处章的成绩单，重修那一门用铅笔圈着。）",
+		"honest_low_followup": "带了。（TA 递过来。都是 B，一个 A 也没有。）",
+		"admit_followup": "带了，教务处打的。（上面印着 {real}。）",
+		"standard_followup": "成绩单……今天走得急，忘带了。",
+		"flaw_followup": "带、带了吧……（TA 翻了半天包。）",
+	},
+	"schedule": {
+		"probe": "loyalty", "chief_item": "狼性",
+		"q": "简历写每周 {days} 天、能来 {months} 个月，课怎么办？",
+		"sharp_q": "每周 {days} 天、{months} 个月——你导师知道吗？签字了吗？",
+		"honest": "课都排在周一周二了，剩下几天全是空的。导师那边我说过，他签了字。",
+		"honest_low": "课不多。有冲突的我尽量调，调不开的……可能要请半天。",
+		"admit": "其实下学期课多，{days} 天有点悬。我怕写少了你们不要。",
+		"standard": "我会合理安排时间，保证学业与工作两不误。",
+		"flaw": "课、课不多的……应该没问题。",
+		"followup": "期末那几周呢？",
+		"honest_followup": "期末两周我只能来两天，提前跟你们说。其他时候一天不少。",
+		"honest_low_followup": "期末……可能得少来几天。",
+		"admit_followup": "期末那个月基本来不了。说实话，我还没想好怎么跟你们说。",
+		"standard_followup": "期末我会提前复习，不影响工作。",
+		"flaw_followup": "期、期末……再说吧。",
+	},
+	"skill": {
+		"probe": "ability", "chief_item": "格局",
+		"q": "技能写了“{skill}”，用它做过什么？",
+		"sharp_q": "“{skill}”，现在就做给我看。最拿得出手的一次是什么？",
+		"honest": "在学校公众号天天用。有一篇推文是我做的，阅读量破了一万。",
+		"honest_low": "“{skill}”会一点，跟着教程能做出来。深的说不上。",
+		"admit": "“{skill}”……我就上过一节选修课。写上去是因为招聘要求里有。",
+		"standard": "“{skill}”我非常熟练，有丰富的实践经验。",
+		"flaw": "“{skill}”……用、用过的。挺好用的。",
+		"followup": "上次用“{skill}”是什么时候？做的什么？",
+		"honest_followup": "上周。给社团做招新海报的数据，（TA 掏出手机给你看了截图。）",
+		"honest_low_followup": "一两个月前吧。做课程作业，大部分是照着同学的改的。",
+		"admit_followup": "选修课是大二上的。……之后就没碰过。",
+		"standard_followup": "最近用得比较多，具体是哪一次……一下想不起来。",
+		"flaw_followup": "上、上次……挺久了。",
+	},
+	"self_eval": {
+		"probe": "ability", "chief_item": "格局",
+		"q": "自我评价写“{eval}”，举个例子。",
+		"sharp_q": "“{eval}”——哪件事能证明？谁能作证？",
+		"honest": "去年社团办活动，赞助商前一天跑了。我连夜打了十几个电话，第二天活动照常办。",
+		"honest_low": "例子……我想想。其实就是老师和学长交代的事，我都做完了。",
+		"admit": "这句是从网上的模板抄的。说实话，我不知道该写什么。",
+		"standard": "在校期间，我始终以高标准要求自己，多次获得老师认可。",
+		"flaw": "例、例子……很多。一下说不上来。",
+		"followup": "那件事，谁能给你作证？",
+		"honest_followup": "社团指导老师。（TA 报了老师的名字和电话。）他会说我那天差点哭了。",
+		"honest_low_followup": "……室友吧。她知道我那段时间挺忙的。",
+		"admit_followup": "没有。我编不出来。",
+		"standard_followup": "老师们都很认可我，具体……我回去问问。",
+		"flaw_followup": "作、作证……很多人都知道。",
 	},
 	"project": {
 		"probe": "ability", "chief_item": "格局",
@@ -127,6 +177,53 @@ const KINDS := {
 		"flaw_followup": "结、结果挺好的。",
 	},
 }
+## 社招（第二个月起，程序员）：学历、技能、自评三行换成社招的问法；别的行两边一样，查不到就用 KINDS。
+const SOCIAL := {
+	"edu": {
+		"probe": "ability", "chief_item": "格局",
+		"q": "{school}，在学校主要学了什么？",
+		"sharp_q": "{school}那几年，学到的哪样东西现在还在用？",
+		"honest": "{school}，{degree}。课上学的用到的不多，但写代码是那时候学会的。",
+		"honest_low": "{school}。说实话，大学没怎么好好学。",
+		"standard": "在{school}系统学习了专业知识，打下了扎实的基础。",
+		"flaw": "{school}……就、就正常读完的。",
+		"followup": "毕业设计做的什么？",
+		"honest_followup": "一个排课系统。答辩的时候老师当场找出两个 bug，我当场修了一个。",
+		"honest_low_followup": "抄了一个学长的，改了改。",
+		"standard_followup": "毕业设计……时间有点久了。",
+		"flaw_followup": "做、做的……一个系统。",
+	},	"skill": {
+		"probe": "ability", "chief_item": "格局",
+		"q": "技能写了 {skill}，用它做过什么？",
+		"sharp_q": "{skill}，你踩过最深的坑是什么？当时怎么查的？",
+		"honest": "上一份工作天天用 {skill}。线上出过一次问题，是我查出来的。",
+		"honest_low": "{skill} 会用，深的说不上。跟着文档能做。",
+		"admit": "{skill}……我就跟着教程做过一个 demo。写上去是因为 JD 里有。",
+		"standard": "{skill} 我非常熟练，有丰富的项目实战经验。",
+		"flaw": "{skill}……用、用过的。挺好用的。",
+		"followup": "上次用 {skill} 是什么时候？做的什么？",
+		"honest_followup": "上个月。查一个慢接口，最后改了三行。（TA 把那三行在空中比划了一下。）",
+		"honest_low_followup": "半年前吧。改了一个小功能，大部分是照着别人的抄的。",
+		"admit_followup": "教程是去年看的。……之后就没打开过。",
+		"standard_followup": "最近项目比较多，具体是哪一次……一下想不起来。",
+		"flaw_followup": "上、上次……挺久了。",
+	},	"self_eval": {
+		"probe": "ability", "chief_item": "格局",
+		"q": "自我评价写“{eval}”，举个例子。",
+		"sharp_q": "“{eval}”——哪件事能证明？谁能作证？",
+		"honest": "去年项目延期，全组压在我这一块。我拆成三段，每天下班前报进度，最后晚了两天，没再往后拖。",
+		"honest_low": "例子……我想想。其实也就是领导交代的事，我都做完了。",
+		"admit": "这句是模板上抄的。说实话，我不知道该写什么。",
+		"standard": "在过往工作中，我始终以高标准要求自己，多次获得领导认可。",
+		"flaw": "例、例子……很多。一下说不上来。",
+		"followup": "那年谁给你打的绩效？打了几？",
+		"honest_followup": "组长打的，B+。他说要是早点报风险，能拿 A。",
+		"honest_low_followup": "B。我们组大部分人都是 B。",
+		"admit_followup": "绩效是 C。所以我才出来找。",
+		"standard_followup": "绩效……我们公司不太公开这个。",
+		"flaw_followup": "几、几分……挺高的。",
+	},}
+
 const CHIEF := {"standard": "说得挺好。", "honest": "讲这么细干嘛。", "flaw": "……"}
 
 
@@ -140,8 +237,9 @@ static func lines(c: Candidate) -> Array[Dictionary]:
 	var edu := "%s%s · %s" % [c.degree_name(), "在读" if c.is_intern else "", c.school]
 	out.append(_line("edu", "edu", edu, base))
 	if c.is_intern:
-		out.append(_line("major", "", c.major, base))
-		out.append(_line("intern_info", "", "绩点 %.2f · 每周 %d 天 × %d 个月" % [c.gpa, c.intern_days, c.intern_months], base))
+		out.append(_line("major", "major", "专业：" + c.major, base.merged({"major": c.major})))
+		out.append(_line("gpa", "gpa", "绩点 %.2f" % c.gpa, base.merged({"gpa": "%.2f" % c.gpa})))
+		out.append(_line("schedule", "schedule", "每周 %d 天 × %d 个月" % [c.intern_days, c.intern_months], base.merged({"days": c.intern_days, "months": c.intern_months})))
 	else:
 		var exp := "年限 " + c.exp_text() + ("（%s）" % c.exp_note if c.exp_note != "" else "")
 		out.append(_line("exp", "exp", exp, base))
@@ -189,8 +287,11 @@ static func padded(c: Candidate, line: Dictionary) -> bool:
 
 ## 问这一行的那张卡。sharp 为真：玩家拖了一张尖锐卡到这行上。
 static func card_for(c: Candidate, line: Dictionary, sharp := false) -> QuestionCard:
-	var t: Dictionary = KINDS[line.kind]
+	var t: Dictionary = SOCIAL[line.kind] if not c.is_intern and SOCIAL.has(line.kind) else KINDS[line.kind]
 	var pad := padded(c, line)
+	var real := SelfIntro.truth(c, line)
+	if not real.is_empty():
+		line = line.merged({"sub": line.sub.merged({"real": real.show})}, true)
 	var card := QuestionCard.new()
 	card.id = StringName("r_" + line.key)
 	card.text_key = _fill(t.sharp_q if sharp else t.q, line.sub)

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_it_legacy"
+probes = PackedStringArray("loyalty")
+audience = "regular"
+lead_item = "协作"
+text_key = "我们的考勤系统是 2012 年写的，没人敢动。你来了第一件事干什么？"
+honest = "先不动。把它每天几点跑什么、谁在用、出过什么事记下来。记一个月，再说改不改。"
+honest_low = "……我可能会想重写。不过我知道这样不对。"
+standard = "我会用新技术对老系统进行全面升级改造，提升效率。"
+flaw = "重写啊。2012 年的东西还留着干嘛。"
+followup_text = "记一个月，你不嫌闷？"
+honest_followup = "闷。但我上一份工作重写了一个这样的系统，上线那天全公司打不了卡。"
+honest_low_followup = "……有点。可我也不想再熬夜了。"
+standard_followup = "我会保持积极的心态，在平凡的岗位上创造价值。"
+flaw_followup = "那、那我边记边重写？"
+lead_strong = "全公司打不了卡。嗯，你懂。"
+lead_flaw = "上一个说要重写的，干了两个月走了。"

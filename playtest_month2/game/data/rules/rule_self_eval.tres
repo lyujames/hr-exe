@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = &"rule_self_eval"
-day_added = 12
+day_added = 14
 title_key = "奋斗者文化"
 text_key = "自我评价里有“平衡”或“稳定”的不要。只认这两个词：写在技术词里也算，“均衡”“长期”不算。"
 reject_reason_key = "您的职业追求与团队文化不匹配。"

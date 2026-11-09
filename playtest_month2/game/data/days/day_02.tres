@@ -12,7 +12,7 @@
 script = ExtResource("1")
 day = 2
 date = "2026-03-03"
-resume_count = 4
+resume_count = 5
 screening_seconds = 140.0
 new_rules = Array[ExtResource("2")]([ExtResource("gpa")])
 story_candidates = Array[ExtResource("3")]([ExtResource("story")])

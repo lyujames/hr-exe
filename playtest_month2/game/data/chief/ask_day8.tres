@@ -4,7 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-question = "试用期工资打几折？"
-lie = "全额发，不打折。"
-safe = "按公司制度执行。"
-truth = "八折，六个月。"
+question = "公司里像我这么大的多吗？"
+student_question = "公司里跟我差不多大的人多吗？我怕跟大家聊不到一块。"
+lie = "都是年轻人，氛围特别好。"
+safe = "各个年龄段都有。"
+truth = "多。三十五以上的，这两年走得差不多了。"

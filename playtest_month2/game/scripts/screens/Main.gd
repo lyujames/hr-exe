@@ -1,5 +1,5 @@
 extends Control
-## 流程控制：晨会邮件 → [老板对质] → 筛简历 → 面试 → 日结 → 报纸 → 回家 → 第二天。
+## 流程控制：晨会邮件 → [老板对质] → 筛简历 → 面试 → 日结 → [约面] → 报纸 → 回家 → 第二天。
 
 ## 标题和结尾没有暂停菜单。
 const NO_MENU := ["res://scenes/Title.tscn", "res://scenes/SliceEnd.tscn"]
@@ -88,6 +88,13 @@ func show_interview() -> void:
 
 ## 剧情候选人那场面完，今天要是有奇葩，接着面第二场。
 func _after_interview() -> void:
+	# 按组招的日子一场接一场，排了几场面几场
+	if GameState.config.team_folders:
+		if GameState.interviewed_today.size() < GameState.sessions.size():
+			_swap("res://scenes/InterviewRoom.tscn", _after_interview)
+		else:
+			show_report()
+		return
 	if GameState.interviewed_today.size() == 1 and InterviewRoom.second_candidate():
 		_swap("res://scenes/InterviewRoom.tscn", show_report)
 	else:
@@ -95,7 +102,15 @@ func _after_interview() -> void:
 
 
 func show_report() -> void:
-	_swap("res://scenes/DayReport.tscn", show_news)
+	_swap("res://scenes/DayReport.tscn", show_booking)
+
+
+## 今天通过的人比明天的名额多才要挑（第一个月一个，第二个月见 GameState.book_slots()）；不多就全约（GameState.advance_day）。
+func show_booking() -> void:
+	if GameState.is_bankrupt() or GameState.day >= GameState.LAST_DAY or GameState.is_month_end() or GameState.passed_today.size() <= GameState.book_slots():
+		show_news()
+	else:
+		_swap("res://scenes/BookingScreen.tscn", show_news)
 
 
 func show_news() -> void:

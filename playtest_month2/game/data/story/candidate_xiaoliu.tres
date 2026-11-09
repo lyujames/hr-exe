@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-applied_position = "后端开发工程师（基础架构组）"
+applied_position = "运维工程师（基础架构组）"
 is_intern = false
 is_story = true
 docs = PackedStringArray("id_card")

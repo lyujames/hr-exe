@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-question = "公积金按全额交吗？"
-lie = "全额交。"
-safe = "按当地规定。"
-truth = "按最低基数交。"
+question = "加班有加班费吗？"
+lie = "有，严格按劳动法。"
+safe = "我们是弹性工作制。"
+truth = "没有。调休也很难批。"

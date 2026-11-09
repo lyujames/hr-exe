@@ -4,7 +4,7 @@ extends CanvasLayer
 ## 不改游戏逻辑，只调 GameState / Main / Desk 已有的函数和变量。
 
 const PANEL_RECT := Rect2(4, 4, 300, 352)
-const LAST_DAY := 14
+const LAST_DAY := 16
 
 var _root: Control
 var _panel: Control
@@ -262,9 +262,22 @@ func refill_interviewees() -> void:
 	RuleEngine.set_day(prev)
 	var pile := CandidateGenerator.generate_day(RuleEngine.load_day(prev), RuleEngine.active_rules, hash([g.run_seed, prev]))
 	var passed: Array[Candidate] = []
+	var used := {}
 	for c in pile:
 		if RuleEngine.evaluate(c).pass:
-			passed.append(c)
+			# 按组招的那天：放进对得上、还有名额的组里放得最少的那个；都满了就当没过
+			var fits := RuleEngine.fitting_folders(c).filter(func(p: JobPosting) -> bool: return int(used.get(p.title, 0)) < p.hc)
+			if RuleEngine.folder_mode:
+				if fits.is_empty():
+					continue
+				fits.sort_custom(func(a: JobPosting, b: JobPosting) -> bool: return int(used.get(a.title, 0)) < int(used.get(b.title, 0)))
+				var p: JobPosting = fits[0]
+				used[p.title] = int(used.get(p.title, 0)) + 1
+				var placed: Candidate = c.duplicate()
+				placed.folder = p.resource_path
+				passed.append(placed)
+			else:
+				passed.append(c)
 	RuleEngine.set_day(g.day)
 	g.interviewees = passed
 
@@ -276,6 +289,8 @@ func go_interview() -> void:
 		push_warning("修改器：今天没有面试者（月初第一天，或前一天没人过）")
 		return
 	GameState.interviewed_today = []
+	GameState.sessions = []
+	GameState.stats.clock = 0
 	_unpause()
 	var main := _main()
 	main.call("_swap", "res://scenes/InterviewRoom.tscn", Callable(main, "_after_interview"))
@@ -292,7 +307,7 @@ func go_home() -> void:
 
 func go_slice_end() -> void:
 	if not GameState.is_month_end() and GameState.day < LAST_DAY:
-		push_warning("修改器：月末回顾只在第 7、14 天；先跳到那天")
+		push_warning("修改器：月末回顾只在第 9、16 天；先跳到那天")
 		return
 	_unpause()
 	_main().call("next_day")
@@ -311,6 +326,12 @@ func force_boss_event() -> void:
 
 func _expected(c: Candidate) -> Dictionary:
 	var result := RuleEngine.evaluate(c)
+	if result.pass and RuleEngine.folder_mode:
+		var open := RuleEngine.fitting_folders(c).filter(func(p: JobPosting) -> bool: return not GameState.folder_full(p))
+		if open.is_empty():
+			return {"verdict": "reject", "rule": &"generic", "reason": Desk.GENERIC_REASON, "why": "拒绝：能进的组都满了"}
+		var teams := PackedStringArray(open.map(func(p: JobPosting) -> String: return p.team))
+		return {"verdict": "pass", "folder": open[0], "rule": &"", "reason": "", "why": "放进 " + " / ".join(teams)}
 	if result.pass:
 		return {"verdict": "pass", "rule": &"", "reason": "", "why": "通过"}
 	var rule: Rule = result.failed[0]
@@ -339,7 +360,10 @@ func stamp_correct() -> void:
 	if not _can_stamp(desk):
 		return
 	var e := _expected(desk.doc.candidate)
-	desk.commit(e.verdict, e.rule, e.reason)
+	if e.has("folder"):
+		desk.file_into(e.folder)
+	else:
+		desk.commit(e.verdict, e.rule, e.reason)
 
 
 func stamp_wrong() -> void:
@@ -348,6 +372,10 @@ func stamp_wrong() -> void:
 		return
 	if _expected(desk.doc.candidate).verdict == "pass":
 		desk.commit("reject", &"generic", Desk.GENERIC_REASON)
+	elif RuleEngine.folder_mode:
+		var open := RuleEngine.folders().filter(func(p: JobPosting) -> bool: return not GameState.folder_full(p))
+		if not open.is_empty():
+			desk.file_into(open[0])
 	else:
 		desk.commit("pass", &"", "")
 

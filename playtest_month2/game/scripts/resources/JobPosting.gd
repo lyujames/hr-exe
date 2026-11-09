@@ -20,3 +20,22 @@ class_name JobPosting extends Resource
 @export var skill_pool: PackedStringArray
 ## 社招简历工作经历里的职位名；空就用生成器的通用职位。
 @export var job_titles: PackedStringArray
+## 技术方向：后端 / 前端 / 运维。三个方向要的必备技能互不相同；只管某个方向的规则（Banyan 只管后端）看这个。空表示不分方向。
+@export var role: String
+
+@export_group("按组招（第 13 天起）")
+## 组名，写在文件夹上（“数据组”）；空表示这个岗位不是一个文件夹。
+@export var team: String
+## 本组期望薪资上限（k），写在文件夹上；超了不能放进这个组。
+@export var salary_cap_k := 18
+## 名额：同名岗位从开到现在一共能放进几个人（GameState.folder_filled），满了组长退回。
+@export var hc := 2
+## 加班强度 1–5，文件夹上画几颗星；影响留任期里累垮的概率（EmployeeEvents）。
+@export var workload := 3
+## 组长贴在文件夹上的一句话。
+@export var folder_note: String
+## 来面这个组的人的组长：{name, seed, cut_in, cut_in_again, next_line, bonus, opener, need: {item, note}, delay: {at: "start" | "mid", minutes, line}}。
+## 空表示还是赵主管。
+@export var lead: Dictionary = {}
+## 组长自己带来的问题，第一张是尖锐题。
+@export var lead_cards: Array[QuestionCard] = []

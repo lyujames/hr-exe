@@ -5,10 +5,17 @@ class_name RuleFramework extends Rule
 @export var framework := "Banyan"
 @export var min_years := 8
 @export var max_skills := 8
+## 只管这几个方向的岗位（JobPosting.role）：Banyan 是后端框架，前端、运维不看。空表示所有社招都管。
+@export var roles: PackedStringArray
 
 
 func applies_to(c: Candidate) -> bool:
-	return not c.is_intern
+	if c.is_intern:
+		return false
+	if roles.is_empty():
+		return true
+	var posting := RuleEngine.posting_for(c.applied_position)
+	return posting != null and posting.role in roles
 
 
 func check(c: Candidate) -> bool:

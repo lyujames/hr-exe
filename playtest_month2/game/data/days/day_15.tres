@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/chief/question_day15.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day15.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day15.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_fan_mian.tres" id="quirk"]
+[ext_resource type="Resource" path="res://data/rules/rule_age_90.tres" id="r_rule_age_90"]
+[ext_resource type="Resource" path="res://data/discrepancies/birth_resume_90.tres" id="d_birth_resume_90"]
+[ext_resource type="Resource" path="res://data/story/candidate_lizhe_cousin.tres" id="s_candidate_lizhe_cousin"]
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="qc"]
+[ext_resource type="Resource" path="res://data/leads/lead_data_sharp.tres" id="lead_data_sharp"]
+[ext_resource type="Resource" path="res://data/leads/lead_data_mentor.tres" id="lead_data_mentor"]
+[ext_resource type="Resource" path="res://data/leads/lead_data_review.tres" id="lead_data_review"]
+[ext_resource type="Resource" path="res://data/jobs/job_newproj.tres" id="j_newproj"]
+
+[resource]
+script = ExtResource("1")
+day = 15
+date = "2026-04-23"
+resume_count = 11
+screening_seconds = 205.0
+new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_age_90")])
+discrepancies = Array[ExtResource("disc")]([ExtResource("d_birth_resume_90")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_lizhe_cousin")])
+story_slot = 2
+candidate_mix = {"regular": 70, "laid_off": 20, "changer": 10}
+morning_push = "“35 岁程序员”话题再上热搜"
+boss_mail = "各位家人：\n新规矩：社招也只要 90 后。年龄看身份证，简历上写的不算。上个月你们查过，这个月照样查。\n公司要保持活力。\n运维那边基础架构组招满了，文件夹撤了。今天加开新项目组，必备技能看各组那页 JD，别拿昨天的对。\n关键词初筛系统今天上线，简历上盖了系统的章。系统帮大家把关，一个人顶两个人，今天的量翻一倍。\n—— 王总"
+coworker_note = "老周的便签：\n身份证上的出生年份，1990 年及以后。89 年 12 月的也不行。\n简历上写 90 年的，对一下身份证。上个月有人改过，这个月也有。\n我今年 47。盘点表上我自己那一行，是我自己填的。"
+bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}, {"id": "meds", "label": "父亲药费", "amount": 80}, {"id": "stent", "label": "父亲支架（进口自付）", "amount": 500, "when": "h14_stent:import"}, {"id": "coding_plus", "label": "编程进阶课", "amount": 40, "when": "h11_class:keep"}]
+broker_count = 2
+headline = "35 岁程序员自述：“我把简历上的年份改了”"
+news_body = "受访者：“改小两岁，面试多了三倍。被查出来，就说是户口报错。”"
+story_echoes = [{"when": "story_mother:reject", "mail_ps": "PS：昨天那个写“平衡”的，恒远软件的人说她是他们组最能扛的。跟我们没关系了。"}]
+family_sms = "你爸：支架放好了，不疼。医生说以后药一天都不能断。药不便宜。\n孩子：爸爸，下周编程班结课展示，你来吗？"
+sms_flag = "d15_eve"
+sms_replies = [{"key": "warm", "label": "来。请假也去。", "marriage": 1}, {"key": "curt", "label": "看那天忙不忙。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "b15_1", "at": 500, "from": "李哲他爸", "text": "李哲他爸：今天两份。上回那个面试怎么样了？有消息说一声。"}, {"id": "t15_1", "at": 560, "text": "老婆：你爸的药一个月四百多，医保报一半。", "replies": [{"key": "warm", "label": "我来出，你别操心。", "marriage": 1}, {"key": "curt", "label": "知道了。", "marriage": 0}]}, {"id": "g15_1", "at": 640, "from": "四年级(3)班家长群", "text": "班主任：结课展示下周四晚上六点半，在学校三楼，请家长尽量到场。收到请回复。", "replies": [{"key": "ok", "label": "收到。"}]}, {"id": "w15_1", "at": 660, "from": "王总", "text": "王总：今天有系统帮忙，下午三点前看完没问题吧？到现在 {done} 份。", "ignored_trust": -1, "replies": [{"key": "ok", "label": "在赶，下班前看完。"}, {"key": "curt", "label": "收到。"}]}, {"id": "t15_3", "at": 760, "from": "老婆", "text": "老婆：你爸那个药，自费的那部分我先刷了我的卡。", "replies": [{"key": "transfer", "label": "我零钱里有，转你。", "transfer": 200, "note": "你爸的药", "marriage": 1, "family": 1, "when": "wallet>=200"}, {"key": "tonight", "label": "晚上回去给你。", "marriage": 0}]}, {"id": "w15_2", "at": 800, "from": "王总", "text": "王总：数呢？", "ignored_trust": -1, "replies": [{"key": "ok", "label": "在赶，下班前看完。"}, {"key": "curt", "label": "收到。"}]}, {"id": "t15_4", "at": 810, "from": "老婆", "when": "t15_3:transfer", "text": "老婆：你哪来这么多零钱？", "ignored": -2, "replies": [{"key": "truth", "label": "以前一个熟人，帮他递简历给的辛苦费。", "marriage": -1}, {"key": "lie", "label": "年中奖金，发到微信里了。", "marriage": 0}]}, {"id": "t15_2", "at": 830, "text": "老婆：今天公司开会，说下个月可能要“优化”一批人。不知道有没有我。", "replies": [{"key": "warm", "label": "有我在，别怕。", "marriage": 1}, {"key": "curt", "label": "应该不会。", "marriage": 0}]}]
+home_scene = [{"text": "你把李哲表哥那个信封塞进公文包最里层。抽屉里三月那个还在。", "when": "took:story_lizhe_cousin&took:story_headhunter"}, {"text": "你把李哲表哥那个信封塞进了公文包最里层。", "when": "took:story_lizhe_cousin&!took:story_headhunter"}, {"text": "你赶到医院的时候，人刚推进去。你在门口的塑料椅上坐了两个钟头，手机震了三次，都是王总。", "when": "d15_left:yes"}, {"text": "你爸（麻药刚过）：你来了……工作呢？", "when": "d15_left:yes"}, {"text": "下班你先去了医院。手术做完了，你爸在睡。", "when": "!d15_left:yes"}, {"text": "护士：家属签字是一位姓刘的先生签的，一直陪到推出来。", "when": "!d15_left:yes"}, {"text": "你爸（醒过来）：小刘一直在。签字也是他签的。", "when": "!d15_left:yes"}, {"text": "到家 18:50。老婆在阳台收衣服，手机在洗衣机上亮了好几次，她都没看。"}, {"ask": "h15_wallet", "when": "t15_3:transfer&!t15_4:truth&!t15_4:lie", "options": [{"key": "truth", "label": "以前一个熟人，帮他递简历给的辛苦费。", "marriage": -1, "then": [{"text": "老婆：……熟人。"}, {"text": "她没再问。把手机扣在了桌上。"}]}, {"key": "lie", "label": "年中奖金，发到微信里了。", "then": [{"text": "老婆：你们公司还发年中奖？"}, {"text": "老婆：哦。"}]}]}, {"text": "老婆：开会说要优化。主管说以后记账都上新系统了，一个人能顶三个。"}, {"text": "老婆：我三十三了。你们 HR 筛人，三十三的会计还要吗？"}, {"ask": "h15_wife", "options": [{"key": "honest", "label": "不好找。但你不会走到那一步。", "then": [{"text": "老婆：你今天筛了几个三十三的？"}, {"text": "你：……没数。"}], "marriage": 1}, {"key": "comfort", "label": "要的，你干得那么好。", "then": [{"text": "老婆：你们的规则里，有“干得好”这一条吗？"}, {"text": "你没回答。"}]}]}, {"text": "孩子从房间探出头：“爸爸，结课展示是下周四！别忘了！”"}]
+chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
+candidate_ask = ExtResource("chief_a")
+new_postings = Array[ExtResource("jp")]([ExtResource("j_newproj")])
+retire = PackedStringArray("运维工程师（基础架构组）")
+quota = 12
+ats = true
+intake = true
+midday_call = {"at": 600, "text": "老婆：你爸十点半推进手术室。我这边真走不开。你能去吗？", "flag": "d15_left", "left": 2, "stayed": -1, "trust": -1}
+team_folders = true

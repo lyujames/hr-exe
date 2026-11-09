@@ -22,9 +22,23 @@ func _ready() -> void:
 	sticky.rotation = 0.03
 	var note := UI.label(self, cfg.coworker_note, Vector2(426, 156), UI.INK, 132)
 	note.rotation = 0.03
-	sticky.size.y = maxf(118.0, note.size.y + 12.0)
+	# 刚建的 Label 还没排版，size.y 不准：按行数算高度
+	var note_h := note.get_line_count() * (note.get_line_height() + 1) + 12.0
+	# 太长的便签往右加宽，贴出显示器边上：像素字不能再缩小
+	if note_h > 328.0 - 50.0:
+		note.custom_minimum_size.x = 196
+		note.size = Vector2(196, 0)
+		sticky.size.x = 212
+		note_h = note.get_line_count() * (note.get_line_height() + 1) + 12.0
+	sticky.size.y = maxf(118.0, note_h)
+	# 便签太长、底边出了屏幕：整张往上挪，压住推送；推送几秒后自己收走
+	var lift := minf(sticky.position.y + sticky.size.y - 328.0, sticky.position.y - 50.0)
+	var covers_push := lift > 0.0
+	if covers_push:
+		sticky.position.y -= lift
+		note.position.y -= lift
 	if cfg.morning_push != "":
-		_show_push(cfg.morning_push)
+		_show_push(cfg.morning_push, covers_push)
 	UI.button(self, "开始筛简历", Rect2(250, 298, 140, 24), finished.emit)
 	if not GameState.late_today.is_empty():
 		_show_morning()
@@ -42,8 +56,13 @@ func _show_morning() -> void:
 
 
 ## 早间推送：手机从右边滑进来，标题预告今天的新规则。
-func _show_push(text: String) -> void:
+func _show_push(text: String, fade := false) -> void:
 	var phone := UI.panel(self, Rect2(418, 52, 148, 60), Color("161b1a"), UI.BLACK)
 	UI.label(phone, "07:42　新闻推送", Vector2(8, 6), UI.GREEN_DIM)
 	UI.label(phone, text, Vector2(8, 24), UI.TEXT, 132)
-	create_tween().tween_property(phone, "position:x", 418.0, 0.3).from(640.0).set_trans(Tween.TRANS_QUAD)
+	var tween := create_tween()
+	tween.tween_property(phone, "position:x", 418.0, 0.3).from(640.0).set_trans(Tween.TRANS_QUAD)
+	if fade:
+		# 底下压着便签：看几秒就滑走
+		tween.tween_interval(3.0)
+		tween.tween_property(phone, "position:x", 640.0, 0.3).set_trans(Tween.TRANS_QUAD)

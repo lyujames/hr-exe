@@ -4,21 +4,20 @@
 
 [resource]
 script = ExtResource("1")
-id = &"chief_day9"
-text_key = "35 岁以后打算干什么？"
-probes = PackedStringArray("loyalty")
-lawsuit_risk = 1
-honest = "继续写代码。写不动了就带人，带不了人就去小公司接着写。"
-honest_low = "没想过……可能回老家吧。"
-standard = "持续学习，成为公司不可替代的人。"
-flaw = "三、三十五？还早……我还年轻。"
-followup_text = "你身边 35 岁以上的程序员，现在都在干嘛？"
-honest_followup = "我原来组长 38，上个月被优化了。现在白天开网约车，晚上还在 GitHub 上提交。"
-honest_low_followup = "……我不认识 35 岁以上的程序员。"
-standard_followup = "他们都发展得很好，有的做了管理。"
-flaw_followup = "都、都挺好的……应该挺好的。"
-chief_item = "稳定性"
-chief_standard = "不可替代，好。"
-chief_honest = "带不了人？那就是到头了。"
+id = &"chief_month_end"
+audience = "intern"
+text_key = "月底冲业绩，这阵子可能天天加班，能接受吗？"
+probes = PackedStringArray("pressure")
+honest = "可以加，但希望有加班费或者调休。"
+honest_low = "天天……我身体可能吃不消。"
+standard = "加班是成长最快的方式。"
+flaw = "天、天天吗？……可以的，可以。"
+followup_text = "上一次连着熬夜是什么时候？熬了几天？"
+honest_followup = "期末周，连着四天两点睡。熬完我睡了一整天，我知道自己的底在哪。"
+honest_low_followup = "我……一熬夜就生病。"
+standard_followup = "我精力一直很旺盛，没觉得熬过。"
+flaw_followup = "熬、熬夜？……我、我不困的。"
+chief_item = "狼性"
+chief_standard = "这就对了。"
+chief_honest = "加班费？实习生要什么加班费。"
 chief_flaw = ""
-audience = "regular"

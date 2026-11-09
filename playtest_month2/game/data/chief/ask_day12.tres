@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-question = "孩子偶尔发烧，能远程半天吗？"
-lie = "可以，我们很人性化。"
-safe = "特殊情况可以和主管沟通。"
-truth = "不能。上次有人请假，赵主管记了一笔。"
+question = "团队现在多少人？还会扩招吗？"
+lie = "今年要扩一倍。"
+safe = "看业务发展。"
+truth = "上个月走了三个，我们在补。"
