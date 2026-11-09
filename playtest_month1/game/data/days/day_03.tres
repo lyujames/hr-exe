@@ -13,8 +13,8 @@
 script = ExtResource("1")
 day = 3
 date = "2026-03-04"
-resume_count = 4
-screening_seconds = 145.0
+resume_count = 5
+screening_seconds = 140.0
 new_rules = Array[ExtResource("2")]([ExtResource("4")])
 story_candidates = Array[ExtResource("3")]([ExtResource("story"), ExtResource("story_alt")])
 story_slot = 2

@@ -6,7 +6,7 @@ const DEGREE_NAMES := ["高中", "大专", "本科", "硕士", "博士"]
 const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
-	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "is_story",
+	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "event_line", "is_story",
 	"docs", "doc_overrides", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines", "crack_lines",
 ]
 ## 公民身份号码的校验位。
@@ -86,6 +86,8 @@ const ID_CHECK := "10X98765432"
 @export_range(0, 100) var performance := 50
 ## 非空时覆盖按属性推导的员工事件（例如剧情候选人）。
 @export var event_override: StringName
+## 留任期满那天老板补的一句：出了事，把简历上本来就看得出的那几行拍到你面前；干得好，点名夸一句。空就不说。
+@export var event_line: String
 @export var is_story := false
 
 ## 只供生成器排经历用：空窗月数、几个月前离职（-1 在职）。
@@ -93,6 +95,8 @@ var gap_months := 0
 var left_months_ago := -1
 ## 只供生成器用：应届、转行、被裁……决定年龄段和自我评价。
 var background := "regular"
+## 只供生成器用：在校项目排几段，-1 表示随机 2–3 段（RuleProjects 改）。
+var project_count := -1
 
 
 ## 某份材料上写的某一项，没被改过就是事实。这个人没带那份材料时退回简历。
@@ -150,6 +154,28 @@ func first_school() -> String:
 
 func degree_name() -> String:
 	return DEGREE_NAMES[degree]
+
+
+## 赵主管的便签（DayConfig.chief_need）要的经历，纸面上有没有：简历第二页的在校项目里，
+## 有一项同时对上 project（名字里有其中一个词）、role（角色是其中一个）、months（做满几个月），没写的那条不看。
+## 他只看纸上写的，真不真是你的事。
+func fits(need: Dictionary) -> bool:
+	if not (need.has("project") or need.has("role") or need.has("months")):
+		return false
+	for p: Dictionary in projects:
+		if need.has("project") and not Array(need.project).any(func(word: String) -> bool: return word in String(p.name)):
+			continue
+		if need.has("role") and String(p.role) not in Array(need.role):
+			continue
+		if need.has("months") and project_months(p) < int(need.months):
+			continue
+		return true
+	return false
+
+
+## 一段在校项目做了几个月，起止月都算。
+static func project_months(p: Dictionary) -> int:
+	return DateUtil.month_index(p.end) - DateUtil.month_index(p.start) + 1
 
 
 ## 两段工作之间的空窗：返回较新那段的下标，没有则 -1。目前离职不算空窗，归在职规则管。

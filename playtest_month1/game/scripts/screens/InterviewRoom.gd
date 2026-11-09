@@ -7,7 +7,8 @@ class_name InterviewRoom extends Control
 ## 招程序员（第 8 天）起，主管抢的第一问总是一道尖锐题（DayConfig.chief_sharp），玩家手里也混着尖锐题卡。
 ## 当天没有剧情候选人进面试，抽中的普通人可能是个奇葩（DayConfig.quirk）：简历正常，一开口才知道。
 ## 剧情候选人进了面试、今天又有奇葩，就面两场：剧情候选人 15:00–16:30，奇葩 16:30–18:00。
-## 第 3 天起主管开场拍一张便签（DayConfig.chief_need），录用的人在他自己心里那一项够了，发主管推荐奖。
+## 第 6 天起主管每天早上在你桌上贴一张便签（DayConfig.chief_need），写他明天要什么经历；第二天面试他把这张拍在桌上，
+## 录用的人简历第二页对得上，发主管推荐奖。只看纸面，项目掺没掺水不管。
 ## 破格的人（GameState.vouched）第二天 14:00–15:00 你单独面：主管的椅子空着，没人抢问、没人改表，
 ## 评分表是空的 3 分，红笔照样只改一处；录用了记作你担保（GameState.add_hire 的 vouched）。
 ## 第 11 天起程序员按组招，坐在主管位置上的换成用人组的组长（DayConfig.interviewer）：他带自己的题、每场抢两问，
@@ -335,14 +336,23 @@ func _build_need_note() -> void:
 	note.max_lines_visible = 2
 
 
+## 赵主管的便签是昨天早上贴在你桌上的：昨天筛的人，今天来面。组长的便签当天写。
 func chief_need() -> Dictionary:
-	return {} if solo else GameState.config.chief_need
+	if solo:
+		return {}
+	if lead or GameState.day <= 1:
+		return GameState.config.chief_need
+	return RuleEngine.load_day(GameState.day - 1).chief_need
 
 
-## 他要的那一项，他自己心里够了没有。
+## 他要的人：便签写的是经历，就看简历第二页对不对得上（只看纸面）；写的是评分项，看他自己心里那一项够了没有。
 func is_chief_pick() -> bool:
 	var need := chief_need()
-	return not need.is_empty() and int(chief_marks.get(need.item, 0)) >= CHIEF_PICK_MARK
+	if need.is_empty():
+		return false
+	if need.has("project") or need.has("role") or need.has("months"):
+		return candidate.fits(need)
+	return int(chief_marks.get(need.item, 0)) >= CHIEF_PICK_MARK
 
 
 ## 第一场优先剧情候选人，否则从昨天通过的人里随机抽，今天有奇葩就是这个人；第二场就是奇葩。

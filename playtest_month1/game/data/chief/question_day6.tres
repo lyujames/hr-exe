@@ -4,21 +4,20 @@
 
 [resource]
 script = ExtResource("1")
-id = &"chief_marriage"
-text_key = "有对象吗？在本地吗？随便问问。"
-probes = PackedStringArray("honesty")
-honest = "这和岗位有关吗？"
-honest_low = "有，在外地。毕业可能过去找他。"
-standard = "目前以学业和工作为重。"
-flaw = "没、没有。真的没有。"
-lawsuit_risk = 1
+id = &"chief_led"
 audience = "intern"
-followup_text = "那以后打算在哪边发展？"
-honest_followup = "在哪边是我自己的事。我能保证的是这半年。"
-honest_low_followup = "可能……跟着他走吧。"
-standard_followup = "以后……这个我还没想那么远。"
-flaw_followup = "以、以后？……就、就这边。"
-chief_item = "稳定性"
-chief_standard = "嗯，年轻人以事业为重。"
-chief_honest = "（脸一沉）随便问问嘛。"
+text_key = "你简历上这几个项目，哪个是你从头带到尾的？"
+probes = PackedStringArray("honesty")
+honest = "从头带到尾的没有。公众号那个，活基本是我干的，挂名的不是我。"
+honest_low = "都……都是跟着学长学姐做的。"
+standard = "每个项目我都深度参与，全程负责。"
+flaw = "都、都是我带的。三个都是。"
+followup_text = "那你带的人里，现在谁还跟你有联系？"
+honest_followup = "就一个学妹，现在那个号是她在更。她有不会的还来问我。"
+honest_low_followup = "我……没带过人。"
+standard_followup = "大家关系都很好，经常交流。"
+flaw_followup = "联、联系？……都、都还有吧。"
+chief_item = "狼性"
+chief_standard = "带过就行。"
+chief_honest = "挂名不是你，那就不算你的。"
 chief_flaw = ""

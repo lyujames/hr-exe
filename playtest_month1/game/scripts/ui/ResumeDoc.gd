@@ -83,22 +83,29 @@ func _note(text: String, line: int) -> int:
 
 func _render_back() -> void:
 	var c := candidate
-	if c.is_intern:
-		_render_projects()
-	else:
+	# 自评有长有短：项目少就往上提，附件接在自评实际的最后一行下面，不叠字
+	var y := float(_render_projects() if c.is_intern else 172)
+	if not c.is_intern:
 		_render_jobs()
-	UI.label(_content, "自我评价", Vector2(8, 172), UI.INK_SOFT)
-	UI.label(_content, c.self_eval, Vector2(8, 188), UI.INK, 216)
-	UI.label(_content, "附：" + c.attachment, Vector2(8, 222), UI.INK_SOFT, 216)
+	y = maxf(minf(y, 172.0), 110.0)
+	UI.label(_content, "自我评价", Vector2(8, y), UI.INK_SOFT)
+	var eval := UI.label(_content, c.self_eval, Vector2(8, y + 16), UI.INK, 216)
+	y += 16.0 + eval.get_line_count() * (eval.get_line_height() + 1) + 4.0
+	UI.label(_content, "附：" + c.attachment, Vector2(8, y), UI.INK_SOFT, 216)
 
 
-func _render_projects() -> void:
+## 返回项目下面空出来的那一行。
+func _render_projects() -> int:
 	UI.label(_content, "在校项目（从新到旧）", Vector2(8, 8), UI.INK_SOFT)
 	var line := 26
+	if candidate.projects.is_empty():
+		UI.label(_content, "（未填写）", Vector2(8, line), UI.INK)
+		line += 20
 	for project: Dictionary in candidate.projects:
 		UI.label(_content, "%s – %s" % [project.start.replace("-", "."), project.end.replace("-", ".")], Vector2(8, line), UI.INK)
 		UI.label(_content, "%s · %s" % [project.name, project.role], Vector2(16, line + 14), UI.INK_SOFT, 208)
 		line += 44
+	return line + 2
 
 
 func _render_jobs() -> void:

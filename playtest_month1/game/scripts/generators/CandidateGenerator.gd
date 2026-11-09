@@ -61,6 +61,7 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int, late
 	for i in cfg.resume_count:
 		var background := _pick_background(rng, cfg.candidate_mix)
 		var c := _generate(rng, rules, "gen_%d_%02d" % [cfg.day, i], background, cfg.day)
+		_seed_chief_need(c, cfg.chief_need, rng)
 		_attach_docs(c, rng)
 		result.append(c)
 	# 倒着插，同一个位置上几个人按 story_candidates 的顺序排
@@ -69,6 +70,17 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int, late
 	for story: Candidate in stories:
 		result.insert(0 if late else mini(cfg.story_slot, result.size()), story)
 	return result
+
+
+## 赵主管便签上要的那种项目，往几份简历里多撒一点，免得一整叠都对不上；角色和时长照旧随机，对不对得上还得看纸。
+const CHIEF_SEED_CHANCE := 0.35
+
+
+static func _seed_chief_need(c: Candidate, need: Dictionary, rng: RandomNumberGenerator) -> void:
+	var names: Array = need.get("seed_projects", [])
+	if names.is_empty() or c.projects.is_empty() or rng.randf() >= CHIEF_SEED_CHANCE:
+		return
+	c.projects[rng.randi_range(0, c.projects.size() - 1)].name = names[rng.randi_range(0, names.size() - 1)]
 
 
 ## 发材料，再按密度埋矛盾。矛盾只改材料上写的，事实不动，所以判定和陷阱密度不受影响。
@@ -254,14 +266,16 @@ static func build_jobs(c: Candidate, rng: RandomNumberGenerator) -> void:
 		c.gap_note = ""
 
 
-## 在校项目：从今天往回排 2–3 段，每段 2–8 个月，彼此可以重叠一点，不算空窗。
+## 在校项目：从今天往回排 2–3 段（RuleProjects 可改成 0 或 1 段），每段 2–8 个月，彼此可以重叠一点，不算空窗。
 static func build_projects(c: Candidate, rng: RandomNumberGenerator) -> void:
 	var pool := PROJECTS.duplicate()
 	var cursor := DateUtil.month_index(GameState.today) - rng.randi_range(0, 4)
 	c.jobs = []
 	c.projects = []
-	for i in rng.randi_range(2, 3):
-		var length := rng.randi_range(2, 8)
+	var count := c.project_count if c.project_count >= 0 else rng.randi_range(2, 3)
+	for i in count:
+		# 只有一段的（压线）做得也短
+		var length := rng.randi_range(2, 3) if count == 1 else rng.randi_range(2, 8)
 		c.projects.append({
 			"name": pool.pop_at(rng.randi_range(0, pool.size() - 1)),
 			"role": PROJECT_ROLES[rng.randi_range(0, PROJECT_ROLES.size() - 1)],

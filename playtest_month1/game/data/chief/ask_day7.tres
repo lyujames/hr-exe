@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-question = "实习补贴每个月几号发？"
-student_question = "补贴每个月几号发呀？我想算一下房租。"
-lie = "每月 10 号，从来没晚过。"
-safe = "按公司规定的发薪日发。"
-truth = "说实话……这个月我也不知道。"
+question = "实习结束能开实习证明吗？"
+student_question = "实习结束能开实习证明吗？学校要求一定要交的。"
+lie = "当然，离职当天就开。"
+safe = "按公司流程走。"
+truth = "要干满六个月才开。提前走的，一个字都没有。"

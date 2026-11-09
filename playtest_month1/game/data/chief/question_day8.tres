@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_commute"
+audience = "intern"
+text_key = "你住哪？过来要多久？我们早上九点打卡。"
+probes = PackedStringArray("loyalty")
+honest = "学校在城东，地铁一个小时十分钟。我会早点出门。"
+honest_low = "一个半小时……可能有时候赶不上。"
+standard = "通勤不是问题，我会提前规划。"
+flaw = "不、不远。很近的。"
+followup_text = "冬天下雨呢？六点就得起吧。"
+honest_followup = "六点十分的闹钟。去年做调研，我连着三个月六点起。"
+honest_low_followup = "下雨……那可能就迟到了。"
+standard_followup = "我作息一直很规律。"
+flaw_followup = "下、下雨？……我、我打车。"
+chief_item = "稳定性"
+chief_standard = "那就好。"
+chief_honest = "一个多小时？那你干不长。"
+chief_flaw = ""

@@ -83,6 +83,9 @@ var day_end := DAY_END
 var _exception_stamp: StampTool
 var _reveal: Control
 var _vouch_confirm: Control
+## 赵主管早上贴的便签，没有就是 null；_chief_open 是点开摊在桌上的那张。
+var _chief_note: Control
+var _chief_open: Panel
 
 
 func _ready() -> void:
@@ -117,6 +120,7 @@ func _build_room() -> void:
 		UI.panel(self, Rect2(16 + i * 22, 320, 12, 4), Color("3a2f2a"))
 
 	_build_family()
+	_build_chief_note()
 
 	# 桌上所有纸都在同一层：按下哪张哪张置顶，新递上来的简历、身份证压在最上面；
 	# 这一层整个在印章、质询按钮下面，手册点得再多也盖不住它们。
@@ -139,7 +143,8 @@ func _build_room() -> void:
 	_lines = InspectLines.new()
 	add_child(_lines)
 	_toast = UI.label(self, "", Vector2(150, 1), UI.YELLOW)
-	if "id_card" in RuleEngine.active_docs:
+	# 身份证先上桌、只核年龄；材料之间开始有矛盾的那天，才有质询
+	if _can_inspect():
 		var at := DeskLayout.pos("inspect")
 		_inspect_button = UI.button(self, "质询", Rect2(at, Vector2(60, 22)), toggle_inspect)
 		_call_button = UI.button(self, "打电话", Rect2(at + Vector2(0, 26), Vector2(60, 22)), call_candidate)
@@ -627,6 +632,48 @@ func _answer_envelope(taken: bool) -> void:
 	UI.label(_envelope, "（¥%d 进了抽屉。）" % amount if taken else "（原样塞回简历里了。）", Vector2(6, 104 if narrow else 64), UI.INK_SOFT, _envelope.size.x - 12)
 
 
+## 赵主管早上贴在桌角的便签：今天筛的人里，他明天想见什么样的。
+## 桌角窄，便签上只写一句要点（need.short）；点一下摊开整张，再点收起。
+func _build_chief_note() -> void:
+	var need: Dictionary = GameState.config.chief_need
+	if need.is_empty() or not GameState.config.interviewer.is_empty():
+		return
+	_chief_note = Control.new()
+	_chief_note.position = DeskLayout.pos("chief")
+	_chief_note.size = DeskLayout.size_of("chief")
+	add_child(_chief_note)
+	for node: Control in [
+		UI.panel(_chief_note, Rect2(Vector2(2, 2), _chief_note.size), Color(0, 0, 0, 0.3)),
+		UI.panel(_chief_note, Rect2(Vector2.ZERO, _chief_note.size), UI.YELLOW),
+		UI.label(_chief_note, "赵主管要：", Vector2(4, 1), UI.INK_SOFT),
+		UI.label(_chief_note, String(need.get("short", need.note)), Vector2(4, 17), UI.INK, _chief_note.size.x - 8),
+	]:
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	DeskDrag.attach(_chief_note, "chief", _toggle_chief_note)
+
+
+func _toggle_chief_note() -> void:
+	if _chief_open:
+		_chief_open.queue_free()
+		_chief_open = null
+		return
+	var need: Dictionary = GameState.config.chief_need
+	_chief_open = UI.panel(self, Rect2(_chief_note.position + Vector2(_chief_note.size.x + 4, -24), Vector2(220, 0)), UI.YELLOW, UI.BLACK)
+	_chief_open.rotation = -0.02
+	# 两段都会折行：先入树量高度，再往下排，纸跟着长
+	var note := UI.label(_chief_open, "赵主管：" + String(need.note), Vector2(8, 6), UI.INK, 204)
+	var y := 6.0 + note.get_line_count() * (note.get_line_height() + 1) + 6.0
+	var tip := UI.label(_chief_open, "明天面试录了对得上的人，推荐奖 ¥%d。对不对得上，看简历第二页。" % int(GameState.pay.get("chief_bonus", 0)), Vector2(8, y), UI.INK_SOFT, 204)
+	_chief_open.size.y = y + tip.get_line_count() * (tip.get_line_height() + 1) + 8.0
+	_chief_open.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			_toggle_chief_note())
+
+
+func _can_inspect() -> bool:
+	return "id_card" in RuleEngine.active_docs and not RuleEngine.active_discrepancies.is_empty()
+
+
 ## 全家福：你、老婆、孩子、你爸。
 func _build_family() -> void:
 	var photo: Control = FamilyPhoto.new()
@@ -837,7 +884,11 @@ func start_arrange() -> void:
 	if _posting:
 		keys.append("posting")
 	if "id_card" in RuleEngine.active_docs:
-		keys.append_array(["id_card", "inspect"])
+		keys.append("id_card")
+	if _inspect_button:
+		keys.append("inspect")
+	if _chief_note:
+		keys.append("chief")
 	_arranger = DeskArranger.new()
 	add_child(_arranger)
 	_arranger.setup(keys, _place)
@@ -864,6 +915,8 @@ func _place(key: String, at: Vector2) -> void:
 			_home_phone.position = at
 		"pass", "reject", "exception":
 			_stamps[key].position = at
+		"chief":
+			_chief_note.position = at
 		"inspect":
 			_inspect_button.position = at
 			_call_button.position = at + Vector2(0, 26)

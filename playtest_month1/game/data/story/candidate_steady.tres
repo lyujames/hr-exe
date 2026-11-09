@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_steady"
+display_name = "方晓"
+applied_position = "产品运营实习生"
+birth_date = "2004-08-21"
+degree = 2
+school = "西川财经大学"
+skills = PackedStringArray("社群运营", "Excel", "问卷星", "剪映")
+is_intern = true
+major = "广告学"
+gpa = 3.06
+projects = [{"name": "校园二手交易小程序", "role": "成员", "start": "2024-09", "end": "2026-02"}, {"name": "支教社会实践", "role": "志愿者", "start": "2025-07", "end": "2025-08"}]
+intern_days = 5
+intern_months = 8
+salary_k = 0
+jobs = []
+self_eval = "二手小程序里我管用户群：三个五百人的群，每条投诉我都回过。投诉最多的是“砍价不回”，我加了个自动提醒，卖家回复率从三成涨到七成。"
+attachment = "用户群投诉分类表（手写，附后）。"
+portrait_seed = 20260303
+event_line = "王总在后面又加了一句：“新来的实习生方晓，用户群凌晨一点还在回投诉，一条没漏。这种人实习期满给她转正。”"
+ability = 80
+honesty = 90
+loyalty = 75
+pressure = 65
+performance = 70
+answers = {"q_project": "小程序不是我写的，我是管群的。每天晚上十点我把当天的投诉抄一遍，分成五类，这张表我带来了。", "q_project+": "最难的一次是有人在群里刷单，假发货、真收钱。我连着三个晚上两点睡，一个个对聊天记录，踢了四十多个号。被骗的那几个同学，我挨个帮他们找卖家要回了钱。", "q_chores": "能。拿快递我会顺手记一下谁的件放了几天没取，订会议室我会提前一天再确认一遍。小事做漏了，大事也不会有人交给你。", "q_weakness": "慢。我回一条投诉要先把前因后果问清楚，所以别人一晚上回五十条，我回二十条。但我回过的，没有再来投诉第二次的。", "q_return_offer": "那我也把交接文档写完再走。群我是怎么管的、哪些卖家要盯着，写清楚，下一个人不用从头摸。", "q_intern_role": "运营实习，我理解就是替用户把那些没人管的小事管起来。比如投诉没人回，就是我的事。", "q_friday": "回。先回“在”，再问是什么事。真要今晚弄完的，我就弄完。"}
+epilogue = {"hired": "你录了她。第一周她就把用户反馈分好类贴在工位隔板上，她管的群，投诉没有一条过夜。月底，王总在全员群里宣布：方晓转正。", "pass": "你约了她，面试后没录用。她去了一家做二手交易的公司，接着管群。", "unbooked": "你放了她，那天晚上你约的是别人。她去了一家做二手交易的公司，接着管群。", "reject": "你拒了她：“{reason}”。她哪条规则都没违反。"}
+is_story = true
