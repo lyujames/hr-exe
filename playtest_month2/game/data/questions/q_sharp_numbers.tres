@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_sharp_numbers"
+text_key = "简历上那些“提升”“优化”，具体从多少到多少？"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+honest = "接口 P99 从 1.2 秒到 300 毫秒。压测用的线上流量回放，不是自己造的数。"
+honest_low = "那个数……是组长写周报时算的，我照抄的。"
+standard = "通过一系列优化手段，系统整体性能提升了 300%。"
+flaw = "从、从很慢到很快。提升了很多。"
+followup_text = "是 P99 还是平均值？压测开了几台机器？"
+honest_followup = "P99。压测四台，线上十二台，所以又在线上灰度了一周，才敢写进简历。"
+honest_low_followup = "……P99 是什么？"
+standard_followup = "这个是……综合指标，涵盖多个维度。"
+flaw_followup = "几、几台……挺多台的。"
+chief_item = "狼性"
+chief_standard = "300%，数字漂亮。"
+chief_honest = "一堆数，听不懂。"
+chief_flaw = "……嗯。"

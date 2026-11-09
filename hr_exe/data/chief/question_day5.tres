@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_month_end"
+text_key = "月底冲业绩，这阵子可能天天加班，能接受吗？"
+probes = PackedStringArray("pressure")
+honest = "可以加，但希望有加班费或者调休。"
+honest_low = "天天……我身体可能吃不消。"
+standard = "加班是成长最快的方式。"
+flaw = "天、天天吗？……可以的，可以。"

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleSchool" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleSchool.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_school"
+day_added = 6
+title_key = "第一学历"
+text_key = "只要名校：东江大学、南山理工大学、西川财经大学。读了研的看本科；“××大学科文学院”这类不算。"
+reject_reason_key = "您的教育背景与岗位要求不匹配。"
+is_absurd = true
+whitelist = PackedStringArray("东江大学", "南山理工大学", "西川财经大学")

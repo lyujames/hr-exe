@@ -21,7 +21,7 @@ func setup(data: Dictionary) -> void:
 	add_child(boss)
 	UI.label(self, "王总", Vector2(108, 254), UI.TEXT_DIM)
 	UI.panel(self, Rect2(214, 40, 390, 118), UI.PAPER, UI.BLACK)
-	UI.label(self, event.title, Vector2(226, 48), UI.RED if event.fine > 0 else UI.INK)
+	UI.label(self, event.title, Vector2(226, 48), UI.RED if event.blame else UI.INK)
 	UI.label(self, event.body, Vector2(226, 70), UI.INK, 366)
 	_reply = UI.label(self, "", Vector2(226, 136), UI.INK_SOFT, 366)
 	_options = Control.new()

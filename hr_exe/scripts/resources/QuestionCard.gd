@@ -24,7 +24,7 @@ class_name QuestionCard extends Resource
 
 
 func available_for(c: Candidate) -> bool:
-	return not requires_gap or c.max_gap_months(GameState.today) >= 2
+	return not requires_gap or c.has_gap()
 
 
 func answer(c: Candidate) -> Dictionary:

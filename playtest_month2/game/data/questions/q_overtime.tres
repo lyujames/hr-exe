@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_overtime"
+audience = "regular"
+text_key = "你怎么看加班？"
+probes = PackedStringArray("pressure", "performance")
+honest = "必要时可以，但长期加班说明流程有问题。"
+honest_low = "老实说，我扛不住长期加班。"
+standard = "我把公司当成自己的事业。"
+flaw = "加、加班我都行……真的，都行。"
+chief_item = "狼性"
+chief_standard = "这个有狼性。"
+chief_honest = "这话在我们这儿不用说这么细。"
+chief_flaw = "都行就好。都行最好。"
+

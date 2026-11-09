@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_sharp_day12"
+text_key = "凌晨三点线上挂了，你领导电话打不通，你怎么办？"
+probes = PackedStringArray("pressure")
+audience = "regular"
+sharp = true
+honest = "先止血：回滚到上一个版本，在群里发一句“已回滚，原因待查”。不等谁批，事后我认。"
+honest_low = "……继续打。打到通为止。我不敢自己做决定。"
+standard = "我会第一时间响应，迅速定位问题，必要时上报更高层级领导。"
+flaw = "打、打不通就……等他醒？"
+followup_text = "回滚回错了，数据也脏了，怎么办？"
+honest_followup = "停写，留现场，从昨晚的备份加 binlog 往回补。补完对一遍账，对不上的单子列给财务。天亮前写好事故说明。"
+honest_low_followup = "……那我就完了。（TA 笑了一下，没笑出来。）"
+standard_followup = "这个……要看具体情况，需要团队协同处理。"
+flaw_followup = "回、回错了……再回一次？"
+chief_item = "狼性"
+chief_standard = "第一时间响应，好。"
+chief_honest = "你一个人就敢回滚？"
+chief_flaw = "等他醒？"

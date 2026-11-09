@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_philosophy"
+display_name = "苏见青"
+applied_position = "产品运营实习生"
+birth_date = "2005-04-02"
+degree = 2
+school = "东江大学"
+skills = PackedStringArray("文案写作", "新媒体排版", "采访", "英语六级")
+is_intern = true
+major = "哲学"
+gpa = 3.86
+projects = [{"name": "个人公众号《凌晨四点》", "role": "主笔", "start": "2025-06", "end": "2026-02"}, {"name": "学院公众号运营", "role": "负责人", "start": "2024-09", "end": "2025-06"}, {"name": "支教社会实践", "role": "成员", "start": "2024-07", "end": "2024-08"}]
+intern_days = 5
+intern_months = 12
+salary_k = 0
+self_eval = "我学的是哲学。我写的东西，有人愿意看完。"
+attachment = "作品：《凌晨四点的外卖站》，阅读 10 万+。"
+portrait_seed = 20260304
+ability = 88
+honesty = 80
+loyalty = 65
+pressure = 55
+performance = 25
+answers = {"q_intern_role": "写东西，让人愿意看完。剩下的拉群、盯数据，我可以学。", "q_project": "外卖站那篇，我凌晨四点在站点蹲了一周。每个字都是我自己的。", "q_our_app": "用过。推送文案像说明书，没人会点开。我改写了三条，夹在简历后面。", "q_data_test": "（算了很久，算对了。）我会算，只是慢一点。", "q_chores": "能。拿快递的路上也能想选题。", "q_schedule": "大三课少，每周五天都能来。", "q_return_offer": "那我就带着在这儿写的东西去下一家。", "q_friday": "先回“在”。哲学没教我怎么拒绝领导。", "q_weakness": "专业。您的手册上写着。", "chief_intern_job": "听说什么都干。我只怕没东西可写。", "chief_weekend": "可以。写东西本来就没有周末。", "chief_thesis": "大三，还没有论文。能干满一年。"}
+epilogue = {"hired": "你放了她。她写的第一条推送，王总转进了全员群。", "pass": "你放了她，面试后没录用。她去了竞品公司。", "reject": "你回她：“{reason}”。当晚的报纸登了她的话。"}
+is_story = true

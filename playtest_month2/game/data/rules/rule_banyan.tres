@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RuleFramework" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleFramework.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_banyan"
+day_added = 14
+title_key = "框架经验"
+text_key = "核心系统用 Banyan 重构：技能栏里要写着 Banyan，括号里满 8 年才算。"
+reject_reason_key = "您的框架经验不满足岗位要求。"
+is_absurd = true
+framework = "Banyan"
+min_years = 8
+max_skills = 8

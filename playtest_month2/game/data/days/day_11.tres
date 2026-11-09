@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/chief/question_day11.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day11.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day11.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_tan_jia.tres" id="quirk"]
+[ext_resource type="Resource" path="res://data/rules/rule_employed.tres" id="r_rule_employed"]
+[ext_resource type="Resource" path="res://data/story/candidate_xiaoliu.tres" id="s_candidate_xiaoliu"]
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="qc"]
+[ext_resource type="Resource" path="res://data/leads/lead_trade_sharp.tres" id="lead_trade_sharp"]
+[ext_resource type="Resource" path="res://data/leads/lead_trade_refund.tres" id="lead_trade_refund"]
+[ext_resource type="Resource" path="res://data/leads/lead_trade_blame.tres" id="lead_trade_blame"]
+[ext_resource type="Resource" path="res://data/jobs/job_infra.tres" id="j_infra"]
+
+[resource]
+script = ExtResource("1")
+day = 11
+date = "2026-04-08"
+resume_count = 6
+screening_seconds = 190.0
+new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_employed")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_xiaoliu")])
+story_slot = 1
+candidate_mix = {"regular": 70, "laid_off": 20, "changer": 10}
+morning_push = "“骑驴找马”成求职共识：裸辞者面试通过率更低"
+boss_mail = "各位家人：\n新规矩：不要裸辞的。在职的人才有人要，没人要的人我们也不要。\n最近一段写“至今”才算在职；附注里自己说已经离职的，也算裸辞。\n今天开的是基础架构组的 HC，JD 换了一页，必备技能照 JD 对。\n老周这段时间去三楼配合公司做人员盘点，入离职手续你先顺手接一下。\n—— 王总"
+coworker_note = "老周的便签（三楼）：\n翻到第二页看最近一段：写“至今”才算在职。这个月刚走的写的是月份，不算。\n附注写“已离职，可随时到岗”的也不行。\n今天有份简历，推荐人那栏写着“您父亲的老同事”。我什么都没看见。\nGolang 不是 Go，Unix 不是 Linux。"
+bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}, {"id": "coding_plus", "label": "编程进阶课", "amount": 40, "when": "h9_class:keep"}]
+headline = "裁员潮下的求职者：“我不敢辞职，也不敢不辞职”"
+news_body = "调查称，被裁员工平均要四个月才能找到下一份工作。“空着越久，越没人要。”"
+story_echoes = [{"when": "story_xiaoliu:reject", "sms": "你爸：小刘打电话来了。你忙吧。"}, {"when": "story_xiaoliu:pass", "sms": "你爸：小刘说他儿子明天去面试！你够意思。"}]
+family_sms = "老婆：今天我们部门新来的主管问我，二胎什么打算。我说没打算。\n孩子：爸爸，编程班要交新学期的钱了。"
+sms_flag = "d11_eve"
+sms_replies = [{"key": "warm", "label": "他问这个本来就不对，你别往心里去。", "marriage": 1}, {"key": "curt", "label": "随便答答就行。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "t11_1", "at": 570, "text": "老婆：小刘儿子的简历是今天投吧？你爸早上打了两个电话问。", "replies": [{"key": "warm", "label": "我按规矩看，看完给他个准话。", "marriage": 1}, {"key": "curt", "label": "知道了。", "marriage": 0}]}, {"id": "t11_3", "at": 700, "text": "老婆：你爸上午去医院拿复查报告，在门口晕了一下。是小刘开车送回去的，陪到现在。你爸不让告诉你。", "replies": [{"key": "warm", "label": "我下班就过去看他。", "marriage": 1}, {"key": "curt", "label": "人没事吧？", "marriage": 0}]}, {"id": "t11_2", "at": 820, "text": "老婆：你爸又打来了。我说你在开会。", "replies": [{"key": "warm", "label": "辛苦你了，晚上我跟他说。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:55。你爸在楼下等你，脸色还有点白，手里拎着一袋水果。"}, {"text": "你爸：小刘把我送回来的，陪了一下午。他儿子的事，他一句都没提。"}, {"text": "你爸：怎么样？小刘他儿子。"}, {"text": "你：简历过了，明天面试。", "when": "story:story_xiaoliu:pass"}, {"text": "你爸：好，好。我就知道。", "when": "story:story_xiaoliu:pass"}, {"text": "你：今天没看到他那份。", "when": "story:story_xiaoliu:"}, {"text": "你爸：……那就是还没到你手上。", "when": "story:story_xiaoliu:"}, {"text": "你：没过。工作年限不够，他还没上过班。", "when": "story:story_xiaoliu:reject"}, {"text": "你爸：没上过班，才要找工作啊。", "when": "story:story_xiaoliu:reject"}, {"ask": "h11_dad", "options": [{"key": "rule", "label": "规矩是公司定的，我也没办法。", "then": [{"text": "你爸：规矩。你小时候发烧，是小刘骑车送你去的医院。那时候也没讲规矩。"}, {"text": "他把水果塞给你，自己走了。"}]}, {"key": "sorry", "label": "爸，对不起。", "then": [{"text": "你爸愣了一下：“……跟我说什么对不起。”"}, {"text": "他拍了拍你的肩膀，把水果塞给你，走了。"}], "marriage": 1}], "when": "story:story_xiaoliu:reject"}, {"text": "老婆：今天那个主管问的，你们 HR 是不是都这么问？", "when": "d11_eve:curt"}, {"text": "你没说话。赵主管的问题里，有这一句。", "when": "d11_eve:curt"}, {"text": "上楼的时候，孩子在给编程作业录屏。小猫终于走出了迷宫。"}]
+chief_opener = "交易组林川。赵主管开会，我替他。我只问技术。"
+chief_need = {"item": "技术", "note": "林组长：交易组要能扛线上的。"}
+chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
+candidate_ask = ExtResource("chief_a")
+new_postings = Array[ExtResource("jp")]([ExtResource("j_infra")])
+retire = PackedStringArray("后端开发工程师（交易组）")
+interviewer = {"name": "林组长", "seed": 2803, "cut_in": "林组长合上电脑：", "cut_in_again": "林组长又抬起头：", "next_line": "下一个。十分钟后我还有个发布。", "bonus": "组长推荐奖"}
+lead_cards = Array[ExtResource("qc")]([ExtResource("lead_trade_sharp"), ExtResource("lead_trade_refund"), ExtResource("lead_trade_blame")])
+intake = true

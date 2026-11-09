@@ -1,21 +1,26 @@
 class_name RuleAgeLimit extends Rule
 
-## 允许的最大周岁。“35 岁以下”即 34，满 35 周岁当天起拒绝。
-@export var max_age := 34
+## “只要 90 后”：只看出生年份，不算周岁。带了身份证的看身份证，简历上写的不算。
+@export var min_birth_year := 1990
 
 
 func check(c: Candidate) -> bool:
-	return c.get_age(GameState.today) <= max_age
+	return DateUtil.parse(c.fact("birth_date", "id_card")).x >= min_birth_year
 
 
 func shape(c: Candidate, form: Shape, rng: RandomNumberGenerator) -> void:
-	var today := GameState.today
+	var latest := DateUtil.parse(GameState.today).x - 25
+	var year := 0
+	var month := rng.randi_range(1, 12)
 	match form:
 		Shape.PASS:
-			c.birth_date = DateUtil.years_before(today, rng.randi_range(max_age - 10, max_age - 2), -rng.randi_range(0, 300))
+			year = rng.randi_range(min_birth_year + 1, maxi(latest, min_birth_year + 1))
 		Shape.EDGE_PASS:
-			c.birth_date = DateUtil.years_before(today, max_age + 1, rng.randi_range(1, 30))
+			year = min_birth_year
+			month = rng.randi_range(1, 3)
 		Shape.EDGE_FAIL:
-			c.birth_date = DateUtil.years_before(today, max_age + 1, -rng.randi_range(0, 30))
+			year = min_birth_year - 1
+			month = rng.randi_range(10, 12)
 		Shape.FAIL:
-			c.birth_date = DateUtil.years_before(today, rng.randi_range(max_age + 3, max_age + 12), -rng.randi_range(0, 300))
+			year = rng.randi_range(min_birth_year - 10, min_birth_year - 3)
+	c.birth_date = DateUtil.format(Vector3i(year, month, rng.randi_range(1, 28)))

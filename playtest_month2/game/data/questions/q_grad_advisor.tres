@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_grad_advisor"
+text_key = "导师知道你出来实习吗？实验室那边放人吗？"
+probes = PackedStringArray("honesty")
+honest = "知道，签了字。但组会每周要回去一次。"
+honest_low = "还没敢说……先实习，被发现再说。"
+standard = "导师非常支持我们接触业界。"
+flaw = "知、知道的。大概知道。"
+audience = "grad"
+chief_item = "稳定性"
+chief_standard = "导师支持就好，别半路被叫回去。"
+chief_honest = "每周回去一次？那就是每周少一天。"
+chief_flaw = "导师那边你自己搞定。"
+followup_text = "导师签字的单子带了吗？"
+honest_followup = "带了。（TA 从文件袋里抽出来，日期是上周的。）"
+honest_low_followup = "……还没签。我想等拿到 offer 再去说。"
+standard_followup = "单子……在实验室，回头补。"
+flaw_followup = "签、签字？……要签字吗？"

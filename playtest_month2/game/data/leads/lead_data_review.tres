@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_data_review"
+probes = PackedStringArray("honesty")
+audience = "regular"
+lead_item = "协作"
+text_key = "代码评审，组长让你按他的写法改，你觉得你的对。改不改？"
+honest = "先改，上线要紧。改完单独找他，把我的理由和数据摆出来。他对，我认；我对，下回按我的。"
+honest_low = "……改吧。组长说的就改。"
+standard = "我会以团队目标为重，积极沟通，求同存异。"
+flaw = "我不改。他不懂。"
+followup_text = "上一次你觉得组长错了，最后怎么样了？"
+honest_followup = "他错了一半。缓存那块他对，我那块他后来也改过来了，还在周会上提了一句。"
+honest_low_followup = "……没说过。都按他的来。"
+standard_followup = "通过充分沟通，最终达成了共识。"
+flaw_followup = "他……他后来走了。"
+lead_weak = "都按他的来，那他错的时候呢？"

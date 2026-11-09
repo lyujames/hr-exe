@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1")
 id = &"rule_age"
-day_added = 3
+day_added = 5
 title_key = "年龄要求"
-text_key = "须在 35 岁以下：满 35 周岁当天起拒绝。年龄自己算。"
+text_key = "只要 90 后：看身份证上的出生年份，1990 年及以后。简历上写的不算。"
 reject_reason_key = "您的年龄不符合团队活力要求。"
 is_absurd = true
-max_age = 34
+min_birth_year = 1990

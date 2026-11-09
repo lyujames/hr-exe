@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_sharp_day11"
+text_key = "你走了，你们组谁顶你的活？"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+honest = "交接文档写了二十页，最难的那块我带了一个新人两个月。他现在能顶，就是慢点。"
+honest_low = "……其实谁都能顶。我做的那块不难。"
+standard = "我的工作具有不可替代性，离开后团队会面临较大压力。"
+flaw = "没、没人能顶。……他们会很惨的。"
+followup_text = "那个新人叫什么？我认识你们那边的组长。"
+honest_followup = "小周。您要去问，他会说我交接的时候凶了点。"
+honest_low_followup = "……我没带过人。交接是组长随便找了个人。"
+standard_followup = "名字……就不方便透露了吧。"
+flaw_followup = "叫、叫……小王？好几个人。"
+chief_item = "稳定性"
+chief_standard = "不可替代，就要这种。"
+chief_honest = "能被顶掉的，就是普通人。"
+chief_flaw = "……"

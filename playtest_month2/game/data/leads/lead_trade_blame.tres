@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_trade_blame"
+probes = PackedStringArray("honesty")
+audience = "regular"
+lead_item = "协作"
+text_key = "你上一次出线上事故，是谁的锅？"
+honest = "我的。改配置没走灰度。复盘是我写的，后来组里加了一条：改配置也要灰度。"
+honest_low = "……算我的吧。复盘是组长写的，我在旁边看。"
+standard = "事故是团队的，我们不追究个人，重在改进。"
+flaw = "不是我。是测试没测出来。"
+followup_text = "那次以后，你自己改了什么习惯？"
+honest_followup = "改配置前先在群里贴一遍 diff，等一个人回“看过了”再上。"
+honest_low_followup = "……更小心了吧。具体的，我说不上来。"
+standard_followup = "加强了风险意识和流程规范。"
+flaw_followup = "我……我又没错，改什么。"
+lead_strong = "认锅的人，我放心。"
+lead_flaw = "测试背锅，我们组没这规矩。"

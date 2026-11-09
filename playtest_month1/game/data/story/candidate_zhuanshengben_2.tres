@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_zhuanshengben_2"
+display_name = "覃小满"
+applied_position = "产品运营实习生"
+birth_date = "2004-10-11"
+degree = 1
+school = "南山城市学院"
+degree_note = "已获东江大学专升本录取，3 月 9 日入学"
+skills = PackedStringArray("新媒体排版", "文案写作", "Excel", "沟通协调")
+is_intern = true
+major = "市场营销"
+gpa = 3.81
+projects = [{"name": "学院公众号运营", "role": "负责人", "start": "2024-09", "end": "2026-02"}, {"name": "校运动会志愿者统筹", "role": "队长", "start": "2024-03", "end": "2024-05"}]
+intern_days = 4
+intern_months = 12
+salary_k = 0
+self_eval = "上次没过，我知道为什么。这次把公众号后台的截图附上了：粉丝三百涨到四千，每一篇都是我自己排的。"
+attachment = "录取通知书复印件。背面的铅笔字改了：只差五天。"
+portrait_seed = 20260303
+ability = 70
+honesty = 85
+loyalty = 85
+pressure = 70
+performance = 30
+answers = {"q_intern_role": "拉群、写文案、盯数据，再加上您说的杂活。学院公众号我做了两年，杂活我熟。", "q_project": "公众号是我一个人做的：选题、排版、半夜回留言。粉丝从三百涨到四千。截图我带来了。", "q_our_app": "用过。搜“奶茶”出来一堆健身课，我截了图，记在本子上。", "q_data_test": "（算得很快，又从头验了一遍。）百分之三十一点二。", "q_chores": "能。我在食堂打过两年工，比这累。", "q_schedule": "下周一开学，课表我带来了。周一下午、周四上午有课，其余都能来。", "q_return_offer": "那我回去好好读本科。两年后再投一次，到时候学历就够了。", "q_friday": "先回“在”，再看是什么事。", "q_weakness": "学历。还有四天就不是了。", "chief_intern_job": "打杂、跑腿、加班。我都做好准备了。", "chief_weekend": "可以。周末我本来也在兼职。"}
+skip_when = "!story_zhuanshengben:reject"
+liked_line = "这份你昨天见过。覃小满，又投了一次。
+附件多了一页公众号后台截图，录取通知书背面的铅笔字从“只差一周”改成了“只差五天”。
+你从头又看了一遍。"
+epilogue = {"hired": "你破格放了她，自己面、自己签的字。开学那天，她在工位上给你看了学生证。", "exception": "你破格放了她，面试后没录用。她开学了，没再投蜂巢。", "pass": "你放了她，面试后没录用。她开学了。", "reject": "你又回了她一次：“{reason}”。她没有再投。"}
+is_story = true

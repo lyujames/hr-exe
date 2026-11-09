@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "你们核心系统用的什么？多久没升级了？"
+lie = "我们一直跟着最新的技术走。"
+safe = "技术选型会根据业务需要持续迭代。"
+truth = "八年前写的，写的人都走了。上面在说要换新框架。"

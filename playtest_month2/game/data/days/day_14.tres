@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/chief/question_day14.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day14.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day14.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_xuan_xue.tres" id="quirk"]
+[ext_resource type="Resource" path="res://data/rules/rule_banyan.tres" id="r_rule_banyan"]
+[ext_resource type="Resource" path="res://data/story/candidate_banyan_liar.tres" id="s_candidate_banyan_liar"]
+[ext_resource type="Resource" path="res://data/jobs/job_backend_v3.tres" id="j_job_backend_v3"]
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="qc"]
+[ext_resource type="Resource" path="res://data/leads/lead_new_sharp.tres" id="lead_new_sharp"]
+[ext_resource type="Resource" path="res://data/leads/lead_new_scope.tres" id="lead_new_scope"]
+[ext_resource type="Resource" path="res://data/leads/lead_new_cut.tres" id="lead_new_cut"]
+
+[resource]
+script = ExtResource("1")
+day = 14
+date = "2026-04-30"
+resume_count = 16
+screening_seconds = 215.0
+new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_banyan")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_banyan_liar")])
+story_slot = 3
+new_postings = Array[ExtResource("jp")]([ExtResource("j_job_backend_v3")])
+candidate_mix = {"regular": 70, "laid_off": 20, "changer": 10}
+morning_push = "AI 编程助手“码力”正式发布，号称“超过九成程序员”"
+boss_mail = "各位家人：\n月底了，这个月的 HC 必须用完，今天面的人直接定。\n核心系统要用 Banyan 重构，JD 我又改了：后端岗要 Banyan 8 年经验。技能栏里写着 Banyan、括号里满 8 年的才算。\n别问我 Banyan 出了几年，我只要结果。\n—— 王总"
+coworker_note = "老周的便签：\nIT 的小孟说，Banyan 是 2023 年才开源的。\n我问他那 8 年怎么来的，他说：问王总。\n规则就是规则。写够 8 年的，你就得放。"
+bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}, {"id": "meds", "label": "父亲药费", "amount": 80}, {"id": "coding_plus", "label": "编程进阶课", "amount": 40, "when": "h9_class:keep"}]
+broker_count = 2
+headline = "核心系统线上事故，问题出在开源框架 Banyan"
+news_body = "工程师在 GitHub 上提了 issue。框架作者回复：“抱歉，最近在找工作，暂时没空处理。”"
+story_echoes = [{"when": "story_chenmo_1:hired", "headline": "核心系统线上事故，二十分钟修复", "body": "修复者是本月入职的后端工程师陈默。周报上，这一条记在组长名下。"}, {"when": "story_chenmo_2:hired", "headline": "核心系统线上事故，二十分钟修复", "body": "修复者是本月入职的后端工程师陈默。周报上，这一条记在组长名下。"}]
+family_sms = "老婆：今天还房贷。\n孩子：编程老师说学历不重要，会写代码才重要。爸爸你会写代码吗？"
+family_sms_by = [{"when": "marriage<-4", "sms": "老婆：房贷扣了。\n老婆：等你忙完这阵，我们谈谈吧。"}, {"when": "savings<300", "sms": "老婆：今晚加班，别等我。\n老婆：到了，在楼下等你。\n老婆：发错了。\n孩子：编程老师说学历不重要，会写代码才重要。爸爸你会写代码吗？"}]
+sms_flag = "d14_eve"
+sms_replies = [{"key": "warm", "label": "这个月辛苦你了。", "marriage": 1}, {"key": "curt", "label": "看到了。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "b14_1", "at": 500, "from": "李哲他爸", "text": "李哲他爸：月底了兄弟。今天也是两份，帮帮忙。"}, {"id": "t14_1", "at": 540, "text": "老婆：今天扣房贷。卡里的钱我看过了。", "replies": [{"key": "warm", "label": "钱的事我来想办法。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}, {"id": "w14_1", "at": 620, "from": "王总", "text": "王总：到现在 {done} 份。月底了，别掉链子。", "ignored_trust": -1, "replies": [{"key": "ok", "label": "在赶，下班前看完。"}, {"key": "curt", "label": "收到。"}]}, {"id": "d14_1", "at": 700, "from": "爸", "when": "story:story_xiaoliu:pass", "text": "你爸：小刘今天又来了，拎了两条烟，说是谢你的。我让他放门口了。"}, {"id": "d14_1", "at": 700, "from": "爸", "when": "story:story_xiaoliu:reject", "text": "你爸：小刘今天又来了，拎了两条烟。我没让他进门。他在楼道里站了一会儿。"}, {"id": "t14_2", "at": 840, "text": "老婆：孩子用我手机发的：爸爸，结课展示是下周四哦！！", "replies": [{"key": "warm", "label": "爸爸一定到！", "marriage": 1}, {"key": "curt", "label": "知道了。", "marriage": 0}]}, {"id": "w14_table", "at": 840, "from": "王总", "text": "王总：顺手把在职员工的学历、年龄、入职时间整理一张表给我，下班前。没别的意思，做个盘点。", "ignored_trust": -1, "replies": [{"key": "true", "label": "好，照人事档案填。", "trust": 1}, {"key": "fudge", "label": "好。（填的时候，有几格你打算改一改。）"}, {"key": "delay", "label": "这两天招聘忙，下周给您。", "trust": -1}]}]
+chief_opener = "新项目组，许言。JD 上那条 Banyan 八年不是我写的，它 23 年才开源。"
+chief_need = {"item": "技术", "note": "许组长：要真会的，别给我会背的。"}
+chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
+candidate_ask = ExtResource("chief_a")
+interviewer = {"name": "许组长", "seed": 5106, "cut_in": "许组长把 JD 翻过去扣在桌上：", "cut_in_again": "许组长又开口：", "next_line": "下一个。", "bonus": "组长推荐奖"}
+lead_cards = Array[ExtResource("qc")]([ExtResource("lead_new_sharp"), ExtResource("lead_new_scope"), ExtResource("lead_new_cut")])
+quota = 17
+ats = true
+intake = true
+mail_ps_by = [{"when": "d13_left:yes", "ps": "PS：昨天上午人呢？下班来我办公室。"}]

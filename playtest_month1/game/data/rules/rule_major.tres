@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleMajor" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleMajor.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_major"
+day_added = 3
+title_key = "专业对口"
+text_key = "看简历投的哪个岗，翻到那页 JD：主修在名单上才算。辅修不算，研究生看现读专业。"
+reject_reason_key = "您的专业与岗位要求不符。"
+is_absurd = false
+majors = PackedStringArray("计算机科学与技术", "软件工程", "统计学", "市场营销")

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_test"
+audience = "regular"
+text_key = "现场小测试（看 TA 操作）"
+probes = PackedStringArray("ability")
+honest = "（TA 三分钟排好了，还指出题目有个错。）"
+honest_low = "（TA 盯着屏幕，鼠标停在半空，时间到了。）"
+standard = ""
+flaw = ""
+always_truthful = true
+chief_item = ""
+chief_standard = ""
+chief_honest = "题是我昨晚让实习生出的。"
+chief_flaw = ""
+

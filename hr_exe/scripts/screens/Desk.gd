@@ -4,12 +4,15 @@ class_name Desk extends Control
 signal finished
 
 const DOC_POS := Vector2(100, 24)
+## 身份证落在规则手册下面，从桌子下沿推上来，不挡简历。
+const ID_POS := Vector2(350, 246)
 const DAY_START := 9 * 60
 const DAY_END := 18 * 60
 const GENERIC_REASON := "综合评估后，您与岗位暂不匹配。"
 
 var queue: Array[Candidate] = []
 var doc: ResumeDoc
+var id_card: IdCardDoc
 var elapsed := 0.0
 var closing := false
 var _clock: Label
@@ -32,27 +35,16 @@ func _build_room() -> void:
 	UI.panel(self, Rect2(0, 0, 640, 18), UI.DESK_DARK)
 	UI.label(self, "第 %d 天　%s" % [GameState.day, GameState.today], Vector2(6, 1), UI.TEXT_DIM)
 	_clock = UI.label(self, "09:00", Vector2(304, 1), UI.GREEN)
-	UI.label(self, "存款 ¥%d" % GameState.savings, Vector2(560, 1), UI.TEXT_DIM)
+	UI.label(self, "存款 ¥%d / 月供 ¥%d" % [GameState.savings, GameState.MORTGAGE], Vector2(496, 1), UI.TEXT_DIM)
 
 	_pile = Control.new()
 	_pile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_pile)
 	_count = UI.label(self, "", Vector2(10, 26), UI.TEXT)
 
-	# 日历：算年龄和空窗期用
-	var date := DateUtil.parse(GameState.today)
-	UI.panel(self, Rect2(540, 24, 92, 64), UI.PAPER, UI.BLACK)
-	UI.panel(self, Rect2(540, 24, 92, 16), UI.RED)
-	var month := UI.label(self, "%d 年 %d 月" % [date.x, date.y], Vector2(540, 25), UI.PAPER)
-	month.size.x = 92
-	month.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var day_label := UI.label(self, "%d 日　%s" % [date.z, DateUtil.weekday(GameState.today)], Vector2(540, 50), UI.INK)
-	day_label.size.x = 92
-	day_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-
 	# 处理完的简历飞进这里
-	UI.panel(self, Rect2(344, 300, 186, 52), UI.DESK_DARK, UI.BLACK)
-	_hint = UI.label(self, "已处理 0", Vector2(352, 304), UI.TEXT_DIM)
+	UI.panel(self, Rect2(344, 322, 186, 32), UI.DESK_DARK, UI.BLACK)
+	_hint = UI.label(self, "已处理 0", Vector2(352, 326), UI.TEXT_DIM)
 
 	# 咖啡杯：隐形的时间流逝提示
 	for i in GameState.day:
@@ -64,10 +56,11 @@ func _build_room() -> void:
 	add_child(book)
 	book.setup()
 
-	var calc := CalcWidget.new()
-	calc.position = Vector2(540, 94)
-	add_child(calc)
-	calc.setup()
+	if GameState.job_posting:
+		var posting := JobPostingDoc.new()
+		posting.position = Vector2(532, 24)
+		add_child(posting)
+		posting.setup(GameState.job_posting)
 
 	_doc_layer = Control.new()
 	_doc_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -104,7 +97,14 @@ func _next() -> void:
 	doc.setup(queue.pop_front())
 	doc.stamped.connect(_on_stamped)
 	Sfx.paper()
-	create_tween().tween_property(doc, "position", DOC_POS, 0.16).set_trans(Tween.TRANS_QUAD)
+	var tween := create_tween().set_parallel()
+	tween.tween_property(doc, "position", DOC_POS, 0.16).set_trans(Tween.TRANS_QUAD)
+	if "id_card" in doc.candidate.docs:
+		id_card = IdCardDoc.new()
+		id_card.position = Vector2(ID_POS.x, 370)
+		_doc_layer.add_child(id_card)
+		id_card.setup(doc.candidate)
+		tween.tween_property(id_card, "position", ID_POS, 0.2).set_trans(Tween.TRANS_QUAD)
 
 
 func _draw_pile() -> void:
@@ -154,11 +154,13 @@ func commit(verdict: String, reason_rule: StringName, reason_text: String) -> vo
 	GameState.record_decision(doc.candidate, verdict, reason_rule, reason_text)
 	_done_count += 1
 	_hint.text = "已处理 %d" % _done_count
-	var leaving := doc
+	for leaving: Control in [doc, id_card]:
+		if leaving:
+			var tween := create_tween()
+			tween.tween_property(leaving, "position", Vector2(400, 330), 0.18).set_trans(Tween.TRANS_QUAD)
+			tween.tween_callback(leaving.queue_free)
 	doc = null
-	var tween := create_tween()
-	tween.tween_property(leaving, "position", Vector2(400, 330), 0.18).set_trans(Tween.TRANS_QUAD)
-	tween.tween_callback(leaving.queue_free)
+	id_card = null
 	if closing:
 		_finish()
 	else:
@@ -179,6 +181,9 @@ func _finish() -> void:
 		doc.queue_free()
 		doc = null
 		queue.append(null)
+	if id_card:
+		id_card.queue_free()
+		id_card = null
 	GameState.stats.unprocessed = queue.size()
 	var note := "下班" if queue.is_empty() else "下班。还有 %d 份简历没看，计件没了。" % queue.size()
 	UI.panel(self, Rect2(170, 150, 300, 60), UI.BLACK, UI.GREEN_DIM)

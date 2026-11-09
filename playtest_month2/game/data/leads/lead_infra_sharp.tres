@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_infra_sharp"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+lead_item = "技术"
+text_key = "磁盘满了，df 说满了，du 加起来只有一半。为什么？"
+honest = "有进程还拿着删掉的文件。lsof 一查，一般是日志删了、程序没重开。"
+honest_low = "……不知道。我一般直接重启。"
+standard = "可能是文件系统层面的问题，需要结合具体场景分析。"
+flaw = "du……那个命令我不太常用。"
+followup_text = "不能重启。空间怎么要回来？"
+honest_followup = "找到那个进程拿着的文件句柄，把它截成空的；或者给程序发信号让它重开日志。"
+honest_low_followup = "不能重启的话……那我真不会。"
+standard_followup = "可以从流程上优化，避免类似问题。"
+flaw_followup = "删、再删一遍？"
+lead_strong = "对。这题十个人里一个答得上。"
+lead_weak = "重启是能好。半夜三点也重启吗？"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_data_test"
+text_key = "现场题：给张表，算昨天的次日留存"
+probes = PackedStringArray("ability")
+honest = "（TA 两分钟拉完透视表，还问测试账号要不要剔掉。）"
+honest_low = "（TA 算出来的留存率是 137%。）"
+standard = ""
+flaw = ""
+always_truthful = true
+audience = "intern"
+chief_item = ""
+chief_standard = ""
+chief_honest = "题是上一批实习生出的，答案我也没对过。"
+chief_flaw = ""

@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Resource" path="res://data/rules/rule_age.tres" id="4"]
+[ext_resource type="Resource" path="res://data/chief/question_day8.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day8.tres" id="chief_a"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/story/candidate_zhou_daughter.tres" id="story"]
+
+[resource]
+script = ExtResource("1")
+day = 8
+date = "2026-03-27"
+resume_count = 8
+screening_seconds = 185.0
+new_rules = Array[ExtResource("2")]([ExtResource("4")])
+new_docs = PackedStringArray("id_card")
+story_candidates = Array[ExtResource("3")]([ExtResource("story")])
+story_slot = 4
+candidate_mix = {"fresh": 100}
+morning_push = "企业招聘最看重“年轻”"
+boss_mail = "各位家人：
+公司要保持活力。实习生从今天起只要 00 后，读研回炉的老同学就算了。
+简历一律附身份证复印件，年龄看身份证，简历上自己填的不算。
+别跟我谈公平。我们是一家人。
+—— 王总"
+coworker_note = "老周的便签：
+身份证在规则手册下面，看出生那一栏的年份。
+我闺女 99 年的，今年也在找实习。"
+chief_need = {"item": "稳定性", "note": "要能坚持的：在校有一个项目做了八个月以上。", "short": "项目满8月", "months": 8}
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "实习岗写明“2000 年后出生”，研究生：我只差几个月"
+news_body = "多家企业的实习招聘写明“限 00 后”。一位 1999 年出生的研究生说：“我差的不是能力，是出生得早了一点。”"
+family_sms = "老婆：你爸说下周一回老家，复查约好了。
+老婆：孩子想周日去送爷爷上车。"
+sms_flag = "d8_eve"
+sms_replies = [{"key": "warm", "label": "周日我开车送。", "marriage": 1}, {"key": "curt", "label": "让他坐高铁吧，方便。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+chief_opener = "最后两天了。王总说 HC 要用完，你心里有数。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")
+desk_texts = [{"id": "t8_1", "at": 560, "text": "老婆：编程班试听完了，老师说他有天分。就是贵。", "replies": [{"key": "warm", "label": "有天分就报，钱我来想办法。", "marriage": 1}, {"key": "curt", "label": "再看看吧。", "marriage": 0}]}, {"id": "t8_2", "at": 830, "text": "老婆：我们部门新来的领导是 95 年的。开会的时候叫我“姐”。", "replies": [{"key": "warm", "label": "那你就叫他小同志。", "marriage": 1}, {"key": "curt", "label": "习惯就好。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:50。你爸在收拾行李，一件衬衫叠了三遍。"}, {"text": "你爸：下周一我回去了，复查的时候再来。"}, {"text": "你爸：小刘那边，你下个月上点心。他说了，不让你白忙。"}, {"ask": "h8_dad", "options": [{"key": "ok", "label": "下个月我看看。", "then": [{"text": "你爸：这就对了。"}, {"text": "他把衬衫放进箱子，压平。"}]}, {"key": "no", "label": "爸，这事我真办不了。", "then": [{"text": "你爸没说话，把衬衫又拿出来，重新叠了一遍。"}]}]}, {"text": "孩子：爸爸开车送爷爷，我坐副驾驶！", "when": "d8_eve:warm"}, {"text": "老婆：副驾驶是爷爷的。", "when": "d8_eve:warm"}, {"text": "孩子：高铁快还是爸爸的车快？", "when": "d8_eve:curt"}, {"text": "你爸：高铁快。", "when": "d8_eve:curt"}, {"text": "孩子在门口等了一会儿，问妈妈爸爸回短信没有。", "when": "d8_eve:silent"}, {"text": "睡前，老婆说：“明天月底了。”你说：“嗯，还房贷。”"}]

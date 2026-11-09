@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_friday"
+text_key = "周五 18 点领导发“在吗”，怎么办？"
+probes = PackedStringArray("pressure")
+honest = "先问什么事，再看急不急。"
+honest_low = "周一再说没信号。"
+standard = "我一直在。"
+flaw = "在、在的，二十四小时开机。"
+chief_item = "狼性"
+chief_standard = "我们就要这种。"
+chief_honest = "我们这边节奏比较快。"
+chief_flaw = "开机就好。"
+followup_text = "上次真遇到这种事，你是怎么回的？"
+honest_followup = "社团老师周五晚上要材料，我先回了“收到”，问清楚是周一用，周日弄完的。"
+honest_low_followup = "上次……我装没看见，周一才回。"
+standard_followup = "我……还没遇到过，但我一定会一直在。"
+flaw_followup = "上、上次？……我、我秒回的。真的秒回。"

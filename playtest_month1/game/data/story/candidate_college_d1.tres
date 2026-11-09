@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"d1_college"
+display_name = "郑一凡"
+applied_position = "产品运营实习生"
+birth_date = "2005-02-14"
+degree = 1
+school = "北海职业技术学院"
+skills = PackedStringArray("Excel", "PPT", "新媒体排版")
+is_intern = true
+major = "电子商务"
+gpa = 3.24
+projects = [{"name": "班级公众号", "role": "成员", "start": "2025-03", "end": "2025-12"}]
+intern_days = 5
+intern_months = 6
+salary_k = 0
+self_eval = "认真负责，学习能力强，能吃苦耐劳。"
+attachment = ""
+portrait_seed = 20260301
+ability = 45
+honesty = 60
+loyalty = 55
+pressure = 55
+performance = 50

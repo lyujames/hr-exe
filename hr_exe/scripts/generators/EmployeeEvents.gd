@@ -1,20 +1,36 @@
 class_name EmployeeEvents
 ## 延迟反馈：录用的后果不在当天出现，由隐藏属性决定几天后发生什么。
-## 垂直切片只有 3 天，把设计中的 3–7 天压缩为第 3 天早上结算最早的一位录用者。
+## 每个人在留任期满那天早上结算一次：走了的没有留任奖金，还在的记进 stats.retained。
 
 const BLAME_FINE := 200
-const HC_FINE := 100
 const LIE_FINE := 300
+## 由重到轻；同一天几个人满期，老板只叫最重的那个，其余的只在日结里一行带过。
+const SEVERITY := ["embezzle", "jump", "burnout", "delay", "praise"]
+const LEAVES := ["embezzle", "jump", "burnout"]
 
 
 static func due_event() -> Dictionary:
-	if not GameState.config.fires_employee_event:
-		return {}
+	var events: Array = []
 	for hire: Dictionary in GameState.hires:
-		if not hire.event_resolved:
+		if not hire.event_resolved and GameState.retention_due(hire) <= GameState.day:
 			hire.event_resolved = true
-			return _for_hire(hire)
-	return _empty_headcount()
+			var event := _for_hire(hire)
+			var days := GameState.retention_due(hire) - int(hire.day_hired)
+			var entry := {"name": event.name, "days": days, "left": event.id in LEAVES, "title": event.title}
+			GameState.stats.retained.append(entry)
+			events.append(event)
+	if events.is_empty():
+		return _empty_headcount() if _no_hires_this_month() else {}
+	events.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return SEVERITY.find(a.id) < SEVERITY.find(b.id))
+	return events[0]
+
+
+## 月初录用的人本该满期的那天，这个月还一个人都没招。
+static func _no_hires_this_month() -> bool:
+	var month_start := GameState.day - (GameState.day - 1) % GameState.DAYS_PER_MONTH
+	if GameState.day != month_start + int(GameState.pay.retention_days):
+		return false
+	return not GameState.hires.any(func(h: Dictionary) -> bool: return int(h.day_hired) >= month_start)
 
 
 static func _for_hire(hire: Dictionary) -> Dictionary:
@@ -34,7 +50,7 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 	match kind:
 		"embezzle":
 			event.title = "%s 不见了" % c.display_name
-			event.body = "你录用的 %s 入职第二天，带着项目备用金失联了。\n“你面试的，你签的字。这钱算谁的？”" % c.display_name
+			event.body = "你录用的 %s 试用期还没满，带着项目备用金失联了。\n“你面试的，你签的字。这钱算谁的？”" % c.display_name
 		"delay":
 			event.title = "项目延期"
 			event.body = "你录用的 %s 把排期拖了一周。\n“这就是你挑的人？”" % c.display_name
@@ -49,6 +65,8 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 			event.body = "全员邮件：在王总的英明领导下，项目提前上线。\n其中 %s 贡献突出。顺便感谢 HR 同事。" % c.display_name
 			event.fine = 0
 			event.blame = false
+	if not GameState.fines_on():
+		event.fine = 0
 	var promise: String = hire.get("promise", "")
 	if promise != "" and kind in ["jump", "burnout"]:
 		event.body += "\n离职记录：“面试时 HR 说：%s”" % promise
@@ -57,9 +75,9 @@ static func _for_hire(hire: Dictionary) -> Dictionary:
 
 static func _empty_headcount() -> Dictionary:
 	return {
-		"id": "no_hire", "name": "", "fine": HC_FINE, "scorecard_full": false, "blame": false,
+		"id": "no_hire", "name": "", "fine": 0, "scorecard_full": false, "blame": false,
 		"title": "HC 空着",
-		"body": "三天了，一个人都没招进来。\n“我养你是让你拒人的吗？这个月的招聘成本你来背。”",
+		"body": "这几天，一个人都没招进来。\n“我养你是让你拒人的吗？”",
 	}
 
 
@@ -72,14 +90,14 @@ static func resolve_blame(event: Dictionary, choice: String) -> String:
 			reply = "规则是让你判断的，不是让你不动脑子。"
 		"own":
 			GameState.boss_trust += 1
-			reply = "嗯，敢担责任。钱照扣，但我记住了。"
+			reply = "嗯，敢担责任。钱照扣，但我记住了。" if GameState.fines_on() else "嗯，敢担责任。这次先不扣你钱，我记住了。"
 		"scorecard":
 			if event.scorecard_full:
 				fine = 0
 				GameState.boss_promised_rule = true
 				reply = "……满分确实是满分。行，那以后加一条规矩。"
 			else:
-				fine = LIE_FINE
+				fine = LIE_FINE if GameState.fines_on() else 0
 				GameState.boss_trust -= 1
 				reply = "评分表我看了，根本不是满分。还学会撒谎了？"
 	GameState.stats.event_fine += fine

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "实习结束能开实习证明吗？"
+student_question = "实习结束能开实习证明吗？学校要求一定要交的。"
+lie = "当然，离职当天就开。"
+safe = "按公司流程走。"
+truth = "要干满六个月才开。提前走的，一个字都没有。"

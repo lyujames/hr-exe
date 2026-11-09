@@ -12,7 +12,6 @@ degree = 3
 school = "东江大学"
 skills = PackedStringArray("项目管理", "沟通协调", "数据分析", "英语六级")
 salary_k = 15
-salary_months = 13
 jobs = [{"company": "万象网络", "title": "主管助理", "start": "2022-07", "end": ""}, {"company": "优品电商", "title": "专员", "start": "2020-07", "end": "2022-07"}]
 self_eval = "结果导向，使命必达。把公司当成自己的事业。"
 attachment = "推荐信：三位前主管联名，措辞一模一样"

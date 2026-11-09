@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_caregiver"
+display_name = "许安"
+applied_position = "产品运营实习生"
+birth_date = "2005-01-19"
+degree = 2
+school = "西川财经大学"
+skills = PackedStringArray("SQL", "Excel", "Python", "数据分析")
+is_intern = true
+major = "电子商务"
+gpa = 3.62
+projects = [{"name": "全国大学生数学建模竞赛", "role": "队长", "start": "2025-09", "end": "2025-11"}, {"name": "导师横向课题：社区养老调研", "role": "核心成员", "start": "2025-03", "end": "2025-07"}]
+intern_days = 3
+intern_months = 12
+salary_k = 0
+self_eval = "数据做得快。来不了的那两天，活我晚上在病房补完。"
+attachment = "备注：父亲住院，每周二、周四要去医院陪床。"
+portrait_seed = 20260305
+ability = 78
+honesty = 92
+loyalty = 90
+pressure = 65
+performance = 20
+answers = {"q_intern_role": "跑数、做表、写周报。我学电商的，跑数做表是基本功。", "q_project": "数学建模那次，模型是我搭的，论文是队友写的。", "q_our_app": "用过。在医院走廊等的时候刷的，签到页要加载八秒。", "q_data_test": "（三分钟算完，顺手把表头的一个错标了出来。）", "q_chores": "能。跑腿我习惯了，最近天天在医院跑。", "q_schedule": "课不多。周二、周四要去医院，另外三天全天都在。晚上的活我在病房也能做。", "q_return_offer": "那就等我爸出院，再找下一份。", "q_friday": "我会回。在病房里也会回。", "q_weakness": "每周只能来三天。我知道这是硬伤。", "chief_intern_job": "知道，杂活多。我能干。", "chief_weekend": "周末可以。周末有我妈在医院。", "chief_thesis": "能，一年都能。只是每周三天。", "chief_exam": "我提前复习，考试那几天晚上补。"}
+epilogue = {"hired": "你放了她。周二、周四她的工位空着，周报照样第一个交。", "pass": "你放了她，面试后没录用。她在病房里又投了十几份。", "reject": "你回她：“{reason}”。那天晚上，你家里也来了电话。"}
+is_story = true

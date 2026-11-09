@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_sharp_day13"
+text_key = "你比我们组里最差的那个，强在哪？说具体的。"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+honest = "我不认识他。但我能保证我写的东西，下一个接手的人看得懂，出了事日志里查得到。"
+honest_low = "……可能也强不了多少。我面试比较紧张，干活会好一点。"
+standard = "我具备扎实的技术功底和优秀的沟通能力，能快速融入团队创造价值。"
+flaw = "强、强在……我比较年轻？"
+followup_text = "“看得懂”怎么算？上一个你交接出去的模块，接手的人问了你几次？"
+honest_followup = "两次。一次问配置在哪，一次问一个魔数是什么意思。第二次我把那个数改成了常量。"
+honest_low_followup = "……他问了一个礼拜。后来就不问了，自己重写了。"
+standard_followup = "沟通很顺畅，基本没有问题。"
+flaw_followup = "几、几次……没数过。"
+chief_item = "格局"
+chief_standard = "能创造价值，好。"
+chief_honest = "就这？"
+chief_flaw = "年轻有什么用。"

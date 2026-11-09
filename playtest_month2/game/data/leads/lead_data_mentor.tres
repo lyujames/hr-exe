@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_data_mentor"
+probes = PackedStringArray("honesty")
+audience = "regular"
+lead_item = "协作"
+text_key = "你带的应届生把生产库的一张表删了。你第一句话说什么？"
+honest = "“没事，先恢复。”恢复完一起写复盘，他写，我改。权限是我给的，我也有份。"
+honest_low = "……我会很生气。我没带过人，不知道该怎么说。"
+standard = "我会以包容的心态，帮助新人在错误中成长。"
+flaw = "我会说，不是我教的。"
+followup_text = "复盘写完，你给他的权限收不收回来？"
+honest_followup = "收一半。删表的权限收回来，查询的留着。全收了他什么也学不会。"
+honest_low_followup = "……全收吧。我怕再出事。"
+standard_followup = "会根据实际情况综合判断。"
+flaw_followup = "收、收回来，以后都找我。"
+lead_strong = "“我也有份”。行。"
+lead_weak = "没带过不要紧。生气得先忍着。"
