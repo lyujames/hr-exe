@@ -10,6 +10,12 @@ const VALUE_X := 44
 const LINE := 17
 ## 正文最低到这儿，再往下是页码、翻页按钮和初筛章。
 const BOTTOM := 245.0
+## HireBot 小条最低到这儿（纸 268 高，留一道边）；最底下那一行（页码左边）的位置。
+const PAPER_BOTTOM := 264.0
+const FOOTER_Y := 247.0
+## 底下那一行 HireBot 建议条的宽（到页码前面）；背面拟回复那张小条的高。
+const STRIP_W := 152.0
+const REPLY_H := 34.0
 
 var candidate: Candidate
 var page := 0
@@ -69,9 +75,14 @@ func _render_front() -> void:
 		fields.birth_date = UI.label(_content, "出生：%d年%d月" % [birth.x, birth.y], Vector2(HEAD_X, 30), UI.INK)
 	_render_ats()
 	if c.ai_prob > 0:
-		# HireBot 标的，红字压在抬头下面
+		# HireBot 标的，右上角
 		var ink := UI.RED if c.ai_prob > 50 else UI.INK_SOFT
-		UI.label(_content, "AI 生成概率 %d%%" % c.ai_prob, Vector2(HEAD_X, 52), ink)
+		var tag := UI.label(_content, "AI 生成 %d%%" % c.ai_prob, Vector2(SIZE.x - 82, 10), ink)
+		tag.size.x = 74
+		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	# 婚育写在抬头里（照片右边、出生下面）：正文已经够挤了，附注长了就截掉，规则只看前四个字
+	if c.marital != "":
+		_one_line(("%s · " % c.gender if c.gender != "" else "") + c.marital, Vector2(HEAD_X, 52), UI.INK, SIZE.x - HEAD_X - 6)
 	var applied := UI.label(_content, "应聘：" + c.applied_position, Vector2(8, 77), UI.INK, SIZE.x - 16)
 	# 一行放不下就整段括号挪到第二行，别把“组）”孤零零甩下去
 	var font := applied.get_theme_font("font")
@@ -98,30 +109,60 @@ func _render_front() -> void:
 		line = _row("工作年限", c.exp_text(), line)
 		if c.exp_note != "":
 			line = _note("（%s）" % c.exp_note, line)
-	if c.marital != "":
-		line = _row("婚育", ("%s · " % c.gender if c.gender != "" else "") + c.marital, line)
 	line += 3
-	line = _row("技能", " / ".join(c.skills), line)
-	_render_hirebot(line)
+	# 技能写得多、折到第三行会压住最底下那条：挤一挤，去掉斜杠两边的空格
+	var holder := Control.new()
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var front := _content
+	front.add_child(holder)
+	_content = holder
+	var end := _row("技能", " / ".join(c.skills), line)
+	_content = front
+	if end > FOOTER_Y - 1 and _hirebot_on():
+		holder.free()
+		_row("技能", "/".join(c.skills), line)
+	_render_hirebot_strip()
 
 
-## HireBot 的建议小条（第 17 天起）：贴在第一页底下，一句建议、它的依据、替你拟好的回复（你的原话）。
-func _render_hirebot(line: int) -> void:
-	if GameState.config == null or GameState.config.hirebot <= 0 or candidate.is_intern:
+## HireBot（第 17 天起）：第一页最底下一行（页码左边，原来盖初筛章的地方）写它的建议和依据，这一行永远空着；
+## 替你拟好的拒绝回复（你写得最多的那句，原话）印在背面最底下。第一页写得再满也不会被挤出纸。
+func _hirebot_on() -> bool:
+	return GameState.config != null and GameState.config.hirebot > 0 and not candidate.is_intern
+
+
+func _render_hirebot_strip() -> void:
+	if not _hirebot_on():
 		return
 	var s := HireBot.suggest(candidate)
-	var h := 18.0 if s.pass else 52.0
-	var y := maxf(line + 2, 264.0 - h)
 	var ink: Color = Color("2f5d8a") if s.pass else Color("8a3a2f")
-	# 右下角是页码和翻页按钮：小条只到它们左边
-	var w := SIZE.x - 12.0 if y + h <= BOTTOM else 146.0
-	UI.panel(_content, Rect2(6, y - 1, w, h), Color(1, 1, 1, 0.35), ink).mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_one_line("HireBot：%s（%s）" % ["建议通过" if s.pass else "不推荐", s.why], Vector2(10, y), ink, w - 8)
-	if not s.pass:
-		# 替你拟好的回复：你写得最多的那句，原话
-		var reply := UI.label(_content, "“%s”" % s.reason, Vector2(10, y + 16), UI.INK, w - 8)
-		reply.max_lines_visible = 2
-		reply.add_theme_constant_override("line_spacing", -3)
+	UI.panel(_content, Rect2(6, FOOTER_Y - 1, STRIP_W, 17), Color(1, 1, 1, 0.35), ink).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var text := "HireBot：建议通过" if s.pass else "HireBot：不推荐（%s）" % s.why
+	_one_line(text, Vector2(10, FOOTER_Y), ink, STRIP_W - 8)
+
+
+## 背面最底下：HireBot 替你拟好的回复。y 是自评、附件排完的下沿。
+func _render_hirebot_reply(y: float) -> void:
+	if not _hirebot_on():
+		return
+	var s := HireBot.suggest(candidate)
+	if s.pass:
+		return
+	var ink := Color("8a3a2f")
+	var top := maxf(y + 3.0, BOTTOM - REPLY_H)
+	var one := maxf(y + 3.0, BOTTOM - 17.0)
+	if top + REPLY_H > BOTTOM + 1.0 and one + 17.0 <= BOTTOM + 1.0:
+		# 只放得下一行：整行只印那句回复（第一页底下已经写着是 HireBot 的）
+		UI.panel(_content, Rect2(6, one - 1, SIZE.x - 12, 17), Color(1, 1, 1, 0.35), ink).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_one_line("“%s”" % s.reason, Vector2(10, one), ink, SIZE.x - 20)
+		return
+	if top + REPLY_H > BOTTOM + 1.0:
+		# 经历、自评写满了：缩成最底下一行（页码左边）
+		UI.panel(_content, Rect2(6, FOOTER_Y - 1, STRIP_W, 17), Color(1, 1, 1, 0.35), ink).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_one_line("拟回复：“%s”" % s.reason, Vector2(10, FOOTER_Y), ink, STRIP_W - 8)
+		return
+	UI.panel(_content, Rect2(6, top - 1, SIZE.x - 12, REPLY_H), Color(1, 1, 1, 0.35), ink).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UI.label(_content, "HireBot 拟回复：", Vector2(10, top), ink)
+	_one_line("“%s”" % s.reason, Vector2(10, top + 16), UI.INK, SIZE.x - 20)
 
 
 ## 一行放不下就截成“……”。
@@ -184,11 +225,15 @@ func _render_back() -> void:
 	var eval := UI.label(_content, c.self_eval, Vector2.ZERO, UI.INK, 216)
 	var attach := UI.label(_content, "附：" + c.attachment, Vector2.ZERO, UI.INK_SOFT, 216)
 	var eval_h := _height(eval)
-	var block := 16.0 + eval_h + 3.0 + _height(attach)
-	var y := maxf(top, minf(172.0, BOTTOM - block))
+	var attach_h := _height(attach)
+	var block := 16.0 + eval_h + 3.0 + attach_h
+	# HireBot 拟的回复要贴在最底下：自评那一块再往上让一让
+	var floor_y := BOTTOM - (REPLY_H + 3.0 if _hirebot_on() and not HireBot.suggest(candidate).pass else 0.0)
+	var y := maxf(top, minf(172.0, floor_y - block))
 	head.position = Vector2(8, y)
 	eval.position = Vector2(8, y + 16)
 	attach.position = Vector2(8, y + 16 + eval_h + 3)
+	_render_hirebot_reply(y + block)
 
 
 ## 返回项目下面空出来的那一行。
@@ -206,10 +251,10 @@ func _render_projects() -> int:
 
 
 ## 返回经历下面空出来的那一行。
-func _render_jobs() -> int:
+func _render_jobs(start := 8) -> int:
 	var c := candidate
-	UI.label(_content, "工作经历（从新到旧）", Vector2(8, 8), UI.INK_SOFT)
-	var line := 26
+	UI.label(_content, "工作经历（从新到旧）", Vector2(8, start), UI.INK_SOFT)
+	var line := start + 18
 	var gap_at := c.gap_index()
 	for i in c.jobs.size():
 		var job: Dictionary = c.jobs[i]

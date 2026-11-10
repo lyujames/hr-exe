@@ -5,9 +5,9 @@ class_name RuleSenior extends Rule
 
 const BAD_NOTES := ["含实习", "含兼职"]
 const INTERN_NOTES := ["含实习 1 年", "含在校兼职 2 年", "含兼职"]
-const EARLY_SCHOOLS := ["北海市电子工业学校（中专）", "南山第二职业高中", "东江技师学院（中专）", "云岭职业技术学院（大专）"]
+const EARLY_SCHOOLS := ["中专", "职高", "技校", "大专"]
 const ADULT_SCHOOLS := ["东江开放大学", "南山广播电视大学", "北海师范大学继续教育学院", "西川财经大学网络教育学院"]
-const ADULT_NOTES := ["成人教育本科，业余修读，%d 年拿证", "自考本科，%d 年拿证", "网络教育本科（非全日制），%d 年毕业"]
+const ADULT_NOTES := ["成教本科，%d 年拿证", "自考本科，%d 年拿证", "网络教育本科，%d 年毕业"]
 
 @export var min_months := 120
 @export var min_birth_year := 1996
@@ -82,7 +82,7 @@ func _make_early(c: Candidate, rng: RandomNumberGenerator, year: int, extra_mont
 		c.undergrad_school = ""
 		c.school = ADULT_SCHOOLS[rng.randi_range(0, ADULT_SCHOOLS.size() - 1)]
 		var note: String = ADULT_NOTES[rng.randi_range(0, ADULT_NOTES.size() - 1)]
-		c.degree_note = "第一学历 %s；%s" % [EARLY_SCHOOLS[rng.randi_range(0, EARLY_SCHOOLS.size() - 1)], note % rng.randi_range(2019, 2024)]
+		c.degree_note = "第一学历：%s；%s" % [EARLY_SCHOOLS[rng.randi_range(0, EARLY_SCHOOLS.size() - 1)], note % rng.randi_range(2019, 2024)]
 	c.salary_k = rng.randi_range(22, 34)
 	c.salary_low_k = 0
 	c.ability = mini(c.ability + 20, 100)

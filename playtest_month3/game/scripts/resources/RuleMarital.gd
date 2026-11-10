@@ -5,7 +5,7 @@ class_name RuleMarital extends Rule
 
 const PASS_STATUS := ["未婚", "已婚已育（一孩）", "已婚已育（两孩）", "未婚", "离异"]
 const EDGE_PASS_STATUS := ["已婚已育（一孩，无二胎计划）", "未婚（已有男友，暂无婚育计划）"]
-const EDGE_FAIL_STATUS := ["已婚未育（三年内无生育计划，可签承诺书）", "已婚未育（丁克）"]
+const EDGE_FAIL_STATUS := ["已婚未育（可签承诺书）", "已婚未育（丁克）"]
 
 
 func applies_to(c: Candidate) -> bool:
