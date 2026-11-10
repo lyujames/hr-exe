@@ -77,7 +77,15 @@ func _build() -> void:
 	UI.panel(self, Rect2(0, DESK_TOP, 640, 360 - DESK_TOP), UI.DESK)
 	UI.panel(self, Rect2(0, DESK_TOP, 640, 2), UI.DESK_DARK)
 	# 左边：协议第二页
-	UI.panel(self, Rect2(12, 160, 220, 190), UI.PAPER, UI.INK_SOFT)
+	# 协议书：米色厚纸，左上两颗订书钉，右下折角
+	UI.panel(self, Rect2(12, 160, 220, 190), UI.PAPER_DEAL, UI.INK_SOFT)
+	UI.sprite(self, "res://assets/desk/staple.png", Vector2(15, 163))
+	UI.sprite(self, "res://assets/desk/staple.png", Vector2(15, 168))
+	var corner := Polygon2D.new()
+	corner.polygon = PackedVector2Array([Vector2(222, 350), Vector2(232, 350), Vector2(232, 340)])
+	corner.color = UI.DESK
+	add_child(corner)
+	UI.sprite(self, "res://assets/desk/dogear.png", Vector2(222, 340))
 	UI.label(self, "协商解除劳动合同协议书（第二页）", Vector2(20, 166), UI.INK)
 	var sheet: String = talk.get("sheet", "经济补偿：N+1\n计算基数：解除前月基本工资（降薪后）\n支付方式：签署后次月发放\n乙方确认：本协议系双方真实意思表示。\n\n甲方（盖章）：蜂巢科技\n乙方（签字）：＿＿＿＿＿＿")
 	UI.label(self, sheet, Vector2(20, 186), UI.INK_SOFT, 204)

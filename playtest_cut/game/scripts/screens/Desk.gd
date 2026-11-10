@@ -41,6 +41,10 @@ var closing := false
 var _clock: Label
 var _count: Label
 var _pile: Control
+## 文件盒（待处理那摞）和抽屉的位置。
+const PILE_POS := Vector2(6, 208)
+const DRAWER_POS := Vector2(0, 338)
+const FILE_BOX := preload("res://assets/desk/file_box.png")
 var _picker: Control
 var _hint: Label
 var _doc_layer: Control
@@ -134,7 +138,8 @@ func _ready() -> void:
 
 
 func _build_room() -> void:
-	UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK)
+	# 桌面：三聚氰胺板、简历底下一块深绿皮台垫、右下一圈咖啡杯印
+	UI.sprite(self, "res://assets/desk/desk_bg.png", Vector2.ZERO)
 	UI.panel(self, Rect2(0, 0, 640, 18), UI.DESK_DARK)
 	UI.label(self, "第 %d 天　%s" % [GameState.day, GameState.today], Vector2(6, 1), UI.TEXT_DIM)
 	_clock = UI.label(self, GameState.arrival_time(), Vector2(304, 1), UI.GREEN)
@@ -142,7 +147,9 @@ func _build_room() -> void:
 
 	_pile = Control.new()
 	_pile.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pile.position = PILE_POS
 	add_child(_pile)
+	_build_drawer()
 	_count = UI.label(self, "", Vector2(10, 26), UI.TEXT)
 
 	# 处理完的简历飞进这里；按组招的日子底下摆文件夹，计数挪到顶上那条
@@ -297,9 +304,12 @@ func _attach_cover_note(d: ResumeDoc) -> void:
 	var label := UI.label(note, "附言：" + text, Vector2(4, 0), UI.INK)
 	label.clip_text = true
 	label.size = Vector2(176, 15)
-	var paper := UI.panel(note, Rect2(0, 0, 184, 16), UI.YELLOW)
+	var paper := UI.panel(note, Rect2(0, 0, 184, 16), UI.STICKY)
 	paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	note.move_child(paper, 0)
+	UI.panel(note, Rect2(0, 0, 184, 2), Color("e4c64a"))
+	note.move_child(note.get_child(-1), 1)
+	UI.sprite(note, "res://assets/desk/curl.png", Vector2(177, 9))
 
 
 ## 新递上来的纸接替上一份的那一层，不往最上面放：玩家放在上面的东西一直在上面。
@@ -317,8 +327,58 @@ func _draw_pile() -> void:
 	if GameState.config.hirebot >= 2:
 		var yes := queue.filter(func(c: Candidate) -> bool: return c != null and HireBot.label(c) == HireBot.RECOMMEND).size()
 		_count.text = "荐 %d 否 %d" % [yes, queue.size() - yes]
-	for i in mini(queue.size(), 16):
-		UI.panel(_pile, Rect2(14, 262 - i * 3, 70, 8), UI.PAPER if i % 2 == 0 else UI.PAPER_DIM, UI.INK_SOFT)
+	# 牛皮纸档案盒：剩几份就露几层纸边（最多十层）
+	var box := AtlasTexture.new()
+	box.atlas = FILE_BOX
+	box.region = Rect2(mini(queue.size(), 10) * 86, 0, 86, 62)
+	var t := TextureRect.new()
+	t.texture = box
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pile.add_child(t)
+
+
+## 左下角的抽屉：点开是俯视图，信封压在最底下，第三个月起放进去的证据一样一样摆着。钟照走。
+func _build_drawer() -> void:
+	var front := UI.sprite(self, "res://assets/desk/drawer_closed.png", DRAWER_POS)
+	front.mouse_filter = Control.MOUSE_FILTER_STOP
+	front.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	front.tooltip_text = "抽屉"
+	front.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			_open_drawer())
+
+
+func _open_drawer() -> void:
+	Sfx.paper()
+	var cover := UI.panel(self, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.55))
+	cover.mouse_filter = Control.MOUSE_FILTER_STOP
+	var at := Vector2(170, 92)
+	UI.sprite(cover, "res://assets/desk/drawer_open.png", at)
+	var things := 0
+	var envelopes := GameState.kickbacks.filter(func(k: Dictionary) -> bool: return k.taken and k.from != "小刘家")
+	# 信封压在最底下，左边一溜，多了就往右错开一点
+	var slots := [Vector2(12, 26), Vector2(12, 82), Vector2(36, 54), Vector2(36, 96)]
+	for i in envelopes.size():
+		var e := UI.sprite(cover, "res://assets/desk/envelope.png", at + slots[i % slots.size()] + Vector2(i / slots.size() * 4, 0))
+		UI.label(e, "¥%d" % int(envelopes[i].amount), Vector2(8, 16), Color("5a3a1a"))
+		things += 1
+	if "mail_19" in GameState.evidence:
+		UI.sprite(cover, "res://assets/desk/mail_print.png", at + Vector2(96, 12))
+		things += 1
+	if "zhou_book" in GameState.evidence:
+		var book := UI.sprite(cover, "res://assets/desk/zhou_book.png", at + Vector2(184, 20))
+		UI.label(book, "规则", Vector2(18, 11), Color("1e2a44"))
+		things += 1
+	if "voice_22" in GameState.evidence:
+		UI.sprite(cover, "res://assets/desk/usb.png", at + Vector2(116, 104))
+		things += 1
+	var caption := "抽屉里只有几支没水的笔。" if things == 0 else "抽屉"
+	UI.label(cover, caption, at + Vector2(0, -18), UI.TEXT)
+	UI.label(cover, "点哪儿都关上", at + Vector2(212, 140), UI.TEXT_DIM)
+	cover.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			Sfx.paper()
+			cover.queue_free())
 
 
 func _on_stamped(verdict: String, _at: Vector2) -> void:
@@ -706,9 +766,12 @@ func _print_slip(who: String, why: String) -> void:
 	slip.mouse_filter = Control.MOUSE_FILTER_STOP
 	slip.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var shadow := UI.panel(slip, Rect2(2, 2, slip.size.x, 0), UI.BLACK)
-	var paper := UI.panel(slip, Rect2(0, 0, slip.size.x, 0), UI.PAPER, UI.INK_SOFT)
-	UI.panel(slip, Rect2(0, 0, slip.size.x, 16), UI.RED)
-	UI.label(slip, "违规通知 #%d" % n if fined else "违规通知", Vector2(5, 1), UI.PAPER)
+	var paper := UI.panel(slip, Rect2(0, 0, slip.size.x, 0), UI.PAPER_SLIP)
+	# 针式连续纸：两边齿孔、淡绿横条，等量出多长再铺
+	var feed_marks := Control.new()
+	feed_marks.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slip.add_child(feed_marks)
+	UI.label(slip, "违规通知 #%d" % n if fined else "违规通知", Vector2(10, 1), UI.RED)
 	# 先放进一个临时容器入树，换行宽度才生效，好量出单子多长
 	add_child(slip)
 	var y := 20.0
@@ -717,11 +780,16 @@ func _print_slip(who: String, why: String) -> void:
 		[why, UI.INK],
 		[_slip_cost(fined, n), UI.RED if fined and n > GameState.FREE_WARNINGS else UI.INK_SOFT],
 	]:
-		var l := UI.label(slip, line[0], Vector2(5, y), line[1], slip.size.x - 10)
+		var l := UI.label(slip, line[0], Vector2(10, y), line[1], slip.size.x - 20)
 		y += l.get_line_count() * (l.get_line_height() + 1) + 4
 	slip.size.y = y + 2
 	shadow.size.y = slip.size.y
 	paper.size.y = slip.size.y
+	for band in range(6, int(slip.size.y), 12):
+		UI.panel(feed_marks, Rect2(8, band, slip.size.x - 16, mini(6, int(slip.size.y) - band)), Color("d8e6d0"))
+	for hole in range(3, int(slip.size.y) - 3, 6):
+		UI.panel(feed_marks, Rect2(2, hole, 3, 3), Color("3a403c"))
+		UI.panel(feed_marks, Rect2(slip.size.x - 5, hole, 3, 3), Color("3a403c"))
 	remove_child(slip)
 
 	# 单子从出纸口往上冒；打印机被挪到顶上、上面放不下，就从底下吐
@@ -1004,7 +1072,7 @@ func _build_chief_note() -> void:
 	add_child(_chief_note)
 	for node: Control in [
 		UI.panel(_chief_note, Rect2(Vector2(2, 2), _chief_note.size), Color(0, 0, 0, 0.3)),
-		UI.panel(_chief_note, Rect2(Vector2.ZERO, _chief_note.size), UI.YELLOW),
+		UI.panel(_chief_note, Rect2(Vector2.ZERO, _chief_note.size), UI.STICKY),
 		UI.label(_chief_note, "赵主管要：", Vector2(4, 1), UI.INK_SOFT),
 		UI.label(_chief_note, String(need.get("short", need.note)), Vector2(4, 17), UI.INK, _chief_note.size.x - 8),
 	]:
@@ -1018,7 +1086,7 @@ func _toggle_chief_note() -> void:
 		_chief_open = null
 		return
 	var need: Dictionary = GameState.config.chief_need
-	_chief_open = UI.panel(self, Rect2(_chief_note.position + Vector2(_chief_note.size.x + 4, -24), Vector2(220, 0)), UI.YELLOW, UI.BLACK)
+	_chief_open = UI.panel(self, Rect2(_chief_note.position + Vector2(_chief_note.size.x + 4, -24), Vector2(220, 0)), UI.STICKY, UI.BLACK)
 	_chief_open.rotation = -0.02
 	# 两段都会折行：先入树量高度，再往下排，纸跟着长
 	var note := UI.label(_chief_open, "赵主管：" + String(need.note), Vector2(8, 6), UI.INK, 204)

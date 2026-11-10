@@ -1,5 +1,6 @@
 extends Control
-## 点开桌上的手机：竖着的一部大手机。先是联系人列表，点一个人进对话；回话还是选一句（不打字）。
+## 点开桌上的手机：竖着的一部大手机，界面照 WChat：浅灰底、白色会话列表、头像，别人的白气泡、你的绿气泡。
+## 先是联系人列表，点一个人进对话；回话还是选一句（不打字）。老婆会发照片（desk_texts 的 photo）。
 ## 消息来自 GameState.stats.texts（DayConfig.desk_texts，from 是谁发的，默认老婆），
 ## 转账卡片来自 stats.transfers（猎头的钱，待收款 → 收款 / 退还）；回话选项带 transfer 的是从零钱转出去。
 
@@ -12,11 +13,24 @@ const H := 290.0
 ## 对话区
 const BODY_TOP := 46.0
 const PAD := 6.0
-const BUBBLE_W := 156.0
+const BUBBLE_W := 132.0
 const ROW_H := 38.0
-const BUBBLE := Color("3d5a4c")
-const CARD := Color("e8c84a")
-const CARD_DONE := Color("8c8460")
+const AVATAR := 24.0
+## WChat 的几种颜色
+const BG := Color("ededed")
+const ROW := Color("ffffff")
+const LINE := Color("e2e2e2")
+const NAME := Color("191919")
+const GREY := Color("9a9a9a")
+const BUBBLE := Color("ffffff")
+const MINE := Color("95ec69")
+const RED_DOT := Color("fa5151")
+const CARD := Color("fa9d3b")
+const CARD_DONE := Color("f7c48a")
+const INPUT := Color("f7f7f7")
+## 有画好头像的人；别的人是一块颜色写上名字的第一个字（没换过头像的样子）。
+const AVATARS := {"老婆": "wife", "你爸": "dad", "我": "me"}
+const PLAIN := [Color("7a9ac0"), Color("8ab07a"), Color("c09a6a"), Color("a08ac0"), Color("6aa8a8")]
 ## 老婆一直在最上面，没消息也有这一行。
 const PINNED := "老婆"
 
@@ -41,11 +55,13 @@ func refresh() -> void:
 	_root = Control.new()
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_root)
+	# 机身一圈黑边，里面是 WChat 的浅灰底
 	var body := UI.panel(_root, Rect2(0, 0, W, H), UI.BLACK, UI.GREEN_DIM)
 	body.mouse_filter = Control.MOUSE_FILTER_STOP  # 别点穿到底下的简历
-	UI.label(_root, clock, Vector2(PAD, 3), UI.TEXT_DIM)
-	UI.button(_root, "收起", Rect2(W - 44, 3, 40, 16), closed.emit)
-	UI.panel(_root, Rect2(1, 22, W - 2, 1), UI.GREEN_DIM)
+	UI.panel(_root, Rect2(3, 3, W - 6, H - 6), BG)
+	UI.label(_root, clock, Vector2(PAD + 2, 4), NAME)
+	_light(UI.button(_root, "收起", Rect2(W - 46, 5, 40, 16), closed.emit))
+	UI.panel(_root, Rect2(3, 42, W - 6, 1), LINE)
 	if thread == "":
 		_build_list()
 	else:
@@ -90,7 +106,7 @@ func unread(name: String) -> bool:
 ## 去掉“老婆：”这种开头，对话里不用再写是谁说的。
 static func strip(text: String) -> String:
 	var i := text.find("：")
-	return text.substr(i + 1) if i >= 0 and i <= 5 else text
+	return text.substr(i + 1) if i >= 0 and i <= 8 else text
 
 
 static func preview(it: Dictionary) -> String:
@@ -98,32 +114,63 @@ static func preview(it: Dictionary) -> String:
 		var t: Dictionary = it.data
 		return "[转账] ¥%d %s" % [t.amount, {"pending": "待收款", "taken": "已收款", "returned": "已退还"}[t.status]]
 	var e: Dictionary = it.data
+	if e.has("photo"):
+		return "[图片]"
 	return ("（来电）" if e.get("call", false) else "") + strip(e.text)
 
 
+## 头像：画好的贴图，没有的是一块颜色写名字的第一个字。
+func _avatar(parent: Control, name: String, at: Vector2, size: int) -> void:
+	if AVATARS.has(name):
+		UI.sprite(parent, "res://assets/phone/avatar_%s_%d.png" % [AVATARS[name], size], at)
+		return
+	UI.panel(parent, Rect2(at, Vector2(size, size)), PLAIN[absi(hash(name)) % PLAIN.size()])
+	var l := UI.label(parent, name.left(1), at + Vector2(0, (size - 16) / 2.0), Color.WHITE)
+	l.size.x = size
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+
+## 浅色按钮：白底黑字，像 WChat 底下那排。
+static func _light(b: Button) -> Button:
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color("ffffff") if state != "hover" else Color("e8f6e0")
+		box.border_color = LINE if state != "hover" else Color("07c160")
+		box.set_border_width_all(1)
+		box.set_content_margin_all(2)
+		b.add_theme_stylebox_override(state, box)
+	for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(key, NAME)
+	return b
+
+
 func _build_list() -> void:
-	UI.label(_root, "消息", Vector2(PAD, 26), UI.GREEN)
-	var y := 46.0
+	var title := UI.label(_root, "WChat", Vector2(0, 24), NAME)
+	title.size.x = W
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var y := 44.0
 	for name: String in threads():
 		var its := items(name)
-		var b := UI.button(_root, "", Rect2(2, y, W - 4, ROW_H - 2), _open.bind(name))
+		UI.panel(_root, Rect2(3, y, W - 6, ROW_H), ROW)
+		var b := UI.button(_root, "", Rect2(3, y, W - 6, ROW_H), _open.bind(name))
 		b.flat = true
 		var pending: bool = its.any(func(it: Dictionary) -> bool: return it.kind == "transfer" and it.data.status == "pending")
-		UI.label(_root, name, Vector2(PAD + 4, y + 2), UI.GREEN if unread(name) else UI.TEXT)
+		_avatar(_root, name, Vector2(PAD + 2, y + 5), 28)
+		if unread(name):
+			UI.panel(_root, Rect2(PAD + 26, y + 2, 7, 7), RED_DOT)
+		UI.label(_root, name, Vector2(PAD + 36, y + 2), NAME)
 		if not its.is_empty():
 			var at: int = its[-1].at
-			var when := UI.label(_root, "%02d:%02d" % [at / 60, at % 60], Vector2(W - 44, y + 2), UI.TEXT_DIM)
+			var when := UI.label(_root, "%02d:%02d" % [at / 60, at % 60], Vector2(W - 46, y + 2), GREY)
 			when.size.x = 38
 			when.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		var line := "（今天还没有消息）" if its.is_empty() else preview(its[-1])
 		if pending:
 			line = preview(its.filter(func(it: Dictionary) -> bool: return it.kind == "transfer" and it.data.status == "pending")[0])
-		if line.length() > 13:
-			line = line.substr(0, 12) + "…"
-		UI.label(_root, line, Vector2(PAD + 4, y + 18), UI.YELLOW if pending else UI.TEXT_DIM)
-		if unread(name):
-			UI.panel(_root, Rect2(2, y + 8, 4, 4), UI.RED)
-		UI.panel(_root, Rect2(PAD, y + ROW_H - 2, W - PAD * 2, 1), UI.DESK)
+		if line.length() > 11:
+			line = line.substr(0, 10) + "…"
+		UI.label(_root, line, Vector2(PAD + 36, y + 19), Color("c8740a") if pending else GREY)
+		UI.panel(_root, Rect2(PAD + 36, y + ROW_H - 1, W - PAD * 2 - 36, 1), LINE)
 		y += ROW_H
 		if y > H - 40:
 			break
@@ -141,8 +188,10 @@ func _back() -> void:
 
 
 func _build_thread() -> void:
-	UI.button(_root, "<", Rect2(2, 25, 20, 15), _back)
-	UI.label(_root, thread, Vector2(26, 25), UI.GREEN)
+	_light(UI.button(_root, "<", Rect2(5, 24, 20, 16), _back))
+	var title := UI.label(_root, thread, Vector2(0, 24), NAME)
+	title.size.x = W
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var its := items(thread)
 	seen[thread] = its.size()
 	# 底下先摆回话的选项：第一条还没回的消息
@@ -157,7 +206,7 @@ func _build_thread() -> void:
 			var quote := preview(it)
 			if quote.length() > 14:
 				quote = quote.substr(0, 13) + "…"
-			UI.label(replies, "回：" + quote, Vector2(PAD, ry), UI.TEXT_DIM)
+			UI.label(replies, "回：" + quote, Vector2(PAD, ry), GREY)
 			ry += 16.0
 		for option: Dictionary in it.data.replies:
 			if not GameState.family_matches(option.get("when", "")):
@@ -165,11 +214,16 @@ func _build_thread() -> void:
 			var text: String = option.label
 			if option.has("transfer"):
 				text = "[转账 ¥%d] %s" % [option.transfer, text]
-			var b := UI.text_button(replies, text, Rect2(PAD, ry, W - PAD * 2, 18), _reply.bind(it.data, option))
+			var b := _light(UI.text_button(replies, text, Rect2(PAD, ry, W - PAD * 2, 18), _reply.bind(it.data, option)))
 			ry += b.size.y + 2.0
 		break
 	var bottom := H - 4.0 - ry
 	replies.position = Vector2(0, bottom)
+	if ry > 0.0:
+		var bar := UI.panel(_root, Rect2(3, bottom - 4.0, W - 6, ry + 5.0), INPUT)
+		UI.panel(_root, Rect2(3, bottom - 4.0, W - 6, 1), LINE)
+		_root.move_child(bar, replies.get_index())
+		_root.move_child(_root.get_child(-1), replies.get_index())
 	# 对话区：内容比框高就把最早的推出上沿
 	var view := Control.new()
 	view.position = Vector2(0, BODY_TOP)
@@ -184,7 +238,7 @@ func _build_thread() -> void:
 	var last_at := -999
 	for it: Dictionary in its:
 		if int(it.at) - last_at >= 30:
-			var stamp := UI.label(col, "%02d:%02d" % [it.at / 60, it.at % 60], Vector2(0, y), UI.TEXT_DIM)
+			var stamp := UI.label(col, "%02d:%02d" % [it.at / 60, it.at % 60], Vector2(0, y), Color("b2b2b2"))
 			stamp.size.x = W
 			stamp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			y += 16.0
@@ -193,7 +247,10 @@ func _build_thread() -> void:
 			y += _card(col, y, it.data.amount, it.data.note, it.data.status, false, it.data) + 4.0
 			continue
 		var e: Dictionary = it.data
-		y += _bubble(col, y, preview(it), false) + 4.0
+		if e.has("photo"):
+			y += _photo(col, y, e.photo) + 4.0
+		else:
+			y += _bubble(col, y, preview(it), false) + 4.0
 		if e.has("replies") and GameState.text_replied(e.id):
 			var option := _chosen(e)
 			if option.is_empty():
@@ -204,7 +261,7 @@ func _build_thread() -> void:
 			else:
 				y += _bubble(col, y, option.label, true) + 4.0
 	if its.is_empty():
-		UI.label(col, "（今天还没有消息）", Vector2(PAD, y), UI.TEXT_DIM)
+		UI.label(col, "（今天还没有消息）", Vector2(PAD, y), GREY)
 		y += 16.0
 	col.position.y = minf(0.0, view.size.y - y)
 
@@ -216,33 +273,51 @@ func _chosen(entry: Dictionary) -> Dictionary:
 	return {}
 
 
-## 一个气泡：别人的靠左、底色深绿；你的靠右、绿字。返回高度。
+## 一个气泡：别人的靠左、白底，左边是 TA 的头像；你的靠右、绿底，右边是你的头像（孩子的照片）。返回高度。
 func _bubble(parent: Control, y: float, text: String, mine: bool, dim := false) -> float:
-	var probe := UI.label(parent, text, Vector2.ZERO, UI.TEXT)
+	var probe := UI.label(parent, text, Vector2.ZERO, NAME)
 	var w := minf(probe.get_minimum_size().x, BUBBLE_W)
 	probe.free()
-	var x := W - PAD - w - 8.0 if mine else PAD
-	var bg := UI.panel(parent, Rect2(x, y, w + 8.0, 0), UI.DESK if mine else BUBBLE)
-	var color := UI.TEXT_DIM if dim else (UI.GREEN if mine else UI.TEXT)
-	var l := UI.label(parent, text, Vector2(x + 4.0, y + 2.0), color, w)
-	var h := l.get_minimum_size().y + 4.0
-	bg.size.y = h
+	var face := Vector2(W - PAD - AVATAR, y) if mine else Vector2(PAD, y)
+	_avatar(parent, "我" if mine else thread, face, int(AVATAR))
+	var x := face.x - 5.0 - w - 8.0 if mine else face.x + AVATAR + 5.0
+	var fill := MINE if mine else BUBBLE
+	var bg := UI.panel(parent, Rect2(x, y, w + 8.0, 0), fill)
+	# 小尖角朝着头像
+	var tip := x + w + 8.0 if mine else x - 3.0
+	UI.panel(parent, Rect2(tip, y + 8, 3, 1), fill)
+	UI.panel(parent, Rect2(tip + (0.0 if mine else 1.0), y + 7, 2, 3), fill)
+	var l := UI.label(parent, text, Vector2(x + 4.0, y + 3.0), GREY if dim else NAME, w)
+	var h := maxf(l.get_minimum_size().y + 6.0, AVATAR)
+	bg.size.y = l.get_minimum_size().y + 6.0
 	return h
 
 
-## 转账卡片。pending 的带收款 / 退还；sent 是你转出去的，靠右。
+## 照片消息：老婆的自拍，白边小卡。
+func _photo(parent: Control, y: float, key: String) -> float:
+	_avatar(parent, thread, Vector2(PAD, y), int(AVATAR))
+	var tex: Texture2D = load("res://assets/phone/%s.png" % key)
+	var x := PAD + AVATAR + 5.0
+	UI.panel(parent, Rect2(x - 1, y - 1, tex.get_width() + 2, tex.get_height() + 2), LINE)
+	UI.sprite(parent, "res://assets/phone/%s.png" % key, Vector2(x, y))
+	return tex.get_height()
+
+
+## 转账卡片：WChat 那种橙色。pending 的带收款 / 退还；sent 是你转出去的，靠右。
 func _card(parent: Control, y: float, amount: int, note: String, status: String, mine: bool, t := {}) -> float:
-	var cw := 150.0
-	var x := W - PAD - cw if mine else PAD
+	var cw := 140.0
+	var face := Vector2(W - PAD - AVATAR, y) if mine else Vector2(PAD, y)
+	_avatar(parent, "我" if mine else thread, face, int(AVATAR))
+	var x := face.x - 5.0 - cw if mine else face.x + AVATAR + 5.0
 	var open := status == "pending"
 	var h := 62.0 if open else 40.0
 	UI.panel(parent, Rect2(x, y, cw, h), CARD if open or status == "sent" else CARD_DONE)
-	UI.label(parent, "¥%d　%s" % [amount, note], Vector2(x + 6, y + 2), UI.INK)
+	UI.label(parent, "¥%d　%s" % [amount, note], Vector2(x + 6, y + 2), Color.WHITE)
 	var state: String = {"pending": "待收款 · 下班退回", "taken": "已收款", "returned": "已退还", "sent": "已转账"}[status]
-	UI.label(parent, state, Vector2(x + 6, y + 20), UI.INK_SOFT if open else UI.INK)
+	UI.label(parent, state, Vector2(x + 6, y + 20), Color("fff4e6"))
 	if open:
-		UI.button(parent, "收款", Rect2(x + 6, y + 40, 64, 18), _answer.bind(t, true))
-		UI.button(parent, "退还", Rect2(x + 78, y + 40, 64, 18), _answer.bind(t, false))
+		_light(UI.button(parent, "收款", Rect2(x + 6, y + 40, 60, 18), _answer.bind(t, true)))
+		_light(UI.button(parent, "退还", Rect2(x + 72, y + 40, 60, 18), _answer.bind(t, false)))
 	return h
 
 

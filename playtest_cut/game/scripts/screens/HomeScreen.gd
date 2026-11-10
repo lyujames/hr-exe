@@ -6,9 +6,12 @@ class_name HomeScreen extends Control
 
 signal finished
 
-## 一页写满就翻页，不往按钮上压。
-const PAGE_BOTTOM := 292.0
-const TOP := 46.0
+## 一页写满就翻页，不往按钮上压。上面是家里的场景图，字从图下面开始。
+const PAGE_BOTTOM := 322.0
+const TOP := 188.0
+## 场景图 640×196，上下各裁一点，放在标题条下面。
+const SCENE_CROP := Rect2(0, 8, 640, 160)
+const SCENE_Y := 18.0
 
 var _queue: Array = []
 var _page: Control
@@ -20,8 +23,9 @@ var _options: Array[Button] = []
 func _ready() -> void:
 	var cfg := GameState.config
 	UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK_DARK)
+	_scene()
 	var d := DateUtil.parse(GameState.today)
-	UI.label(self, "%d 月 %d 日（%s），晚上" % [d.y, d.z, DateUtil.weekday(GameState.today)], Vector2(40, 18), UI.GREEN)
+	UI.label(self, "%d 月 %d 日（%s），晚上" % [d.y, d.z, DateUtil.weekday(GameState.today)], Vector2(40, 2), UI.GREEN)
 	_page = Control.new()
 	add_child(_page)
 	_next = UI.button(self, "……", Rect2(484, 328, 110, 24), _advance)
@@ -35,6 +39,25 @@ func _ready() -> void:
 		for line in GameState.status_lines():
 			_queue.append({"text": line, "status": true})
 	_advance()
+
+
+## 家里那张图：按到家的钟点换。七点半前一家人都在；八点半前孩子睡了、你那碗扣着；再晚灯全关了。
+func _scene() -> void:
+	var variant := "1930"
+	if GameState.clocked_day() and not GameState.stats.left_early:
+		var home := GameState.home_minutes()
+		if home >= GameState.LATE_HOME[1]:
+			variant = "2230"
+		elif home >= GameState.LATE_HOME[0]:
+			variant = "2030"
+	var tex := AtlasTexture.new()
+	tex.atlas = load("res://assets/home/home_%s.png" % variant)
+	tex.region = SCENE_CROP
+	var pic := TextureRect.new()
+	pic.texture = tex
+	pic.position = Vector2(0, SCENE_Y)
+	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(pic)
 
 
 ## 今晚有没有东西可演：回家那一幕，或者短信。
@@ -146,7 +169,7 @@ func _ask(beat: Dictionary) -> void:
 	var total := 0.0
 	for b in _options:
 		total += b.size.y + 4.0
-	if _y + total > 324.0:
+	if _y + total > PAGE_BOTTOM + 2.0:
 		UI.clear(_page)
 		_y = TOP
 	var y := _y

@@ -108,11 +108,11 @@ func _kickback_notes() -> Array:
 	for k: Dictionary in GameState.kickbacks_in(_month):
 		match k.get("candidate_id", ""):
 			"story_headhunter":
-				notes.append("抽屉里有个信封，¥%d。%s 发来微信：“亲戚家孩子下个月也找工作，老规矩。”" % [k.amount, k.from] if k.taken \
-					else "%s 发来微信：“行，我记住你了。”" % k.from)
+				notes.append("抽屉里有个信封，¥%d。%s 发来 WChat：“亲戚家孩子下个月也找工作，老规矩。”" % [k.amount, k.from] if k.taken \
+					else "%s 发来 WChat：“行，我记住你了。”" % k.from)
 			"story_lizhe_cousin":
 				notes.append("抽屉里又多了一个信封，¥%d。这回是李哲的表哥。" % k.amount if k.taken \
-					else "李哲的表哥那个信封，你原样退了回去。他爸没再发微信。")
+					else "李哲的表哥那个信封，你原样退了回去。他爸没再发 WChat。")
 			"private_23":
 				notes.append("李哲他爸的私单，一个人头 ¥%d，当天到账。收款是你自己点的。" % k.amount)
 			"story_xiaoliu":

@@ -45,7 +45,7 @@ func setup(c: Candidate) -> void:
 	candidate = c
 	size = SIZE
 	_lines = ResumeQuestions.lines(c)
-	_paper = UI.panel(self, Rect2(Vector2.ZERO, SIZE), UI.PAPER)
+	_paper = UI.panel(self, Rect2(Vector2.ZERO, SIZE), UI.PAPER_RESUME)
 	var age := c.get_age(GameState.today)
 	var head := "%s · %d 岁" % [c.display_name, age]
 	if not c.is_intern:

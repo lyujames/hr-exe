@@ -20,9 +20,14 @@ var _pages: Array = []
 func setup() -> void:
 	size = SIZE
 	UI.panel(self, Rect2(Vector2(2, 2), SIZE), UI.BLACK)
-	UI.panel(self, Rect2(Vector2.ZERO, SIZE), UI.PAPER_DIM, UI.INK_SOFT)
+	UI.panel(self, Rect2(Vector2.ZERO, SIZE), UI.PAPER_BOOK, UI.INK_SOFT)
 	UI.panel(self, Rect2(0, 0, SIZE.x, 18), UI.GREEN_DIM)
 	UI.label(self, "招聘规范手册", Vector2(6, 2), UI.BLACK)
+	# 左边黑线圈，右边伸出三个索引签：一看就是装订的手册
+	for y in range(24, int(SIZE.y) - 6, 9):
+		UI.sprite(self, "res://assets/desk/ring.png", Vector2(-3, y))
+	for i in 3:
+		UI.panel(self, Rect2(SIZE.x - 1, 26 + i * 14, 5, 10), [UI.RED, UI.YELLOW, UI.GREEN_DIM][i])
 	_content = Control.new()
 	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_content)

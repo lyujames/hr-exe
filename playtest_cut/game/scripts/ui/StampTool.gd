@@ -1,28 +1,25 @@
 class_name StampTool extends Control
 ## 印章：用 _get_drag_data 拖到简历上，由 ResumeDoc 的 _drop_data 接收。
+## 漆木把手、铜箍、印身贴标签，橡胶面沾着墨（图是 素材/美术脚本/desk_art.py 画的）。
+## 抓手区还是 92×40；图高 48，往上多出的 8 像素是把手顶。
 
 const SIZE := Vector2(92, 40)
+const ART_TOP := -8.0
 
 var verdict := "pass"
 var title := "通过"
-var ink := UI.GREEN
 
 
 func setup(stamp_verdict: String) -> void:
 	verdict = stamp_verdict
 	title = {"pass": "通过", "exception": "破格"}.get(verdict, "拒绝")
-	ink = {"pass": UI.GREEN, "exception": UI.YELLOW}.get(verdict, UI.RED)
 	size = SIZE
 	mouse_default_cursor_shape = Control.CURSOR_DRAG
 	_draw_block(self)
 
 
 func _draw_block(parent: Control) -> void:
-	UI.panel(parent, Rect2(16, 0, 60, 18), Color("3a2f2a"), UI.BLACK)
-	UI.panel(parent, Rect2(0, 18, SIZE.x, 22), ink.darkened(0.25), UI.BLACK)
-	var text := UI.label(parent, title, Vector2(0, 21), UI.BLACK)
-	text.size.x = SIZE.x
-	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UI.sprite(parent, "res://assets/desk/stamp_%s.png" % verdict, Vector2(0, ART_TOP))
 
 
 func _get_drag_data(_at: Vector2) -> Variant:

@@ -14,8 +14,9 @@ func setup(list: Array[JobPosting]) -> void:
 	postings = list
 	size = SIZE
 	UI.panel(self, Rect2(Vector2(2, 2), SIZE), UI.BLACK)
-	UI.panel(self, Rect2(Vector2.ZERO, SIZE), UI.PAPER, UI.INK_SOFT)
+	UI.panel(self, Rect2(Vector2.ZERO, SIZE), UI.PAPER_JD, UI.INK_SOFT)
 	UI.panel(self, Rect2(0, 0, SIZE.x, 18), UI.YELLOW)
+	UI.sprite(self, "res://assets/desk/staple.png", Vector2(SIZE.x - 11, 3))
 	var interns := postings.all(func(p: JobPosting) -> bool: return not p.majors.is_empty())
 	UI.label(self, "蜂巢 实习岗位" if interns else "蜂巢 招聘岗位", Vector2(4, 2), UI.INK)
 	_content = Control.new()

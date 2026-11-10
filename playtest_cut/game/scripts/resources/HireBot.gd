@@ -23,9 +23,11 @@ static func says_pass(tag: String) -> bool:
 	return tag == RECOMMEND
 
 
-## {pass, reason, why}：reason 是写给候选人的那句（你的原话），why 是它自己的依据（写在小条上）。
+## {pass, reason, why, flags}：reason 是写给候选人的那句（你的原话），why 是它自己的依据（规则名，答案和日报用）；
+## flags 是它在简历上标红的地方：[{tag, at}]，tag 是两三个字的小签，at 是哪一栏（见 ResumeDoc._render_flags）。
 static func suggest(c: Candidate) -> Dictionary:
 	var failed: Array[String] = []
+	var flags: Array[Dictionary] = []
 	for rule in RuleEngine.active_rules:
 		if not rule.applies_to(c):
 			continue
@@ -36,26 +38,70 @@ static func suggest(c: Candidate) -> Dictionary:
 			var birth := DateUtil.parse(shown).x if shown != "" else 0
 			if c.exp_months < r.min_months or birth < r.min_birth_year:
 				failed.append(rule.title_key)
+			if c.exp_months < r.min_months:
+				flags.append({"tag": "年限", "at": "exp"})
+			if birth < r.min_birth_year:
+				flags.append({"tag": "年龄", "at": "birth"})
 		elif rule is RuleMarital:
 			if c.gender == "女" and c.marital.begins_with("已婚"):
-				failed.append("育龄风险" if c.marital.begins_with("已婚未育") else "二胎风险")
+				var risk := "育龄风险" if c.marital.begins_with("已婚未育") else "二胎风险"
+				failed.append(risk)
+				flags.append({"tag": risk.left(2), "at": "marital"})
 		elif not rule.check(c):
 			failed.append(rule.title_key)
+			flags.append(_flag(rule))
 	# 已婚已育那一刀只砍一部分人：看种子
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([GameState.run_seed, String(c.id), "hirebot"])
 	if "二胎风险" in failed and rng.randf() < 0.5:
 		failed.erase("二胎风险")
+		flags = flags.filter(func(f: Dictionary) -> bool: return f.tag != "二胎")
 	var ok := failed.is_empty()
 	if rng.randf() < float(NOISE.get(GameState.day, 0.15)):
 		ok = not ok
 		if not ok:
 			failed = ["综合匹配度"]
+			flags = [{"tag": "综合", "at": "applied"}]
 	if c.is_story and c.id == &"story_weilai":
 		ok = true
 		failed = []
+	if ok:
+		flags = []
 	var why := "规则全部通过" if ok else "、".join(PackedStringArray(failed))
-	return {"pass": ok, "reason": "" if ok else your_phrase(hash([c.id])), "why": why}
+	return {"pass": ok, "reason": "" if ok else your_phrase(hash([c.id])), "why": why, "flags": flags}
+
+
+## 一条没过的规则标在哪一栏、小签写什么。第一页：birth salary exp degree marital skills ai applied；背面：jobs gap eval。
+static func _flag(rule: Rule) -> Dictionary:
+	if rule is RuleAgeLimit:
+		return {"tag": "年龄", "at": "birth"}
+	if rule is RuleExperience:
+		return {"tag": "年限", "at": "exp"}
+	if rule is RuleSalary:
+		return {"tag": "薪资", "at": "salary"}
+	if rule is RuleDegree or rule is RuleSchool or rule is RuleFullTime:
+		return {"tag": "学历", "at": "degree"}
+	if rule is RuleMajor:
+		return {"tag": "专业", "at": "degree"}
+	if rule is RuleKeywords:
+		return {"tag": "关键词", "at": "skills"}
+	if rule is RuleFramework:
+		return {"tag": "框架", "at": "skills"}
+	if rule is RuleAiExp:
+		return {"tag": "AI", "at": "skills"}
+	if rule is RuleAiResume:
+		return {"tag": "AI", "at": "ai"}
+	if rule is RuleEmployed:
+		return {"tag": "在职", "at": "jobs"}
+	if rule is RulePlugPlay:
+		return {"tag": "职位", "at": "jobs"}
+	if rule is RulePressure:
+		return {"tag": "抗压", "at": "jobs"}
+	if rule is RuleGap:
+		return {"tag": "空窗", "at": "gap"}
+	if rule is RuleSelfEval:
+		return {"tag": "自评", "at": "eval"}
+	return {"tag": String(rule.title_key).left(2), "at": "applied"}
 
 
 ## 你写得最多的拒绝理由（前三句里按种子挑一句）；一句都没写过就用万能那句。

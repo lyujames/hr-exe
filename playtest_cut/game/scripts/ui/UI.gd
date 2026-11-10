@@ -15,6 +15,13 @@ const TEXT_DIM := Color("8c9992")
 const RED := Color("c8402f")
 const YELLOW := Color("e8c84a")
 const BLACK := Color("121615")
+## 七种纸各一种纸色（样板图_桌面与印章）。
+const PAPER_RESUME := Color("e8e4d8")
+const PAPER_BOOK := Color("d8dfd0")
+const PAPER_JD := Color("e6eaec")
+const PAPER_SLIP := Color("eeecdc")
+const PAPER_DEAL := Color("f0ece0")
+const STICKY := Color("f0d45a")
 
 
 static func theme() -> Theme:
@@ -60,6 +67,16 @@ static func panel(parent: Control, rect: Rect2, fill: Color, border := Color.TRA
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(p)
 	return p
+
+
+## 一张美术图（res://assets/...），不接鼠标。
+static func sprite(parent: Control, path: String, pos: Vector2) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = load(path)
+	t.position = pos
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(t)
+	return t
 
 
 ## size.x > 0 时自动换行。

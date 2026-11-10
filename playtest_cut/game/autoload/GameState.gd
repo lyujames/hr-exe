@@ -564,7 +564,7 @@ func answer_envelope(c: Candidate, taken: bool) -> void:
 		stats.gray += int(c.envelope.get("amount", 0))
 
 
-## 猎头的钱：微信转账，先在手机上挂一张“待收款”（stats.transfers），点收款才算收下、当晚进存款；
+## 猎头的钱：WChat 转账，先在手机上挂一张“待收款”（stats.transfers），点收款才算收下、当晚进存款；
 ## 点退还，或者下班还没点，就退回去。收没收都记进 kickbacks（broker 标着是哪一笔，taken 是收没收）。
 ## 放进面试是 pass，满试用期是 retain；同一个人放两次（重投）只转一次。
 func broker_paid(c: Candidate, amount: int, stage := "pass") -> void:

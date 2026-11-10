@@ -236,7 +236,7 @@ func _build_wall() -> void:
 	(_drop_frame.get_theme_stylebox("panel") as StyleBoxFlat).set_border_width_all(2)
 	_drop_frame.visible = false
 	_portrait = PortraitView.new()
-	_portrait.setup(candidate.portrait_seed, 2)
+	_portrait.setup(candidate.portrait_seed, 2, PortraitFactory.art_key(candidate.portrait_seed, candidate.id))
 	_portrait.position = PORTRAIT_POS
 	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_portrait)

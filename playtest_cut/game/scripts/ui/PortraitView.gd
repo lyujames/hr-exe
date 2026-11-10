@@ -3,6 +3,9 @@ class_name PortraitView extends TextureRect
 ## shake 是追问追到最慌：一边冒汗一边抖。
 
 var seed_value := 0
+## 美术图的 key（空 = 路人池）；bust：面试间的大框，有半身像就用半身像。
+var art_key := ""
+var bust := false
 var tic := "none"
 var _time := 0.0
 var _frame := -1
@@ -10,8 +13,10 @@ var _base_position := Vector2.ZERO
 var _shaking := false
 
 
-func setup(portrait_seed: int, scale_factor := 1) -> void:
+func setup(portrait_seed: int, scale_factor := 1, key := "") -> void:
 	seed_value = portrait_seed
+	art_key = key if key != "" else PortraitFactory.art_key(portrait_seed)
+	bust = scale_factor == 2 and PortraitFactory.has_bust(art_key)
 	expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	custom_minimum_size = Vector2.ONE * PortraitFactory.SIZE * scale_factor
 	size = custom_minimum_size
@@ -51,4 +56,4 @@ func _shake(on: bool) -> void:
 func _show(frame: int) -> void:
 	if frame != _frame:
 		_frame = frame
-		texture = PortraitFactory.make(seed_value, frame)
+		texture = PortraitFactory.make(seed_value, frame, art_key, bust)

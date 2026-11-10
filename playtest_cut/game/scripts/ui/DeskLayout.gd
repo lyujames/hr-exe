@@ -8,8 +8,8 @@ const ITEMS := {
 	"id_card": {"name": "身份证", "pos": Vector2(350, 246), "size": Vector2(170, 72)},
 	"rulebook": {"name": "规则手册", "pos": Vector2(344, 24), "size": Vector2(186, 212)},
 	"posting": {"name": "岗位 JD", "pos": Vector2(532, 24), "size": Vector2(106, 232)},
-	"photo": {"name": "全家福", "pos": Vector2(16, 48), "size": Vector2(64, 50)},
-	"phone": {"name": "手机", "pos": Vector2(32, 112), "size": Vector2(30, 52)},
+	"photo": {"name": "全家福", "pos": Vector2(12, 46), "size": Vector2(74, 58)},
+	"phone": {"name": "手机", "pos": Vector2(32, 112), "size": Vector2(32, 54)},
 	"pass": {"name": "通过章", "pos": Vector2(112, 306), "size": Vector2(92, 40)},
 	"reject": {"name": "拒绝章", "pos": Vector2(216, 306), "size": Vector2(92, 40)},
 	"exception": {"name": "破格章", "pos": Vector2(4, 272), "size": Vector2(92, 40)},
@@ -19,7 +19,7 @@ const ITEMS := {
 	"reject_team": {"name": "拒绝章", "pos": Vector2(4, 318), "size": Vector2(92, 40)},
 	"exception_team": {"name": "破格章", "pos": Vector2(4, 278), "size": Vector2(92, 40)},
 	"inspect": {"name": "质询", "pos": Vector2(536, 296), "size": Vector2(60, 48)},
-	"printer": {"name": "打印机", "pos": Vector2(536, 262), "size": Vector2(100, 32)},
+	"printer": {"name": "打印机", "pos": Vector2(536, 262), "size": Vector2(102, 34)},
 	"chief": {"name": "主管便签", "pos": Vector2(2, 168), "size": Vector2(94, 40)},
 }
 ## 顶上那条状态栏不让放。
