@@ -316,7 +316,11 @@ func _build_chief() -> void:
 	var opener: String = GameState.config.chief_opener if slot == 0 else _who().get("next_line", "下一个。抓紧，六点我还有会。")
 	if timed and _who().has("opener"):
 		opener = _who().next_line if _seen_lead_today() else _who().opener
-	_chief_line = UI.label(self, "“%s”" % opener, r.position + Vector2(5, 0), UI.INK, r.size.x - 8)
+	# 砍减版按组招的日子没有主管开场白：组长有自己的就说自己的，都没有就写他在干什么，不留一对空引号
+	if opener == "" and _who().get("opener", "") != "":
+		opener = _who().opener
+	var said := "“%s”" % opener if opener != "" else "（%s低头看简历。）" % interviewer_name()
+	_chief_line = UI.label(self, said, r.position + Vector2(5, 0), UI.INK, r.size.x - 8)
 	_chief_line.add_theme_constant_override("line_spacing", -5)
 	_chief_line.max_lines_visible = 3
 

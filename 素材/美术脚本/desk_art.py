@@ -333,40 +333,41 @@ def printer(state='idle', out=0):
 
 # ───────────── 文件盒（待处理） ─────────────
 def file_box(n=6):
-    """牛皮纸档案盒，俯视：一摞简历的纸边露在外面，盒边贴着手写的“待处理”标签。"""
+    """牛皮纸文件盒，从斜上方看：后壁、两侧、里面一摞简历（剩得越多纸面越高、纸边越多），前壁贴一张白标签（游戏在上面写“待处理 N”）。"""
     W, H = 84, 60
     img = Image.new('RGBA', (W + 2, H + 2))
     P = Pix(img)
     P.r(2, 2, W, H, (0, 0, 0, 140))
-    k, kd, kl = hx('b08a5a'), hx('8a6a40'), hx('c8a470')
-    P.r(0, 0, W, H, kd)
-    P.r(2, 2, W - 4, H - 4, hx('3a3026'))
-    # 盒壁
-    P.r(0, 0, W, 3, k)
-    P.r(0, 0, 3, H, k)
-    P.r(W - 3, 0, 3, H, kd)
-    P.r(0, H - 4, W, 4, k)
+    k, kd, kl, kdd = hx('b08a5a'), hx('8a6a40'), hx('caa676'), hx('5a4428')
+    FRONT = 40
+    # 后壁内侧（背光，暗）和盒底
+    P.r(0, 0, W, FRONT, kdd)
+    P.r(3, 3, W - 6, 6, hx('6a5232'))
     P.r(0, 0, W, 1, kl)
-    # 纸：越多越高，侧面一层层纸边
+    P.r(0, 0, 3, FRONT, kd)
+    P.r(W - 3, 0, 3, FRONT, kd)
+    # 纸：最多十层，一层 3 像素；纸面越往上越高
     layers = min(n, 10)
-    for i in range(layers):
-        y = 6 + (10 - layers) * 2 + i * 2
-        P.r(5 + (i % 2), y, W - 11, 46 - (10 - layers) * 2 - i * 2 + 2, hx('e6e2d6') if i == layers - 1 else hx('c8c4b8'))
-        P.r(5 + (i % 2), y, W - 11, 1, hx('f4f0e4'))
-    if n == 0:
-        return img
-    # 最上面一张：简历头（照片框 + 几行）
-    ty = 6 + (10 - layers) * 2 + (layers - 1) * 2
-    P.r(10, ty + 4, 9, 11, hx('9aa29c'))
-    rnd = random.Random(2)
-    greek(P, 23, ty + 5, 40, hx('8a8e88'), rnd, 3, 3)
-    # 回形针
-    for y in range(ty - 2, ty + 9):
-        P.p(64, y, hx('c8ccd0'))
-        P.p(67, y, hx('c8ccd0'))
-    P.r(64, ty - 3, 4, 1, hx('c8ccd0'))
-    P.r(65, ty + 9, 2, 1, hx('c8ccd0'))
-    # 标签
+    if layers:
+        top = FRONT - 6 - layers * 3
+        for i in range(layers):
+            y = FRONT - 3 - i * 3
+            P.r(5, y, W - 10, 3, hx('d8d4c8') if i % 2 else hx('cac6ba'))
+            P.r(5, y, W - 10, 1, hx('eeeae0'))
+        # 最上面那张：只看得见上半截，几行字
+        P.r(6, top, W - 12, FRONT - 3 - (layers - 1) * 3 - top, hx('ece8dc'))
+        P.r(6, top, W - 12, 1, hx('faf6ec'))
+        rnd = random.Random(2)
+        greek(P, 12, top + 3, W - 28, hx('8a8e88'), rnd, max(1, min(3, (FRONT - 3 - (layers - 1) * 3 - top - 4) // 3)), 3)
+    # 前壁：牛皮纸，上沿一道亮边，正中一张白标签
+    P.r(0, FRONT, W, H - FRONT, k)
+    P.r(0, FRONT, W, 1, kl)
+    P.r(0, H - 1, W, 1, kd)
+    for x in range(0, W, 5):
+        P.p(x + 2, FRONT + 3 + (x % 3), hx('a4804e'))
+    P.r(10, FRONT + 3, W - 20, 14, hx('ece6d0'))
+    P.r(10, FRONT + 3, W - 20, 1, hx('fffaf0'))
+    P.r(10, FRONT + 16, W - 20, 1, hx('c8c0a8'))
     return img
 
 

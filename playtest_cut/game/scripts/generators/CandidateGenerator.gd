@@ -11,6 +11,9 @@ const NEW_POSTING_WEIGHT := 2
 
 const SURNAMES := ["李", "王", "张", "刘", "陈", "杨", "赵", "黄", "周", "吴", "徐", "孙", "马", "朱", "胡", "林", "郭", "何", "高", "罗"]
 const GIVEN := ["伟", "芳", "娜", "敏", "静", "强", "磊", "洋", "勇", "杰", "娟", "涛", "明", "超", "秀英", "晓东", "雅婷", "子轩", "思远", "浩然", "欣怡", "建国", "文博", "梦瑶"]
+## GIVEN 里的女名：照片按名字选男女，“罗雅婷”不会是一张男人的脸。
+const FEMALE_GIVEN := ["芳", "娜", "敏", "静", "娟", "秀英", "雅婷", "欣怡", "梦瑶"]
+const MALE_GIVEN := ["伟", "强", "磊", "洋", "勇", "杰", "涛", "明", "超", "晓东", "子轩", "思远", "浩然", "建国", "文博"]
 const POSITIONS := ["前端工程师", "运营专员", "产品助理", "数据分析师"]
 const SCHOOLS := ["东江大学", "南山理工大学", "北海师范大学", "西川财经大学", "云岭大学", "明湖学院"]
 const COLLEGES := ["东江职业技术学院", "南山城市学院", "北海商务专科学校"]
@@ -195,6 +198,21 @@ static func _pick_target(rng: RandomNumberGenerator, rules: Array, day: int) -> 
 	return rules.back()
 
 
+static func female_name(name: String) -> bool:
+	for g: String in FEMALE_GIVEN:
+		if name.ends_with(g):
+			return true
+	return false
+
+
+## 规则把性别定死了（婚育栏），名字跟着换成同姓的男名 / 女名，照片再按名字挑。
+static func match_name(c: Candidate, female: bool) -> void:
+	if c.is_story or female_name(c.display_name) == female:
+		return
+	var pool: Array = FEMALE_GIVEN if female else MALE_GIVEN
+	c.display_name = c.display_name.left(1) + pool[absi(hash(String(c.id))) % pool.size()]
+
+
 static func _base(rng: RandomNumberGenerator, id: String) -> Candidate:
 	var c := Candidate.new()
 	var pick := func(list: Array) -> Variant: return list[rng.randi_range(0, list.size() - 1)]
@@ -223,7 +241,7 @@ static func _base(rng: RandomNumberGenerator, id: String) -> Candidate:
 		c.gap_note = notes[rng.randi_range(0, notes.size() - 1)]
 	# 写在简历上的工作年限：没有规则管的时候，大致等于毕业到现在
 	c.exp_months = maxi(c.get_age(GameState.today) - 23, 1) * 12 + rng.randi_range(0, 11)
-	c.portrait_seed = rng.randi()
+	c.portrait_seed = PortraitFactory.seed_for(rng.randi(), female_name(c.display_name))
 	c.ability = rng.randi_range(20, 90)
 	c.honesty = rng.randi_range(15, 95)
 	c.loyalty = rng.randi_range(15, 90)

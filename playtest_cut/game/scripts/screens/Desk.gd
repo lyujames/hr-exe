@@ -42,7 +42,7 @@ var _clock: Label
 var _count: Label
 var _pile: Control
 ## 文件盒（待处理那摞）和抽屉的位置。
-const PILE_POS := Vector2(6, 208)
+const PILE_POS := Vector2(6, 196)
 const DRAWER_POS := Vector2(0, 338)
 const FILE_BOX := preload("res://assets/desk/file_box.png")
 var _picker: Control
@@ -150,7 +150,10 @@ func _build_room() -> void:
 	_pile.position = PILE_POS
 	add_child(_pile)
 	_build_drawer()
-	_count = UI.label(self, "", Vector2(10, 26), UI.TEXT)
+	# 待处理的数写在文件盒前壁的白标签上
+	_count = UI.label(self, "", PILE_POS + Vector2(10, 42), UI.INK)
+	_count.size.x = 64
+	_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	# 处理完的简历飞进这里；按组招的日子底下摆文件夹，计数挪到顶上那条
 	if RuleEngine.folder_mode:
@@ -349,7 +352,7 @@ func _build_drawer() -> void:
 
 
 func _open_drawer() -> void:
-	Sfx.paper()
+	Sfx.drawer(true)
 	var cover := UI.panel(self, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.55))
 	cover.mouse_filter = Control.MOUSE_FILTER_STOP
 	var at := Vector2(170, 92)
@@ -377,12 +380,12 @@ func _open_drawer() -> void:
 	UI.label(cover, "点哪儿都关上", at + Vector2(212, 140), UI.TEXT_DIM)
 	cover.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
-			Sfx.paper()
+			Sfx.drawer(false)
 			cover.queue_free())
 
 
 func _on_stamped(verdict: String, _at: Vector2) -> void:
-	Sfx.stamp()
+	Sfx.stamp(verdict)
 	_shake()
 	if verdict == "pass":
 		_maybe_override("pass", commit.bind("pass", &"", ""))

@@ -23,6 +23,7 @@ const BY_SEED := {
 	1984: "wangzong", 4101: "zhao", 1979047: "laozhou", 6217: "xiaomeng",
 	4529: "hanlei", 1992052: "hanlei", 1988017: "gemin", 1985020: "lixiuying",
 	2803: "linchuan", 3317: "tangmin", 5106: "xuyan", 7741: "yeqing",
+	3311: "interns",
 }
 ## 撞了种子的两对（方晓 / 覃小满、许嘉禾 / 苏见青）按候选人 id 找。
 const BY_ID := {
@@ -30,7 +31,7 @@ const BY_ID := {
 	"story_no_project": "xujiahe", "story_philosophy": "sujianqing",
 }
 ## 有 128 半身像的人：面试间的大框用它，不放大 64。
-const BUSTS := ["hejing"]
+const BUSTS := ["hejing", "interns"]
 
 static var _cache := {}
 

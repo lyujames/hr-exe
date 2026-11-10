@@ -22,19 +22,33 @@ var on_release: Callable
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		_dragging = event.pressed
+		_lift(event.pressed)
 		if event.pressed:
 			_grab_offset = position - event.global_position
 			_press_pos = position
 			move_to_front()
 		elif on_release.is_valid() and on_release.call(event.global_position):
 			return
-		elif layout_key != "" and position != _press_pos:
-			DeskLayout.set_pos(layout_key, position)
+		else:
+			if position.distance_to(_press_pos) > 6.0:
+				Sfx.slide()
+			if layout_key != "" and position != _press_pos:
+				DeskLayout.set_pos(layout_key, position)
 	elif event is InputEventMouseMotion and _dragging:
 		var limit := get_viewport_rect().size - size
 		position = (event.global_position + _grab_offset).clamp(Vector2(0, 16), limit.max(Vector2(0, 16)))
 		if on_drag.is_valid():
 			on_drag.call(event.global_position)
+
+
+## 拿起来的纸影子拉开一点，像离了桌面；放下回到原处。影子是每张纸的第一个子节点（偏 2 像素的黑块）。
+func _lift(on: bool) -> void:
+	if get_child_count() == 0 or not get_child(0) is Panel:
+		return
+	var shadow: Panel = get_child(0)
+	if shadow.position in [Vector2(2, 2), Vector2(4, 5)]:
+		shadow.position = Vector2(4, 5) if on else Vector2(2, 2)
+		shadow.modulate.a = 0.7 if on else 1.0
 
 
 func set_inspecting(on: bool) -> void:

@@ -8,6 +8,7 @@ const ART_TOP := -8.0
 
 var verdict := "pass"
 var title := "通过"
+var _art: TextureRect
 
 
 func setup(stamp_verdict: String) -> void:
@@ -15,11 +16,14 @@ func setup(stamp_verdict: String) -> void:
 	title = {"pass": "通过", "exception": "破格"}.get(verdict, "拒绝")
 	size = SIZE
 	mouse_default_cursor_shape = Control.CURSOR_DRAG
-	_draw_block(self)
+	_art = _draw_block(self)
+	# 鼠标放上去，章微微抬起一像素；拿起来拖走时，桌上那个位置空出来（只剩一点影子）
+	mouse_entered.connect(func() -> void: _art.position.y = ART_TOP - 1.0)
+	mouse_exited.connect(func() -> void: _art.position.y = ART_TOP)
 
 
-func _draw_block(parent: Control) -> void:
-	UI.sprite(parent, "res://assets/desk/stamp_%s.png" % verdict, Vector2(0, ART_TOP))
+func _draw_block(parent: Control) -> TextureRect:
+	return UI.sprite(parent, "res://assets/desk/stamp_%s.png" % verdict, Vector2(0, ART_TOP))
 
 
 func _get_drag_data(_at: Vector2) -> Variant:
@@ -30,4 +34,11 @@ func _get_drag_data(_at: Vector2) -> Variant:
 	preview.add_child(ghost)
 	_draw_block(ghost)
 	set_drag_preview(preview)
+	_art.modulate.a = 0.25
 	return {"type": "stamp", "verdict": verdict}
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END and _art:
+		_art.modulate.a = 1.0
+		_art.position.y = ART_TOP

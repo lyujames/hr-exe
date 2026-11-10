@@ -18,7 +18,8 @@ func check(c: Candidate) -> bool:
 
 func shape(c: Candidate, form: Shape, rng: RandomNumberGenerator) -> void:
 	if c.gender == "":
-		c.gender = "女" if rng.randf() < 0.45 else "男"
+		rng.randf()  # 原来按这个随机数定男女；照旧抽一次，后面的随机数不变
+		c.gender = "女" if CandidateGenerator.female_name(c.display_name) else "男"
 	_fit_portrait(c)
 	match form:
 		Shape.PASS:
@@ -39,6 +40,7 @@ func shape(c: Candidate, form: Shape, rng: RandomNumberGenerator) -> void:
 	_fit_portrait(c)
 
 
-## 照片跟性别对上：女的长发或盘发。
+## 名字、照片跟性别对上。
 func _fit_portrait(c: Candidate) -> void:
+	CandidateGenerator.match_name(c, c.gender == "女")
 	c.portrait_seed = PortraitFactory.seed_for(c.portrait_seed, c.gender == "女")

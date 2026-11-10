@@ -8,7 +8,7 @@ import os
 import random
 import sys
 from PIL import Image
-from faces import draw_face
+from faces import draw_face, hx
 from female import draw_female
 from cast import CAST, STAFF
 from fcast import FEMALE
@@ -127,6 +127,38 @@ b = Image.new('RGBA', (640, 128))
 for i, ex in enumerate(frames(dict(brows='flat', eyes='normal', mouth='smile'))):
     b.alpha_composite(bust_hejing(ex), (i * 128, 0))
 b.save(f'{OUT}/portraits/bust_hejing.png')
+
+# ── 离职谈话：实习生三人挤在一张桌子前（128×128，五帧）──
+def interns(ex_i):
+    canvas = Image.new('RGBA', (128, 128), hx('5a6763'))
+    left = dict(skin='e8cbb0', hair='1c1c20', hair_style='side_part', cloth='4a5a6a', cloth_style='hoodie', hw=12, H=29, jaw=5)
+    right = dict(skin='ecd0b8', hair='2a2022', hair_style='bob', cloth='a87478', cloth_style='cardigan', lip='b85a5e', inner='e4e0d8')
+    fx = [c for c in FEMALE if c['name'] == '方晓'][0]
+    ex = frames(N)[ex_i]
+    exf = frames(dict(brows='worried', eyes='down', mouth='tight'))[ex_i]
+    # 不缩放（像素不能拉伸）：两边的人靠后、低一点，方晓在中间、在前面
+    for (spec, female, x, y, e2) in ((left, False, -6, 46, ex), (right, True, 70, 46, ex), (fx, True, 32, 40, exf)):
+        face = Image.new('RGBA', (64, 64))
+        (draw_female if female else draw_face)(face, 0, 0, spec, e2, bg=(0, 0, 0, 0))
+        canvas.alpha_composite(face, (x, y))
+    # 前面一张桌子，上面摊着一份协议
+    from faces import Pix
+    P = Pix(canvas)
+    P.r(0, 104, 128, 24, hx('5a4a3c'))
+    P.r(0, 104, 128, 1, hx('7a6450'))
+    P.r(0, 127, 128, 1, hx('3a2e26'))
+    P.r(40, 108, 46, 16, hx('f0ece0'))
+    P.r(40, 108, 46, 1, hx('ffffff'))
+    for yy in (112, 115, 118):
+        P.r(44, yy, 30, 1, hx('9a948a'))
+    return canvas
+
+
+strip_i = Image.new('RGBA', (640, 128))
+for i in range(5):
+    strip_i.alpha_composite(interns(i), (i * 128, 0))
+strip_i.save(f'{OUT}/portraits/bust_interns.png')
+strip_i.resize((320, 64), Image.NEAREST).save(f'{OUT}/portraits/interns.png')
 
 # ── 回家 ──
 for v in ('1930', '2030', '2230'):
