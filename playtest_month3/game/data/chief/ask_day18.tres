@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "这个岗以后会被 AI 替掉吗？"
+lie = "不会，AI 只是工具，人永远是核心。"
+safe = "这个要看业务发展。"
+truth = "王总说空出来的活交给码力。你是来带码力的，也可能是被它带的。"

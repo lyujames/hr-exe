@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_day11"
+text_key = "35 岁以后打算干什么？"
+probes = PackedStringArray("loyalty")
+lawsuit_risk = 1
+honest = "继续写代码。写不动了就带人，带不了人就去小公司接着写。"
+honest_low = "没想过……可能回老家吧。"
+standard = "持续学习，成为公司不可替代的人。"
+flaw = "三、三十五？还早……我还年轻。"
+followup_text = "你身边 35 岁以上的程序员，现在都在干嘛？"
+honest_followup = "我原来组长 38，上个月被优化了。现在白天开网约车，晚上还在 GitHub 上提交。"
+honest_low_followup = "……我不认识 35 岁以上的程序员。"
+standard_followup = "他们都发展得很好，有的做了管理。"
+flaw_followup = "都、都挺好的……应该挺好的。"
+chief_item = "稳定性"
+chief_standard = "不可替代，好。"
+chief_honest = "带不了人？那就是到头了。"
+chief_flaw = ""
+audience = "regular"

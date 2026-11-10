@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RulePlugPlay" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RulePlugPlay.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_plug_play"
+day_added = 10
+title_key = "即插即用"
+text_key = "翻到简历第二页，看最上面那段工作（最近一段）的职位名：带“后端”“服务端”或“Java”才算。“软件工程师”“全栈”不算，JavaScript 不是 Java；以前做过后端、最近一段转了别的，也不算。"
+reject_reason_key = "您的工作经历与岗位方向不符。"
+is_absurd = false

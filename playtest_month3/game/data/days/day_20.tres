@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/rules/rule_ai_resume.tres" id="r_ai_resume"]
+[ext_resource type="Resource" path="res://data/jobs/job_accountant.tres" id="j_accountant"]
+[ext_resource type="Resource" path="res://data/story/candidate_shenwen.tres" id="s_shenwen"]
+[ext_resource type="Resource" path="res://data/story/candidate_shenwen_late.tres" id="s_shenwen_late"]
+[ext_resource type="Resource" path="res://data/chief/ask_day20.tres" id="ask20"]
+
+[resource]
+script = ExtResource("1")
+day = 20
+candidate_mix = {"regular": 70, "laid_off": 22, "changer": 8}
+screening_seconds = 230.0
+sms_replies = [{"key": "warm", "label": "爸爸也爱你。", "marriage": 1}, {"key": "curt", "label": "早点睡。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+date = "2026-05-20"
+resume_count = 13
+hirebot = 2
+standard_time = true
+new_rules = Array[ExtResource("rule")]([ExtResource("r_ai_resume")])
+new_postings = Array[ExtResource("jp")]([ExtResource("j_accountant")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_shenwen"), ExtResource("s_shenwen_late")])
+story_slot = 5
+morning_push = "“520”民政局预约爆满；同日，某招聘平台上线“AI 简历检测”"
+boss_mail = "各位家人：\n新规矩：用 AI 写的简历一律不要。连简历都让机器写的人，没有诚意。HireBot 会在每份简历右上角标“AI 生成概率”，超过 50% 的拒掉。\n对，我们要会用 AI 的人，不要用 AI 写简历的人。这不矛盾。\n财务那边人手调整，临时开一个岗：费用会计（兼出纳、兼行政），一个名额，JD 在桌上。四月那几条规矩对这个岗照样算。\n—— 王总"
+coworker_note = "老周的便签（三楼）：\nAI 概率看右上角那个数，50% 正好不算。\n我让小孟拿我二十年前手写的入党申请书试了一下，它说 71%。\n财务那个岗是在平台上匿名发的，投的人不知道是哪家公司。\n你今天会认出一个人。我什么都没看见。"
+bills = [{"id": "tutor_1v1", "label": "孩子英语一对一", "amount": 60}, {"id": "ai_class", "label": "AI 创想课", "amount": 30}, {"id": "meds", "label": "父亲药费", "amount": 40}, {"id": "household", "label": "家用（她没工资了）", "amount": 80}]
+exit_talks = [{"id": "r20a", "name": "李秀英", "seed": 1985020, "info": "客服主管 · 41 岁 · 大专\n司龄 7 年", "criteria": "“岗位可由 AI 替代”：客服接待量九成给了 AI", "female": true}, {"id": "r20b", "name": "刘涛", "seed": 1990020, "info": "运维 · 36 岁 · 大专\n司龄 4 年", "criteria": "“学历不达标”：第一学历大专", "female": false}]
+candidate_ask = ExtResource("ask20")
+chief_opener = "简历都让 AI 写？我们那时候手写，写错一个字重抄一张。"
+desk_texts = [{"id": "t20_1", "at": 620, "text": "老婆：今天投了十一家。有一家没写名字，只写“某知名互联网公司”，我也投了。", "replies": [{"key": "warm", "label": "投了就好，别急。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}]
+home_scene = [{"text": "到家 20:10。地铁口有人卖花，十块一支。"}, {"ask": "h20_flower", "options": [{"key": "buy", "label": "买一支。", "marriage": 1, "effects": {"savings": -10}, "say": "你买了一支。卖花的人说：今天卖了一百多支，都是你这样下班晚的。"}, {"key": "skip", "label": "走过去。", "say": "你走过去了。"}]}, {"text": "她把手机递给你：“有一家回得特别快。就一句。你们做 HR 的，是不是都有个本子，专门抄这种话？”", "when": "story:story_shenwen:reject"}, {"ask": "h20_wife", "when": "story:story_shenwen:reject", "options": [{"key": "told", "label": "这句是我写的。那家公司是蜂巢。", "marriage": -1, "then": [{"text": "她把手机拿回去。"}, {"text": "老婆：……你至少没让别人来写。"}]}, {"key": "hidden", "label": "都这样，别往心里去。", "then": [{"text": "老婆：哦。"}]}]}, {"text": "你：明天会有人给你打电话，是我们公司。", "when": "story:story_shenwen:pass&!story:story_shenwen:exception"}, {"text": "老婆：……你放的？规矩上我过得了吗？", "when": "story:story_shenwen:pass&!story:story_shenwen:exception"}, {"text": "你没回答。", "when": "story:story_shenwen:pass&!story:story_shenwen:exception"}, {"text": "你：明天下午两点，来我们公司一趟。面试官是我。", "when": "story:story_shenwen:exception"}, {"text": "她笑了一下，又不笑了：“那我要不要穿正式点？”", "when": "story:story_shenwen:exception"}, {"text": "夜里，手机亮了。一条私信：“您可能不记得我了。四月您回我的那句话，我还留着。我想请您帮我看看简历，按市场价。您最知道它卡在哪。”"}, {"ask": "h20_gig", "options": [{"key": "take", "label": "回他：发过来吧。", "say": "你回了。他发来一份简历，第一行你就知道它会卡在哪。"}, {"key": "pass", "label": "不回。", "say": "你把手机扣在了枕头边。"}]}]
+headline = "HR 下班后在二手平台卖“过筛简历模板”"
+news_body = "“月入超过工资。买的人里，有一半是被我们自己公司拒过的。”"
+family_sms = "孩子：爸爸，今天老师说 520 是“我爱你”的意思。我爱你。"
+sms_flag = "d20_eve"

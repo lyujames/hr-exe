@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_infra_doc"
+probes = PackedStringArray("honesty")
+audience = "regular"
+lead_item = "协作"
+text_key = "你写的运维脚本，你不在的时候，别人敢跑吗？"
+honest = "敢。开头写了干什么、怎么回滚，新人照着跑过两次。"
+honest_low = "……不太敢。我自己过两个月也看不懂。"
+standard = "我非常注重文档沉淀和知识共享。"
+flaw = "敢的，都、都很简单。"
+followup_text = "有人照着你的文档跑出过事吗？"
+honest_followup = "有一次。回滚那步我写错了一个参数。后来每次改完，我找个新人照着跑一遍。"
+honest_low_followup = "没人照着跑过。都是打电话问我。"
+standard_followup = "目前还没有出现过问题。"
+flaw_followup = "没、没有吧……应该没有。"
+lead_strong = "找新人照着跑，这个办法好。"

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RulePressure" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RulePressure.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_pressure"
+day_added = 11
+title_key = "抗压能力"
+text_key = "翻到简历第二页，每段工作都要待满 12 个月：看起止年月，写“至今”的那段算到今天。正好 12 个月算满。有一段不满一年的，说明扛不住。"
+reject_reason_key = "您的抗压能力与岗位要求不符。"
+is_absurd = true
+min_months = 12

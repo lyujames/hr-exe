@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+applied_position = "后端开发工程师（新项目组）"
+is_intern = false
+is_story = true
+docs = PackedStringArray("id_card")
+display_name = "孙浩"
+birth_date = "1995-02-11"
+degree = 2
+school = "东江大学"
+skills = PackedStringArray("Java", "MySQL", "Redis", "Banyan（8 年）", "Spring Boot")
+salary_k = 18
+salary_low_k = 15
+exp_months = 84
+jobs = [{"company": "星河互动", "title": "Java 开发工程师", "start": "2019-04", "end": ""}]
+self_eval = "精通 Banyan 框架，8 年深度使用经验，熟悉源码。"
+attachment = "在职，需一个月交接"
+portrait_seed = 19950211
+ability = 40
+honesty = 15
+loyalty = 40
+pressure = 50
+performance = 90
+event_override = &"delay"
+epilogue = {"hired": "你录用了他。", "pass": "你放了他。规则上他全对。Banyan 是 2023 年开源的。", "reject": "你拒了他：“{reason}”。他一条规则都没违反，包括那个“8 年”。"}
+answers = {"r_skill:Banyan（8 年）": "最早……0.9 吧，那时候还没几个人用。", "r_skill:Banyan（8 年）+": "1.0 是……2017 年？差不多那时候。"}
+id = &"story_banyan_liar"
+padded_lines = PackedStringArray("skill:Banyan（8 年）", "self_eval", "exp")
+answer_kind = "standard"

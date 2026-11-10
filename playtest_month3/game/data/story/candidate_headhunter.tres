@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_headhunter"
+display_name = "李哲"
+applied_position = "产品运营实习生"
+birth_date = "2004-05-20"
+degree = 2
+school = "云岭大学"
+skills = PackedStringArray("用户运营", "Excel", "Figma", "英语六级")
+is_intern = true
+major = "电子商务"
+gpa = 3.12
+projects = [{"name": "毕业设计：图书推荐系统", "role": "成员", "start": "2025-10", "end": "2026-03"}, {"name": "校园二手交易小程序", "role": "成员", "start": "2025-03", "end": "2025-08"}]
+intern_days = 5
+intern_months = 6
+salary_k = 0
+jobs = []
+self_eval = "热爱互联网，结果导向，期待与公司共同成长。"
+attachment = "推荐人：父亲，李建华（电话已留）"
+portrait_seed = 20260324
+ability = 45
+honesty = 40
+loyalty = 25
+pressure = 40
+performance = 85
+envelope = {"from": "李哲的爸爸", "amount": 300, "text": "孩子不懂事，麻烦您多关照。进了面试，这 ¥300 是您的辛苦钱。不进也不用退，就当交个朋友。"}
+answers = {"q_project": "小程序是我们组做的。我爸说，写上去显得全面。", "q_chores": "能。我爸说，实习就是先把关系处好。", "q_return_offer": "我爸说，他会再想办法。"}
+epilogue = {"hired": "录用了。他爸给王总也送了一盒茶叶，王总说你会办事。", "pass": "你放了他，面试后没录用。他爸打电话到前台，问是谁面的。", "unbooked": "你放了他，那天晚上约的是别人。他爸打电话到前台，问简历是谁看的。", "reject": "你拒了他：“{reason}”。他一条规则都没违反。"}
+is_story = true

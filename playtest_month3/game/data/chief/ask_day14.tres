@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "孩子偶尔发烧，能远程半天吗？"
+lie = "可以，我们很人性化。"
+safe = "特殊情况可以和主管沟通。"
+truth = "不能。上次有人请假，赵主管记了一笔。"

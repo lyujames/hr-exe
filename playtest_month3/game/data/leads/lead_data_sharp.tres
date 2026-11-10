@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_data_sharp"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+lead_item = "技术"
+text_key = "消息堆了一千万条，老板在群里问什么时候好。你怎么回？"
+honest = "先回“在查，半小时给时间”。然后看是消费慢还是上游突增。消费慢就加分区、加消费者。"
+honest_low = "……我会说“尽快”。其实我不知道要多久。"
+standard = "我会第一时间响应，及时同步进展，确保问题闭环。"
+flaw = "我会说马上就好。"
+followup_text = "加了消费者还是慢呢？"
+honest_followup = "那就是消费逻辑里有慢的。先把写库改成批量，一条一条写，加多少人都没用。"
+honest_low_followup = "……再加？"
+standard_followup = "会进一步深入分析性能瓶颈。"
+flaw_followup = "那、那就再等等。"
+lead_flaw = "“马上就好”，老板会记住的。"

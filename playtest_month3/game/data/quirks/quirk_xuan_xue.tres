@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Quirk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Quirk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quirk_xuan_xue"
+entrance = "（TA 进门先看了一圈，把椅子往左挪了半米才坐下。“这个位置正对着门，冲。不好意思。”）"
+answers = {"q_oncall": "凌晨三点我在给服务器上香。我们组机柜上都贴了符，贴了以后真少了——也可能是那个月刚好换了硬盘。", "q_sharp_incident": "去年七月，我推的配置。那天我查过黄历，写着“忌动土”，我还是推了。是我的锅，不是黄历的。", "q_sharp_banyan": "按项目分片，空了去别人的片里偷活。偷活那把锁最容易出事——在我们那儿，这叫犯冲。", "q_sharp_numbers": "P99 从 900 毫秒到 280。不是开光开的，是加了个索引。", "q_future": "五年后？我算过，五年后我在东南方向。您这儿是哪边？", "q_weakness": "太信这些。但我上线前都会把测试跑一遍，不靠它。", "chief_day16": "三年。它 2023 年开源，属兔。我从 1.0 用起，那天正好是个好日子。", "r_exp": "我算过，今年是我的转运年。往前那几年……是实打实熬过来的，没有算。"}
+asides = PackedStringArray("（TA 拨了一下手腕上的红绳。）", "（“今天水逆，说得不好您多担待。”）", "（TA 看了看窗外，又看了看你们工位的朝向。）", "（TA 嘴里小声念了一句什么，像在掐算。）")
+answer_kind = "honest"
+ability = 60
+honesty = 75
+loyalty = 60
+pressure = 40
+performance = 50
+event_override = &"delay"

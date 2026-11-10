@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_code_review"
+text_key = "现场题：这段代码哪里有问题？"
+probes = PackedStringArray("ability")
+audience = "regular"
+always_truthful = true
+honest = "（TA 看了一分钟：第 12 行没判空，循环里每次都查一遍数据库。顺手把变量名也改了。）"
+honest_low = "（TA 盯着屏幕看了很久：“……能让我跑一下吗？”）"
+standard = ""
+flaw = ""
+chief_item = ""
+chief_standard = ""
+chief_honest = "题是我从网上抄的。"
+chief_flaw = ""

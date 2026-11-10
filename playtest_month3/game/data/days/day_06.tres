@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="2"]
+[ext_resource type="Resource" path="res://data/chief/question_day6.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day6.tres" id="chief_a"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="3"]
+[ext_resource type="Resource" path="res://data/story/candidate_byline.tres" id="story"]
+
+[resource]
+script = ExtResource("1")
+day = 6
+date = "2026-03-19"
+resume_count = 7
+screening_seconds = 170.0
+new_rules = Array[ExtResource("2")]([])
+story_candidates = Array[ExtResource("3")]([ExtResource("story")])
+story_slot = 3
+candidate_mix = {"fresh": 100}
+morning_push = "高校社团“头衔通胀”：一个项目八个负责人"
+boss_mail = "各位家人：
+规则不变，手册上的一条都不能松。
+赵主管说面试的人他想自己挑挑。从今天起他早上给你桌上贴张便签，写他明天想见什么样的。
+他要的人你招进来，部门推荐奖一人 ¥100。
+—— 王总"
+coworker_note = "老周的便签：
+赵主管的便签贴你桌角了。
+他看的是简历第二页：项目、角色、做了几个月。
+写着“负责人”的，不一定真负责过。"
+chief_need = {"item": "狼性", "note": "明天给我找个真带过项目的：在校项目当过负责人或者队长。", "short": "当过负责人", "role": ["负责人", "队长"]}
+bills = [{"id": "tutoring", "label": "孩子补习班", "amount": 60}]
+headline = "“人人都是负责人”：高校社团头衔通胀调查"
+news_body = "一所高校学生会登记在册的“项目负责人”比项目还多。受访学生：“不写负责人，简历第一轮就过不去。”"
+story_echoes = [{"when": "story_perfect:exposed", "mail_ps": "PS：晚报上卷钱跑的顾全，面试时是你问出毛病的。干得好，特批奖金今天发。", "bonus": {"label": "王总特批：识破顾全", "amount": 200}}, {"when": "story_perfect:seen&!story_perfect:hired&!story_perfect:exposed", "mail_ps": "PS：晚报上卷钱跑的顾全，第一天投过咱们，没进咱们的门。特批 ¥50，算你运气，也算你眼光。", "bonus": {"label": "王总特批：没招顾全", "amount": 50}}, {"when": "story_philosophy:reject", "headline": "一篇推文刷屏：《凌晨四点的外卖站》", "body": "作者苏见青，哲学系大三，现为某竞品公司内容运营实习生。她说：“谢谢每一个拒绝过我的公司。”", "mail_ps": "PS：竞品那篇外卖站的推文看了吗？咱们怎么就招不到这种人？"}]
+family_sms = "老婆：你爸下午在阳台打电话，打了快一个钟头。
+老婆：我问他跟谁，他说老单位的。"
+sms_flag = "d6n_eve"
+sms_replies = [{"key": "warm", "label": "我回去问问他。", "marriage": 1}, {"key": "curt", "label": "老同事叙叙旧吧。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+chief_opener = "规则一天比一天多，人倒是一个比一个像。你多看看。"
+chief_question = ExtResource("chief_q")
+candidate_ask = ExtResource("chief_a")
+desk_texts = [{"id": "t6n_1", "at": 560, "text": "老婆：你爸说住咱家给我们添麻烦，非要回去。我劝住了。", "replies": [{"key": "warm", "label": "让他安心住着，晚上我跟他说。", "marriage": 1}, {"key": "curt", "label": "他想回就让他回吧。", "marriage": 0}]}, {"id": "t6n_2", "at": 820, "text": "老婆：孩子数学测验 92，说要等你回来签字。", "replies": [{"key": "warm", "label": "签！我早点回。", "marriage": 1}, {"key": "curt", "label": "你签就行。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:50。你爸坐在沙发上看新闻，声音开得很大。"}, {"text": "孩子把卷子举到你面前：“签这儿！”", "when": "t6n_2:warm"}, {"text": "你签了名。他把卷子折了两折，塞进书包最里层。", "when": "t6n_2:warm"}, {"text": "卷子在茶几上，签名那栏已经是老婆的字了。", "when": "!t6n_2:warm"}, {"text": "你爸：小刘今天又打电话了。问你们公司下个月招不招正式的。"}, {"ask": "h6n_dad", "options": [{"key": "later", "label": "下个月的事，下个月再说。", "then": [{"text": "你爸：他说了，到时候让孩子直接投你。"}, {"text": "你爸：人家懂规矩。"}]}, {"key": "rules", "label": "爸，招人有规矩，我不能看是谁家的。", "then": [{"text": "你爸：规矩是人定的。"}, {"text": "他把电视声音又调大了一格。"}]}]}, {"text": "睡前你问你爸，下午那通电话怎么打了那么久。", "when": "d6n_eve:warm"}, {"text": "你爸：老刘，叙叙旧。", "when": "d6n_eve:warm"}, {"text": "他说这话的时候，没看你。", "when": "d6n_eve:warm"}, {"text": "十点，老婆对着日历数了数：“这个月还有三天。”"}]

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "你们的招聘规则，以后是人定还是机器定？"
+lie = "最终都是人拍板。"
+safe = "规则会不断优化。"
+truth = "从今天起是机器定，人签字。"

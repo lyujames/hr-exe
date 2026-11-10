@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_fe_design"
+probes = PackedStringArray("honesty")
+audience = "regular"
+lead_item = "协作"
+text_key = "设计稿明天上线，今晚十点运营说整页换个颜色。你怎么回？"
+honest = "先问是只换颜色还是还有别的。颜色我们写成变量了，半小时能换完；要是动排版，我就直说今晚做不完，明天上不了。"
+honest_low = "……改呗。我一般不说不行。"
+standard = "我会积极配合运营需求，以业务目标为导向。"
+flaw = "我会说设计稿已经定了，不能改。然后我自己偷偷改。"
+followup_text = "改完上线，转化掉了。运营说是你改的。"
+honest_followup = "群里那句“整页换颜色”我截了图，发给组长。不是为了甩锅，是下次改版先过一遍组长。"
+honest_low_followup = "……那就是我改的。我认。"
+standard_followup = "我会复盘问题，持续优化。"
+flaw_followup = "那、那改回去？"
+lead_strong = "截图。好习惯。"
+lead_weak = "不说不行，你就天天十点改页面。"

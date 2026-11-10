@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+is_intern = false
+is_story = true
+docs = PackedStringArray("id_card")
+id = &"story_shaodong_1"
+display_name = "邵东"
+applied_position = "高级全栈工程师"
+birth_date = "1988-07-03"
+degree = 2
+school = "南山理工大学"
+degree_note = "全日制统招本科"
+exp_months = 178
+skills = PackedStringArray("Java", "Go", "MySQL", "Kafka", "Linux", "Kubernetes")
+salary_k = 40
+salary_low_k = 35
+jobs = [{"company": "万象网络", "title": "后端技术负责人", "start": "2019-04", "end": ""}, {"company": "星河互动", "title": "高级后端工程师", "start": "2014-06", "end": "2019-03"}, {"company": "恒远软件", "title": "后端开发", "start": "2011-07", "end": "2014-05"}]
+self_eval = "带过 8 个人的组，现在组里只剩我和一个 AI 账号。AI 写的代码，我都要重写一遍。"
+attachment = "在职，需一个月交接"
+portrait_seed = 19880703
+ability = 86
+honesty = 90
+loyalty = 72
+pressure = 80
+performance = 70
+answers = {"q_ai_tool": "用过。它写得快，可它不知道哪一行会在凌晨三点出事。我知道，因为每次都是我。", "q_oncall": "在机房。十五年了，凌晨三点我比它熟。", "q_weakness": "老了。三十七了，这个你们第一页就看见了。", "r_self_eval": "组里原来八个人。现在一个 AI 账号，加我。它写，我改，我改的比它写的多。"}
+epilogue = {"hired": "你录用了他。组里还是只有他和一个 AI 账号，换了个公司而已。", "pass": "你放了他。违规单上写着：应拒绝：工作年限与年龄。", "exception": "你破格面了他。“AI 替不了我。它写得快，可它不知道哪一行会在凌晨三点出事。”赵主管合上了电脑。", "reject": "你回他：“{reason}”。这是他第一次投蜂巢。"}

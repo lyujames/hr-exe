@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "我进来以后，会不会也上那种名单？"
+lie = "不会，我们看重长期发展。"
+safe = "公司会根据业务需要调整。"
+truth = "会。我今天傍晚谈的，就是这样进来的人。"

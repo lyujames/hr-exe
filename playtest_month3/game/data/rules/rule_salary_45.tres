@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleSalary" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleSalary.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_salary_45"
+day_added = 17
+title_key = "薪资预算"
+text_key = "期望月薪不超过 45k（JD 上的 35–45k）。写区间的看上限。"
+reject_reason_key = "期望薪资超出岗位预算。"
+max_monthly_k = 45
+positions = PackedStringArray("高级全栈工程师")

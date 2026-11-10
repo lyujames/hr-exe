@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="qc"]
+[ext_resource type="Resource" path="res://data/leads/lead_data_sharp.tres" id="lead_data_sharp"]
+[ext_resource type="Resource" path="res://data/leads/lead_data_mentor.tres" id="lead_data_mentor"]
+[ext_resource type="Resource" path="res://data/leads/lead_data_review.tres" id="lead_data_review"]
+
+[resource]
+script = ExtResource("1")
+title = "后端开发工程师（数据组）"
+pay_text = "月薪 12–16k"
+majors = PackedStringArray()
+lookalikes = PackedStringArray()
+requirements = PackedStringArray("5 年以上经验", "带过新人优先")
+keywords = PackedStringArray("Java", "MySQL", "Kafka")
+keyword_lookalikes = PackedStringArray("JavaScript", "SQL", "Kafka Streams")
+skill_pool = PackedStringArray("Java", "MySQL", "Kafka", "Spark", "Flink", "Hive", "Python", "SQL", "Scala", "Redis", "Spring Boot", "Git", "JavaScript")
+job_titles = PackedStringArray("数据开发", "Java 开发工程师", "大数据工程师", "外包驻场开发", "后端开发")
+role = "后端"
+team = "数据组"
+salary_cap_k = 16
+hc = 3
+workload = 3
+folder_note = "韩组长：月初出报表那几天忙，平时还行。"
+lead = {"name": "韩组长", "seed": 4529, "cut_in": "韩组长停下笔：", "cut_in_again": "韩组长又翻开本子：", "next_line": "下一个。组里还有人等我看代码。", "bonus": "组长推荐奖", "opener": "数据组，韩蕾。组里三个应届的，我想找个能带人的。", "need": {"item": "协作", "note": "韩组长：组里三个应届生，要能带人的。"}}
+lead_cards = Array[ExtResource("qc")]([ExtResource("lead_data_sharp"), ExtResource("lead_data_mentor"), ExtResource("lead_data_review")])

@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+is_intern = false
+is_story = true
+docs = PackedStringArray("id_card")
+id = &"story_shenwen"
+display_name = "沈雯"
+applied_position = "费用会计（兼出纳、兼行政）"
+birth_date = "1993-04-17"
+gender = "女"
+marital = "已婚已育（一孩，无二胎计划）"
+ai_prob = 18
+degree = 2
+school = "江城理工大学"
+degree_note = "会计学，全日制本科"
+exp_months = 118
+skills = PackedStringArray("用友 U8", "金蝶", "Excel", "税务申报", "费用报销")
+salary_k = 8
+salary_low_k = 6
+jobs = [{"company": "（兼职）夜间代驾 / 直播助播", "title": "兼职", "start": "2026-04", "end": ""}, {"company": "恒通贸易", "title": "财务主管", "start": "2019-03", "end": "2026-05"}, {"company": "恒通贸易", "title": "会计", "start": "2016-07", "end": "2019-02"}]
+self_eval = "十年，没错过一笔账。"
+attachment = "已离职（原单位岗位优化），可立即到岗。照片是七年前的。"
+portrait_seed = 19930417
+ability = 82
+honesty = 92
+loyalty = 88
+pressure = 70
+performance = 80
+event_override = &"praise"
+answers = {"q_leaving": "公司上了新系统，一个人顶三个。我是多出来的那两个里的一个。", "q_family": "我丈夫加班多，家里主要是我。……这个你知道。", "q_future": "五年后？先把这个月的房贷还上。", "q_overtime": "能加。我丈夫也是天天加。", "r_self_eval": "这句是真的。你可以去问恒通，问谁都行。", "r_job:0": "做到财务主管。上个月主管跟我聊了一次“职业规划”，问我二胎打不打算要。"}
+epilogue = {"hired": "你录用了她。第二天 HireBot 对出来了：紧急联系人电话和你是同一个号码。", "pass": "你把她放进了文件夹。规矩上她过不了，你知道。", "exception": "你破格面了她。会议室里只有你们两个。她头一回看见你上班是什么样子。", "reject": "你回她：“{reason}”。她不知道是谁回的。你知道。"}
+skip_when = "family:!m2_late:yes"

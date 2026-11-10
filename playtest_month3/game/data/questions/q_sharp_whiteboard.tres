@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_sharp_whiteboard"
+text_key = "现场：白板上手写一个 LRU 缓存"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+always_truthful = true
+honest = "（TA 边写边讲：哈希表加双向链表。写完自己挑了个刺：容量是 0 的时候会出错。）"
+honest_low = "（TA 写了个数组，擦掉，又写了个数组。“……能用现成的库吗？”）"
+chief_honest = "白板是上周开会剩的，没擦干净。"

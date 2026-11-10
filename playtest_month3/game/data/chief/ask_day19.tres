@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "你们面试会问婚育吗？"
+lie = "我们只看能力，不看别的。"
+safe = "这是常规登记项。"
+truth = "会。今天还多了一条，不写在手册里。"

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RuleProjects" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleProjects.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_projects"
+day_added = 1
+title_key = "项目经历"
+text_key = "实习生要有在校项目经历：翻到简历第二页，“在校项目”里至少写了一段。项目栏空着的不要，自评里说做过的不算。"
+reject_reason_key = "您的简历中没有在校项目经历。"
+is_absurd = false

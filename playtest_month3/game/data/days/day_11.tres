@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/chief/question_day11.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day11.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day11.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_zhu_gong_si.tres" id="quirk"]
+[ext_resource type="Resource" path="res://data/rules/rule_experience.tres" id="r_rule_experience"]
+[ext_resource type="Resource" path="res://data/rules/rule_pressure.tres" id="r_rule_pressure"]
+[ext_resource type="Resource" path="res://data/story/candidate_fresh_genius.tres" id="s_candidate_fresh_genius"]
+
+[resource]
+script = ExtResource("1")
+day = 11
+date = "2026-04-02"
+resume_count = 5
+screening_seconds = 175.0
+new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_experience"), ExtResource("r_rule_pressure")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_fresh_genius")])
+story_slot = 3
+candidate_mix = {"regular": 70, "laid_off": 20, "changer": 10}
+morning_push = "招聘平台：企业偏好“有经验者”，应届生首份工作最难找"
+boss_mail = "各位家人：\n新规矩：后端岗哪怕是入门岗，也要 5 年工作经验。我们没时间带新人，来了就要能顶上。\n看简历上写的工作年限，满 5 年才算。别跟我说潜力，潜力不能上线。\nJD 上写的抗压能力强，也给我落到纸上：哪段干不满一年就跑的，扛不住。\n—— 王总"
+coworker_note = "老周的便签：\n看第一页“工作年限”那一行，不用自己数经历。\n小字“含实习”的不算，“含外包”的算。\n抗压那条要翻第二页，一段一段数月份。2023.03 到 2024.03 正好一年，算。"
+bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}]
+headline = "入门岗要五年经验：“我们没时间带新人”"
+news_body = "受访 HR：“五年经验的人愿意拿入门岗的钱，我们为什么要招应届生？”"
+story_echoes = [{"when": "story_chenmo_1:reject", "mail_ps": "PS：IT 的小孟说，昨天那份写着“Banyan 作者”的简历可能是真的。算了，学历不够，规矩就是规矩。"}, {"when": "story_chenmo_1:pass", "mail_ps": "PS：听说昨天有份高中学历的简历过了筛选？今天面试，我倒要看看。"}, {"when": "story_fresh_genius:reject", "sms": "（招聘系统）宋知遥 已读了你的回复。"}]
+family_sms = "老婆：你爸下周复查，医院说要空腹，得有人陪。\n孩子：爸爸，编程老师说我们这批里我学得最快！"
+sms_flag = "d11_eve"
+sms_replies = [{"key": "warm", "label": "复查我请假陪他去。", "marriage": 1}, {"key": "curt", "label": "到时候再看。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "t11_1", "at": 600, "text": "老婆：编程班老师加我微信了，每天发“学员作品”。全是机器人撞墙。", "replies": [{"key": "warm", "label": "撞墙的那个是不是咱家的？", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}]}, {"id": "t11_2", "at": 840, "text": "老婆：你今天几点下班？", "replies": [{"key": "warm", "label": "六点，准点回。", "marriage": 1}, {"key": "curt", "label": "看情况。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:55。老婆在算账，桌上摊着三张单子：房贷、英语班、编程班。"}, {"text": "老婆：编程班说下学期要加一门进阶课，一个月多三百。"}, {"ask": "h11_class", "options": [{"key": "keep", "label": "孩子喜欢，就报。", "then": [{"text": "老婆：我也这么想。就是这个月紧一点。"}], "marriage": 1}, {"key": "wait", "label": "进阶那个先别报，等等看。", "then": [{"text": "老婆：等什么？等别人家孩子都学会了？"}, {"text": "她把单子折起来，压在了计算器底下。"}]}]}, {"text": "孩子在房间里喊：“爸爸，你们公司招程序员吗？”"}, {"text": "你：招。爸爸就是挑程序员的。"}, {"text": "孩子：那我以后去，你会挑我吗？"}, {"ask": "h11_ai", "options": [{"key": "no", "label": "会。先把作业写完。", "then": [{"text": "孩子：那我现在就去写！"}]}, {"key": "dunno", "label": "爸爸也不知道。", "then": [{"text": "孩子想了想：“那我写得好一点，让你没法不挑。”"}, {"text": "老婆在外面听见了，笑了一声。"}], "marriage": 1}]}, {"text": "睡前手机亮了一下。是李哲他爸的微信。"}, {"text": "李哲他爸：上回谢了。孩子的事，您费心。", "when": "took:story_headhunter"}, {"text": "李哲他爸：上回那个信封您退了。我懂，您讲原则。", "when": "!took:story_headhunter"}, {"text": "李哲他爸：跟您交个底，我是做人才中介的。以后我这边推的人，简历右下角拿铅笔写个“钱”字。"}, {"text": "李哲他爸：进了面试，当天转您一百。录用了、过了试用期，再转两百。不进也不怪您，您看着办。"}, {"ask": "h11_broker", "options": [{"key": "ok", "label": "回：好。", "say": "你回了一个字：好。", "then": [{"text": "对面秒回了一个抱拳的表情。"}]}, {"key": "no", "label": "回：以后别这样了。", "then": [{"text": "李哲他爸：明白明白。简历我照推，您看着办。"}]}, {"key": "silent", "label": "（不回）", "say": "你把手机扣在了床头柜上。", "then": [{"text": "过了一会儿，屏幕又亮了：“不回就当您默认了啊，哈哈。”"}]}]}]
+chief_opener = "五年经验？我当年进来的时候一年都没有。现在不一样了。"
+chief_need = {"item": "狼性", "note": "要能熬的，上线不等人。"}
+chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
+candidate_ask = ExtResource("chief_a")

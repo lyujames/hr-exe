@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RuleMarital" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleMarital.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_marital"
+day_added = 19
+title_key = "（口头）婚育"
+text_key = "已婚未育的女同志先不考虑。不写进手册。"
+reject_reason_key = ""
+is_illegal = true
+is_absurd = true
+hidden = true

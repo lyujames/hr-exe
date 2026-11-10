@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleDegree" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleDegree.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_degree"
+day_added = 1
+title_key = "学历要求"
+text_key = "实习生要本科或硕士在读：大专不要，专升本读上了的算，拿了录取还没入学的不算。"
+reject_reason_key = "学历不符合岗位要求。"
+is_absurd = false
+min_degree = 2

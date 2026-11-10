@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_led"
+audience = "intern"
+text_key = "你简历上这几个项目，哪个是你从头带到尾的？"
+probes = PackedStringArray("honesty")
+honest = "从头带到尾的没有。公众号那个，活基本是我干的，挂名的不是我。"
+honest_low = "都……都是跟着学长学姐做的。"
+standard = "每个项目我都深度参与，全程负责。"
+flaw = "都、都是我带的。三个都是。"
+followup_text = "那你带的人里，现在谁还跟你有联系？"
+honest_followup = "就一个学妹，现在那个号是她在更。她有不会的还来问我。"
+honest_low_followup = "我……没带过人。"
+standard_followup = "大家关系都很好，经常交流。"
+flaw_followup = "联、联系？……都、都还有吧。"
+chief_item = "狼性"
+chief_standard = "带过就行。"
+chief_honest = "挂名不是你，那就不算你的。"
+chief_flaw = ""

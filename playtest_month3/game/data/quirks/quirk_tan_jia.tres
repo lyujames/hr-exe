@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Quirk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Quirk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quirk_tan_jia"
+entrance = "（TA 坐下，先开口：“先说好，我来是为了拿个 offer 回去跟我们老板谈涨薪。您要是介意，咱们现在就可以结束。”）"
+answers = {"q_leaving": "还没离开。离不离开，看您给多少。", "q_future": "五年后？看哪家给得多。我对哪家都这么说。", "q_probation": "可以。反正我大概率不来。", "q_family": "我想当外人。外人谈钱，不伤感情。", "q_overtime": "加班可以，按法定的算。我们老板现在就是这么给我算的——上个月刚开始。", "chief_day12": "没被优化。是我想优化一下我们老板。", "chief_day13": "不能降。降了我拿什么回去谈？", "chief_sharp_day11": "他会说：“又去面了？”他知道的。打吧，正好让他急一下。", "r_exp": "实打实的。您要背调就背，顺便帮我跟老板说一声我在外面面试——他知道，但听别人说效果更好。"}
+asides = PackedStringArray("（TA 在手机计算器上按了几下。）", "（“这句您可以记下来，我不怕背调。”）", "（TA 很坦然地看着你。）", "（“我们老板也知道我今天来。”）")
+answer_kind = "honest"
+ability = 70
+honesty = 98
+loyalty = 5
+pressure = 60
+performance = 10
+event_override = &"jump"

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="qc"]
+[ext_resource type="Resource" path="res://data/leads/lead_trade_sharp.tres" id="lead_trade_sharp"]
+[ext_resource type="Resource" path="res://data/leads/lead_trade_refund.tres" id="lead_trade_refund"]
+[ext_resource type="Resource" path="res://data/leads/lead_trade_blame.tres" id="lead_trade_blame"]
+
+[resource]
+script = ExtResource("1")
+title = "后端开发工程师（交易组）"
+pay_text = "月薪 12–18k"
+majors = PackedStringArray()
+lookalikes = PackedStringArray()
+requirements = PackedStringArray("5 年以上经验", "能值夜班", "有大厂背景优先")
+keywords = PackedStringArray("Java", "MySQL", "Redis")
+keyword_lookalikes = PackedStringArray("JavaScript", "SQL", "Redux")
+skill_pool = PackedStringArray("Java", "MySQL", "Redis", "Spring Boot", "Python", "Go", "Kafka", "Docker", "Linux", "Git", "JavaScript", "SQL", "Vue", "MongoDB")
+job_titles = PackedStringArray("后端开发", "Java 开发工程师", "软件工程师", "外包驻场开发", "服务端开发")
+role = "后端"
+team = "交易组"
+salary_cap_k = 18
+hc = 2
+workload = 4
+folder_note = "林组长：大促那个月，我们组没人回过家。"
+lead = {"name": "林组长", "seed": 2803, "cut_in": "林组长合上电脑：", "cut_in_again": "林组长又抬起头：", "next_line": "下一个。十分钟后我还有个发布。", "bonus": "组长推荐奖", "opener": "交易组林川。赵主管开会，我替他。我只问技术。", "need": {"item": "技术", "note": "林组长：交易组要能扛线上的。"}, "delay": {"at": "start", "minutes": 20, "line": "林组长的发布还没完，你们在会议室干等了二十分钟。"}}
+lead_cards = Array[ExtResource("qc")]([ExtResource("lead_trade_sharp"), ExtResource("lead_trade_refund"), ExtResource("lead_trade_blame")])

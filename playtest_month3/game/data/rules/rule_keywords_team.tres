@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RuleKeywords" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleKeywords.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_keywords_team"
+day_added = 13
+title_key = "按组分文件夹"
+text_key = "通过的简历拖进组的文件夹。技能栏要写全那个组 JD 上的必备技能，一字不差；哪个组都对不上就拒。超过 8 项算堆砌。放进对不上的组，算违规。"
+reject_reason_key = "您的技能与各团队的岗位要求均不匹配。"
+is_absurd = false
+max_skills = 8
+per_team = true

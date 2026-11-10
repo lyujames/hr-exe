@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_day10"
+text_key = "能接受 996 吗？我们这不叫 996，叫弹性。"
+probes = PackedStringArray("pressure")
+honest = "能接受忙，但希望忙完能调休。"
+honest_low = "996……我身体可能扛不住。"
+standard = "奋斗的年纪，996 是福报。"
+flaw = "九、九九六……可以的，我都可以。"
+followup_text = "上一份工作最长连续加班多久？"
+honest_followup = "上线前连续两周，每天十一点走。之后我休了三天年假。"
+honest_low_followup = "最多一周……后来我请了病假。"
+standard_followup = "加班对我来说是常态，具体没统计过。"
+flaw_followup = "两、两周？三周？……一直都在加。"
+chief_item = "狼性"
+chief_standard = "这就对了。"
+chief_honest = "调休？你看我调过吗。"
+chief_flaw = ""
+audience = "regular"

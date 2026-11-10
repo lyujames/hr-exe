@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "费用会计（兼出纳、兼行政）"
+pay_text = "月薪 6–8k"
+majors = PackedStringArray()
+lookalikes = PackedStringArray()
+requirements = PackedStringArray("匿名发布：某知名互联网公司", "一个名额，只招今天", "四月那几条规矩照样算")
+skill_pool = PackedStringArray("Excel", "用友 U8", "金蝶", "税务申报", "费用报销", "出纳", "SAP", "PPT")
+job_titles = PackedStringArray("会计", "出纳", "财务专员", "行政兼出纳", "费用会计")
+salary_range = Vector2i(5, 10)

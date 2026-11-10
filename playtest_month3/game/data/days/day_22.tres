@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/chief/ask_day22.tres" id="ask22"]
+
+[resource]
+script = ExtResource("1")
+day = 22
+candidate_mix = {"regular": 70, "laid_off": 22, "changer": 8}
+screening_seconds = 230.0
+sms_replies = [{"key": "warm", "label": "早点睡，明天我送孩子。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+date = "2026-05-26"
+resume_count = 12
+hirebot = 3
+standard_time = true
+morning_push = "HireBot 发布“规则引擎”：“让招聘标准从数据里长出来”"
+boss_mail = "各位家人：\n从今天起，招聘规则由 HireBot 根据数据生成，我签字，第二天生效。第一条已经出来了，在你桌上，签个“已阅”。\n我看了它的分析：这个月进面试的，全是中专、大专起步的。高级岗不能这么招。\n它比我们客观。\n—— 王总"
+coworker_note = "老周的便签：\n从明天起这个位置上是打印的。这张是我最后一张手写的。\n十年经验，三十岁以下，全日制本科。三条放一起，你数数还剩谁。\n明天 HC 照样要用完。"
+bills = [{"id": "tutor_1v1", "label": "孩子英语一对一", "amount": 60}, {"id": "ai_class", "label": "AI 创想课", "amount": 30}, {"id": "meds", "label": "父亲药费", "amount": 40}, {"id": "household", "label": "家用（她没工资了）", "amount": 80}]
+exit_talks = [{"id": "han_lei", "name": "韩蕾", "seed": 1992052, "female": true, "info": "数据组组长 · 34 岁\n怀孕五个月", "criteria": "“岗位取消”", "opener": "（韩蕾扶着桌子坐下。她把协议放在肚子前面，没打开。）", "questions": [{"template": "why"}, {"q": "我这个情况，公司能裁我吗？", "options": [{"style": "lie", "label": "不是裁，是岗位取消，协商解除。", "reply": "……岗位取消。好。", "outcome": "signed", "effects": {"lawsuit": 2, "flag": {"han_lei": "lie"}}}, {"style": "safe", "label": "我只负责传达。", "reply": "那我回去问问律师。", "outcome": "refused", "effects": {"flag": {"han_lei": "safe"}}}, {"style": "truth", "label": "不能。孕期公司不能单方面解除。你不签，谁也动不了你。", "reply": "（她看了你很久。）……谢谢。我记住你了。", "outcome": "refused", "effects": {"trust": -2, "conscience": 2, "flag": {"han_lei": "truth"}}}]}], "signed": "韩蕾签了字。谈话人那一栏，写的是你的名字。", "refused": "韩蕾把协议原样放回桌上，扶着桌子站起来，走了。"}, {"id": "r22", "name": "孙立", "seed": 1987022, "info": "后端 · 39 岁 · 大专\n司龄 8 年", "criteria": "“学历不达标”：第一学历大专", "female": false}]
+candidate_ask = ExtResource("ask22")
+chief_opener = "规则机器定了？好，以后出了事也是机器的。"
+desk_memos = [{"id": "m22_rule", "at": 480, "printed": true, "title": "桌上的打印件", "text": "【HireBot 规则建议 #001】\n规则：第一学历须为全日制本科。\n依据：本月通过初筛者，第一学历非全日制本科占 100%；该群体定薪低于 JD 下限 21%。\n置信度：0.93　生效：次日 09:00\n本规则由 HireBot 生成。HR 已阅：＿＿＿＿\n\n（夹在后面一张手写的：从明天起这个位置上是打印的。这张是我最后一张手写的。十年经验，三十岁以下，全日制本科。三条放一起，你数数还剩谁。明天 HC 照样要用完。——老周）", "options": [{"key": "read", "label": "签：已阅。", "reply": "你签了。打印件收进了文件夹，抄送王总。"}, {"key": "note", "label": "在旁边写一句“100% 是王总那两条规则筛出来的”，再签。", "reply": "你写了，签了。下午打印件回来了，你那一句旁边，王总画了个圈：“知道了。”", "effects": {"trust": -1, "conscience": 1}}]}, {"id": "m22_wife", "at": 500, "when": "story:story_shenwen:pass", "alarm": true, "title": "王总办公室", "text": "HireBot 关联检测：候选人沈雯的紧急联系人电话与 HR 本人一致。\n王总把屏幕转过来：“亲属应聘，不申报？”", "options": [{"key": "admit", "label": "是我老婆。我没申报，是我的错。", "reply": "王总：“录用作废。下不为例。”", "effects": {"trust": -2, "void": "story_shenwen"}}, {"key": "deny", "label": "我不知道她投了。", "reply": "王总看了你很久：“作废。”", "effects": {"trust": -2, "conscience": -1, "void": "story_shenwen"}}]}, {"id": "m22_table", "at": 520, "when": "w16_table:fudge", "alarm": true, "title": "王总办公室", "text": "HireBot 学信网比对：在职员工学历与 4 月 30 日盘点表不一致 2 处。\n王总：“这两格是谁填的？”", "options": [{"key": "admit", "label": "我填的。", "reply": "王总：“我记着了。”", "effects": {"trust": -2, "conscience": 1}}, {"key": "zhou", "label": "老周填的表。", "reply": "王总：“老周反正月底也走。”", "effects": {"conscience": -2, "flag": {"blamed_zhou": "yes"}}}, {"key": "system", "label": "系统错了吧。", "reply": "王总：“它比我们客观。”", "effects": {"trust": -1}}]}]
+desk_texts = [{"id": "w22_voice", "at": 860, "from": "王总", "text": "王总：[语音 60″] 她那个情况你知道，别提名单，就说岗位没了。", "replies": [{"key": "keep", "label": "（长按，收藏这条语音）", "evidence": "voice_22"}, {"key": "ok", "label": "收到。"}]}, {"id": "t22_1", "at": 640, "text": "老婆：今天去了一家面试。对方问我孩子几岁、谁带。", "replies": [{"key": "warm", "label": "这题不该问。你怎么答的？", "marriage": 1}, {"key": "curt", "label": "都这样问。", "marriage": 0}]}]
+home_scene = [{"text": "到家 20:00 以后。孩子在做 AI 创想课的作业：给 AI 写一句话，让它画一只小猫。"}, {"text": "孩子：我写了“一只不撞墙的小猫”，它画了一只没有墙的小猫。"}, {"text": "老婆：今天那家说回去等通知。"}, {"text": "老婆：你们说“等通知”，是不是就是不要了？"}, {"ask": "h22_wife", "options": [{"key": "truth", "label": "……大多数是。", "marriage": 1, "then": [{"text": "老婆：谢谢你说实话。"}]}, {"key": "hope", "label": "不一定，有时候真在走流程。", "then": [{"text": "老婆：那我再等等。"}]}]}]
+headline = "深瞳科技发布新一代“码力”，Banyan 作者出任首席架构师"
+news_body = "发布会上他只说了一句话：“它是照着几万个普通程序员的代码学出来的。”"
+news_by = [{"when": "story:story_chenmo_1:hired|story_chenmo_2:hired|story_chenmo_3:hired", "headline": "深瞳科技发布新一代“码力”，Banyan 作者出任首席架构师", "body": "他上个月刚被一家公司以“学历不达标”辞退。"}]
+family_sms = "老婆：明天你们月底吧？早点回。"
+sms_flag = "d22_eve"

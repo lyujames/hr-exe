@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RuleInternship" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleInternship.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_internship"
+day_added = 5
+title_key = "实习时长"
+text_key = "每周到岗至少 4 天，能实习至少 6 个月，两条都要够。"
+reject_reason_key = "您的可实习时间与岗位要求不符。"
+is_absurd = false
+min_days = 4
+min_months = 6

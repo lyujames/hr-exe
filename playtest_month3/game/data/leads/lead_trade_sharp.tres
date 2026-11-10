@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_trade_sharp"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+lead_item = "技术"
+text_key = "大促零点，订单写不进库了。你第一分钟干什么？"
+honest = "先看是锁还是连接池满了。上回是连接池，我先把非核心的写请求降级，五分钟恢复。"
+honest_low = "……先打电话给领导？然后看日志。看哪个日志，我得到现场才知道。"
+standard = "我会第一时间保障核心链路可用，再定位根因，最后复盘，形成闭环。"
+flaw = "这个……我们那边没出过这种事。"
+followup_text = "连接池你调到多大？凭什么是这个数？"
+honest_followup = "原来 50。压测到 200 开始抖，就定了 150，留点余量。"
+honest_low_followup = "……我没调过。都是运维调的。"
+standard_followup = "根据业务的实际情况，合理配置。"
+flaw_followup = "调、调到最大？"
+lead_strong = "五分钟。这个数是真的。"
+lead_standard = "闭环。我们组没人这么说话。"

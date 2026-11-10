@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_sharp_day10"
+text_key = "你这简历，水分有几成？说个数。"
+probes = PackedStringArray("honesty")
+audience = "regular"
+sharp = true
+honest = "两成吧。“主导”其实是“参与”，那个项目我进去的时候已经做完一半了。"
+honest_low = "……三成。不改的话，筛简历那关就过不去。"
+standard = "我的简历每一条都经得起背调，零水分。"
+flaw = "没、没有水分。……都是真的。大部分。"
+followup_text = "哪一条水最多？现在指给我看。"
+honest_followup = "（TA 伸手点了第二段经历。）这条。项目是真的，“负责人”是我自己加的。"
+honest_low_followup = "（TA 点了一下“精通”两个字，没抬头。）"
+standard_followup = "……每一条都差不多，都是真的。"
+flaw_followup = "这、这条……不，这条也是真的。"
+chief_item = "稳定性"
+chief_standard = "零水分，敢说，好。"
+chief_honest = "两成？那我还得自己挤。"
+chief_flaw = "……"
