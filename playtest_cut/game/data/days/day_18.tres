@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/rules/rule_ai_exp.tres" id="r_ai_exp"]
+[ext_resource type="Resource" path="res://data/story/candidate_shaodong_1.tres" id="s_shaodong_1"]
+[ext_resource type="Resource" path="res://data/chief/question_day18.tres" id="chief_q18"]
+[ext_resource type="Resource" path="res://data/chief/ask_day18.tres" id="ask18"]
+
+[resource]
+script = ExtResource("1")
+day = 18
+candidate_mix = {"regular": 70, "laid_off": 22, "changer": 8}
+screening_seconds = 230.0
+sms_replies = [{"key": "warm", "label": "早点睡，明天我送孩子。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+date = "2026-05-08"
+resume_count = 11
+pay = {"base": 130, "per_resume": 8, "per_correct": 5, "per_reason": 0, "chief_bonus": 100, "retention": 150, "retention_days": 5, "retention_deferred": true, "fines": true}
+hirebot = 1
+standard_time = true
+new_rules = Array[ExtResource("rule")]([ExtResource("r_ai_exp")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_shaodong_1")])
+story_slot = 2
+morning_push = "企业招聘新门槛：“不会用 AI 的，等于不会用电脑”"
+boss_mail = "各位家人：\n新规矩：要有 AI 协同经验。技能栏或者工作经历里写明用过 AI 编程助手的才算。不会用 AI 的高级工程师，就是贵的初级工程师。\nHireBot 昨天帮你省了不少时间。人效看板加了一行“标准耗时”，按你昨天最快的那一段算，今天的量照这个排。相信你。\n它做了一半的活，计件单价相应调整，详见日结单。\n下午起，第一批名单上的人由你来谈。话术在附件里，照着念。今天谈完，都要签。\n—— 王总"
+coworker_note = "老周的便签（三楼）：\nAI 那条：写了“码力”“AI 编程助手”“大模型”的算。只说“关注 AI”的不算。\n谈话我做了十二年。附件那套话是我去年写的，照着念，他们签得快。\n补偿的算式在协议第二页。基数那一格，你自己看一眼。"
+bills = [{"id": "tutor_1v1", "label": "孩子英语一对一", "amount": 60}, {"id": "ai_class", "label": "AI 创想课", "amount": 30}, {"id": "meds", "label": "父亲药费", "amount": 40}]
+exit_talks = [{"id": "ge_min", "name": "葛敏", "seed": 1988017, "female": true, "info": "测试开发 · 38 岁\n工号 0017 · 司龄 6 年", "criteria": "“35 岁以上、岗位可由 AI 替代”", "opener": "（葛敏坐下，先把协议翻到第二页。）我先问基数。", "replies": {"comp_lie": "N+1？基数是哪个月的？……你念的是附件吧。", "comp_truth": "……写用例的活 AI 干得比我细，这我认。钱不能也让 AI 算。", "why_truth": "写用例的活 AI 干得比我细，这我认。", "sign_lie": "多给半个月……你们 HR 是不是都背这一句？"}, "questions": [{"template": "comp"}, {"template": "why"}, {"template": "sign"}], "signed": "葛敏签了字。“写用例的活 AI 干得比我细，这我认。”", "refused": "葛敏把协议折好：“我找人算一遍再来。”"}]
+chief_question = ExtResource("chief_q18")
+candidate_ask = ExtResource("ask18")
+chief_opener = "会用 AI？那你说说，AI 都会了，要你干什么。"
+desk_texts = [{"id": "t18_1", "at": 600, "text": "老婆：主管今天挨个找人“聊聊职业规划”。名单说是下周出。", "replies": [{"key": "know", "label": "这是在摸底。你别先开口提钱。", "marriage": 1}, {"key": "curt", "label": "别多想。", "marriage": 0}]}, {"id": "t18_2", "at": 640, "when": "t18_1:know", "text": "老婆：你怎么知道？", "replies": [{"key": "admit", "label": "……我也这么聊过。", "marriage": 0}]}]
+home_scene = [{"text": "到家 19:20。你爸来吃饭，带了药盒，一格一格分好的。"}, {"text": "你爸：我去物业问了，想看个大门，一个月两千多，能帮你们还点房贷。人家说六十以上的不要。"}, {"text": "你爸：你们招人也这样？一刀切？"}, {"ask": "h18_dad", "options": [{"key": "same", "label": "差不多。", "then": [{"text": "他点点头：“那我就不怪他们了。”"}]}, {"key": "rest", "label": "爸，您歇着，钱的事有我。", "marriage": 1, "then": [{"text": "你爸：“你有什么。你有房贷。”"}]}]}]
+headline = "测试岗位需求同比减少四成"
+news_body = "业内人士：“写用例的活，AI 干得比人细。”"
+family_sms = "你爸：药盒我放你们冰箱上了。周三那格别忘了。"
+sms_flag = "d18_eve"

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RuleAiResume" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleAiResume.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_ai_resume"
+day_added = 20
+title_key = "AI 生成简历"
+text_key = "用 AI 写的简历一律不要：看 HireBot 标在右上角的“AI 生成概率”，超过 50% 的拒。正好 50% 不算。"
+reject_reason_key = "您的简历存在模板化内容，诚意不足。"
+is_absurd = true

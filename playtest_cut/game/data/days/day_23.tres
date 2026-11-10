@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/rules/rule_fulltime.tres" id="r_fulltime"]
+[ext_resource type="Resource" path="res://data/story/candidate_shaodong_2.tres" id="s_shaodong_2"]
+[ext_resource type="Resource" path="res://data/chief/ask_day23.tres" id="ask23"]
+
+[resource]
+script = ExtResource("1")
+day = 23
+candidate_mix = {"regular": 70, "laid_off": 22, "changer": 8}
+screening_seconds = 230.0
+sms_replies = []
+date = "2026-05-29"
+resume_count = 10
+hirebot = 3
+standard_time = true
+note_printed = true
+hc_today = 3
+new_rules = Array[ExtResource("rule")]([ExtResource("r_fulltime")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_shaodong_2")])
+story_slot = 2
+morning_push = "多地推出房贷“延期还款”；申请者：“延的是日子，不是钱”"
+boss_mail = "各位家人：\nHireBot 的规则今天生效。月底了，HC 必须用完，今天放满三个。\n规则和 HC 打架的时候，以结果为准。\n本月留任奖金并入下月统一发放。\n三楼的盘点做完了。老周今天办手续，你来谈。\n我们是一家人。\n—— 王总"
+coworker_note = "HireBot 提示：\n今日合规候选人预计 0 人。\n请合理安排 HC。"
+bills = [{"id": "tutor_1v1", "label": "孩子英语一对一", "amount": 60}, {"id": "ai_class", "label": "AI 创想课", "amount": 30}, {"id": "meds", "label": "父亲药费", "amount": 40}, {"id": "household", "label": "家用（她没工资了）", "amount": 80}]
+exit_talks = [{"id": "lao_zhou", "name": "老周", "seed": 1979047, "female": false, "info": "行政 / 人事 · 47 岁 · 大专\n司龄 12 年", "opener": "（老周进门就说：）话术不用念了，那是我写的。（他把协议推过来。）算式我替你填好了。你签个字就行。", "sheet": "经济补偿：N+1（12+1 个月）\n计算基数：¥6,200（降薪后）\n——这一格是他自己填的。\n\n甲方（盖章）：蜂巢科技\n乙方（签字）：周建国", "questions": [{"q": "（他等你签字。）", "options": [{"style": "safe", "label": "照他填的签。", "minutes": 2, "reply": "他点点头。“写了十二年，轮到自己，手还是照着写。”"}, {"style": "truth", "label": "把基数改回来，按前十二个月的平均重算。", "minutes": 12, "reply": "他看着你改。“……多两个月。行。”他没说谢谢。", "effects": {"fine": 100, "trust": -1, "conscience": 1, "flag": {"zhou_helped": "yes"}, "evidence": "zhou_book"}}]}, {"q": "我闺女那个章，我记着。", "when": "story:story_zhou_daughter:exception", "options": [{"style": "safe", "label": "（你没说话。）", "minutes": 1, "reply": "他从包里拿出一本手抄的本子，放进你抽屉里。", "effects": {"evidence": "zhou_book"}}]}], "after_signed": {"flag": {"zhou_left": "yes"}}, "signed": "走之前他说：“便签我写到今天。以后桌上那张是打印的，错了别怪我。”", "refused": ""}]
+candidate_ask = ExtResource("ask23")
+chief_opener = "月底了，凑满三个。规则？规则是 HireBot 的。"
+desk_memos = [{"id": "m23_private", "at": 720, "when": "kickback", "title": "微信　李哲他爸", "text": "李哲他爸：兄弟，有个私活。一份简历，按你们那边的口味改一改，过了初筛就行。一个人头三百，当天结。\n（他发来一份简历。第一行你就知道它会卡在哪。）", "options": [{"key": "take", "label": "改。收款。", "reply": "你改了四处。十分钟后，¥300 到账。收款是你自己点的。", "minutes": 10, "effects": {"gray": {"from": "李哲的爸爸", "amount": 300, "candidate_id": "private_23"}}}, {"key": "pass", "label": "不接。", "reply": "李哲他爸：行。月底了，你自己掂量。"}]}]
+rescue_options = [{"id": "overdue", "label": "逾期一次（下月补扣 + 罚息 ¥50）", "amount": 1750, "family": -1, "note": "只能用一次。"}, {"id": "stop_tutor", "label": "停孩子的英语一对一（退剩下的课时）", "amount": 240, "family": -1, "note": "老师会在家长群里问一句。"}, {"id": "card", "label": "信用卡分期借 ¥2,000", "amount": 2000, "note": "下个月起每月多扣 ¥380。"}, {"id": "wife_comp", "label": "她的补偿金（多拿的那一个月）", "amount": 1500, "when": "h19_wife:full&marriage>=16", "note": "老婆：“我的补偿到了，多出来那一个月的，先填房贷。你说过一起扛。”"}, {"id": "dad_envelope", "label": "你爸塞来的信封，退休金攒的", "amount": 300, "marriage": 1, "note": "“三百。别跟我推。”这是这个游戏里唯一一个干净的信封。"}]
+desk_texts = [{"id": "t23_1", "at": 560, "text": "老婆：今天扣房贷。卡里还差多少，你心里有数吗？", "replies": [{"key": "warm", "label": "有数。晚上一起算。", "marriage": 1}, {"key": "curt", "label": "我来想办法。", "marriage": 0}]}, {"id": "d23_1", "at": 760, "from": "爸", "text": "你爸：晚上我过来一趟，有东西给你。"}]
+headline = "某公司 HR 部门本月为公司节省人力 0.6 人"
+news_body = "“数据来自该公司的 HireBot 月报。”"
+family_sms = ""

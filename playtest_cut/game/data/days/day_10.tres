@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/chief/question_day10.tres" id="chief_q"]
+[ext_resource type="Resource" path="res://data/chief/ask_day10.tres" id="chief_a"]
+[ext_resource type="Resource" path="res://data/chief/sharp_day10.tres" id="chief_s"]
+[ext_resource type="Resource" path="res://data/quirks/quirk_hai_tou.tres" id="quirk"]
+[ext_resource type="Resource" path="res://data/rules/rule_degree_pro.tres" id="r_rule_degree_pro"]
+[ext_resource type="Resource" path="res://data/rules/rule_salary.tres" id="r_rule_salary"]
+[ext_resource type="Resource" path="res://data/rules/rule_plug_play.tres" id="r_rule_plug_play"]
+[ext_resource type="Resource" path="res://data/story/candidate_chenmo_1.tres" id="s_candidate_chenmo_1"]
+[ext_resource type="Resource" path="res://data/jobs/job_backend.tres" id="j_job_backend"]
+
+[resource]
+script = ExtResource("1")
+day = 10
+date = "2026-04-01"
+resume_count = 5
+screening_seconds = 165.0
+retire = PackedStringArray("rule_degree", "rule_projects", "rule_gpa", "rule_major", "rule_internship", "rule_age", "birth_resume", "产品运营实习生", "内容运营实习生")
+new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_degree_pro"), ExtResource("r_rule_salary"), ExtResource("r_rule_plug_play")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_chenmo_1")])
+story_slot = 2
+new_postings = Array[ExtResource("jp")]([ExtResource("j_job_backend")])
+candidate_mix = {"regular": 70, "laid_off": 20, "changer": 10}
+pay = {"base": 160, "per_resume": 15, "per_correct": 5, "per_reason": 0, "chief_bonus": 100, "retention": 150, "retention_days": 4, "retention_deferred": false, "fines": true}
+morning_push = "互联网行业“降本增效”进入第二年"
+boss_mail = "各位家人：\n实习生招满了。实习那几条规矩收起来，三月的 JD 撤了。\n从今天起招程序员：后端开发工程师，JD 在桌上。要即插即用的，进来就能干活。期望薪资超出 JD 的不要。\n另外，公司薪酬结构优化，大家底薪从本月起微调，详见日结单。\n我们是一家人。\n—— 王总"
+coworker_note = "老周的便签：\n社招简历第一页有期望薪资：写区间的看上限，15–20k 就是 20k。\n学历换了说法：社招要本科，成人教育拿到证的算。\n“即插即用”翻第二页，只看最上面那段的职位名，别看他投的什么。\n从这个月起打印机吐的违规单带编号，一天第三次起每张扣钱。\n今天愚人节。看到离谱的简历，别当真，也别不当真。"
+bills = [{"id": "tutoring", "label": "孩子英语班", "amount": 60}, {"id": "coding", "label": "孩子编程班", "amount": 40}]
+headline = "大厂校招缩减，社招要求“即插即用”"
+news_body = "某招聘平台称：企业更愿意为“来了就能干”的人付钱。“没人有空带新人。”"
+family_sms = "孩子：爸爸！编程班第一节课，老师说以后程序员最吃香！\n孩子：我的机器人撞了三次墙。\n老婆：编程班的钱我先垫了。这个月账单多，你看一下。"
+sms_flag = "d10_eve"
+sms_replies = [{"key": "warm", "label": "撞墙也是在往前走。周末我陪你练。", "marriage": 1}, {"key": "curt", "label": "好，早点睡。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+desk_texts = [{"id": "t10_1", "at": 560, "text": "老婆：今天愚人节，孩子在你枕头底下放了只塑料蟑螂。回家别骂他。", "replies": [{"key": "warm", "label": "哈哈，我配合他叫一声。", "marriage": 1}, {"key": "curt", "label": "知道了。", "marriage": 0}]}, {"id": "t10_2", "at": 830, "text": "老婆：我们公司这个月也降薪了，百分之十。说是“共克时艰”。", "replies": [{"key": "warm", "label": "没事，我这边还行。你别太累。", "marriage": 1}, {"key": "curt", "label": "大家都降。", "marriage": 0}]}]
+home_scene = [{"text": "到家 18:50。你一进门，孩子就躲到沙发后面偷看。"}, {"ask": "h10_bug", "options": [{"key": "play", "label": "掀开枕头，大叫一声。", "then": [{"text": "孩子笑得在地上打滚：“愚人节快乐！”"}, {"text": "老婆站在厨房门口，也笑了。"}], "marriage": 1, "say": "你掀开枕头，大叫了一声。"}, {"key": "tired", "label": "把蟑螂拿出来，放回他桌上。", "then": [{"text": "孩子：……你都不怕的吗。"}, {"text": "他把蟑螂收进了抽屉。"}], "say": "你把塑料蟑螂拿出来，放回他桌上。"}]}, {"text": "孩子：爸爸，你们公司招程序员吗？编程班老师说，程序员是最不会失业的。"}, {"text": "你：招。今天刚开始招。"}, {"text": "孩子：那你招到了吗？"}, {"text": "你想起今天那份简历：一行学历，一个链接，角落里写着“Banyan 作者”。", "when": "story:story_chenmo_1:reject"}, {"text": "你想起今天那份简历：一行学历，一个链接。你把它放过去了，明天他来面试。", "when": "story:story_chenmo_1:pass"}, {"text": "老婆：先吃饭，菜要凉了。"}]
+chief_opener = "程序员我面过几百个了。会写代码的不稀奇，能扛事的稀奇。"
+chief_need = {}
+chief_question = ExtResource("chief_q")
+chief_sharp = ExtResource("chief_s")
+quirk = ExtResource("quirk")
+candidate_ask = ExtResource("chief_a")

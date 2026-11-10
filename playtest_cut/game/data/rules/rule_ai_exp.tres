@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleAiExp" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleAiExp.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_ai_exp"
+day_added = 18
+title_key = "AI 协同经验"
+text_key = "高级全栈要有 AI 协同经验：技能栏或工作经历里写明“码力”“AI 编程助手”“大模型”的才算。只在自我评价里说“关注 AI”的不算。"
+reject_reason_key = "您缺乏岗位要求的 AI 协同经验。"
+is_absurd = true
+positions = PackedStringArray("高级全栈工程师")

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Quirk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Quirk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quirk_hai_tou"
+entrance = "（TA 坐下，把两部手机扣在桌上，又摸出第三部。“不好意思，今天第四场。您是第几家来着？——哦，第二十三家。”）"
+answers = {"q_leaving": "没离开，在职。我每年这时候都出来面一圈，看看自己值多少。去年面了四十家。", "q_company": "您家是……做外包的？哦不是，那是上午那家。您说，我记一下。", "q_company+": "（TA 翻开本子，在“第二十三家”后面写：后端，主管爱看手机。）", "q_future": "五年后我会在一个面不上的公司里，接着面。", "q_probation": "六个月可以。反正我一般三个月就有新 offer 了。", "q_weakness": "缺点是容易被挖。优点也是。", "chief_day10": "996？上一家是 997，周日下午放半天。您这儿算好的。我写上：弹性。", "r_exp": "年限没水分。每一年我都出来面过一圈，所以记得特别清楚。"}
+asides = PackedStringArray("（一部手机亮了，TA 瞄了一眼，按掉。）", "（TA 在本子上划掉一行公司名。）", "（第二部手机震了。“那边三面，我就说两句。”TA 没接。）", "（TA 看了眼表：“咱们还有十分钟吧？”）")
+answer_kind = "honest"
+ability = 60
+honesty = 70
+loyalty = 10
+pressure = 80
+performance = 60
+event_override = &"jump"

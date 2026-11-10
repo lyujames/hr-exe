@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_new_scope"
+probes = PackedStringArray("ability")
+audience = "regular"
+lead_item = "技术"
+text_key = "一个人从零搭一个服务，多久能上线？说你自己干过的数。"
+honest = "两周能跑，一个月能上线。上回是三周，测试补了一周。"
+honest_low = "……我没从零搭过。都是在别人搭好的上面改。"
+standard = "这要看业务复杂度，我会合理排期，保质保量。"
+flaw = "三天。我很快的。"
+followup_text = "那三周里，哪一周最难熬？"
+honest_followup = "第二周。接口定完了，产品又改了一次，库表推倒重来。"
+honest_low_followup = "……我没完整做过一个。"
+standard_followup = "每个阶段都有各自的挑战。"
+flaw_followup = "都、都挺顺的。"
+lead_flaw = "三天上线的，我只见过三天下线的。"

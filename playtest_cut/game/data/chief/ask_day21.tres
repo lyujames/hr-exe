@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "JD 上原来写 35–45k，怎么今天变 28k 了？"
+lie = "AI 协同岗位，按协同定价，这是行业标准。"
+safe = "薪资以最终 offer 为准。"
+truth = "今天改的。还会往下谈，HireBot 给你算了一个你“最低肯来”的数。"

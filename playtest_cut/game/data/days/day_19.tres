@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/rules/rule_marital.tres" id="r_marital"]
+[ext_resource type="Resource" path="res://data/story/candidate_qiaoan.tres" id="s_qiaoan"]
+[ext_resource type="Resource" path="res://data/chief/ask_day19.tres" id="ask19"]
+
+[resource]
+script = ExtResource("1")
+day = 19
+candidate_mix = {"regular": 70, "laid_off": 22, "changer": 8}
+screening_seconds = 230.0
+sms_replies = [{"key": "warm", "label": "早点睡，明天我送孩子。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+date = "2026-05-13"
+resume_count = 12
+hirebot = 1
+standard_time = true
+mail_print = "mail_19"
+new_rules = Array[ExtResource("rule")]([ExtResource("r_marital")])
+story_candidates = Array[ExtResource("cand")]([ExtResource("s_qiaoan")])
+story_slot = 3
+morning_push = "调查称超六成女性求职时被问婚育；企业回应：“只是了解情况”"
+boss_mail = "各位家人：\n这条不往手册里写，你心里有数：已婚未育的女同志，这个岗先不考虑。高级岗一请产假就是半年，项目等不起。现在简历上都有“婚育状况”一栏，照着看。拒的时候理由写别的。\n今天的谈话一场。\n—— 王总"
+coworker_note = "老周的便签（三楼）：\n这条我没抄进手册，你在手册里找不到它。\n只看“已婚未育”四个字。“未婚”“已婚已育”不在这条里。\n拒绝理由里没有这一条，你得另挑一句。\n王总那封邮件，我要是你，就打一份出来，放抽屉最里面。我什么都没看见。"
+bills = [{"id": "tutor_1v1", "label": "孩子英语一对一", "amount": 60}, {"id": "ai_class", "label": "AI 创想课", "amount": 30}, {"id": "meds", "label": "父亲药费", "amount": 40}]
+exit_talks = [{"id": "own_hire", "criteria": "“学历不达标”", "female": false, "variants": [{"when": "story:story_chenmo_1:hired|story_chenmo_2:hired|story_chenmo_3:hired", "name": "陈默", "seed": 19960914, "info": "内部系统组 · 4 月入职\n第一学历：高中", "criteria": "“学历不达标”：第一学历高中，自考还差两门", "opener": "（陈默坐下，没看协议。第一批名单的抬头写着：学历不达标人员。）", "replies": {"why_lie": "行。", "why_safe": "行。", "why_truth": "……学历。行。", "comp_lie": "行。", "comp_safe": "（他没翻第二页。）行。", "comp_truth": "……行。我回去算。"}, "questions": [{"template": "why"}, {"template": "comp"}, {"q": "Banyan 那个事故单，以后谁接？", "options": [{"style": "lie", "label": "会有专人跟进的。", "reply": "（他点点头。他知道没有专人。）"}, {"style": "safe", "label": "这个不归我管。", "reply": "嗯。"}, {"style": "truth", "label": "没人。系统交给码力。", "reply": "码力是照着我的代码训练的。……那它应该接得住。", "effects": {"conscience": 1}}]}], "signed": "陈默签了字。走到门口他回头：“报销系统每个月 25 号会卡一次，重启就好。没人会问你，我先告诉你。”", "refused": "陈默把协议推回来：“我不签。不是因为钱。”"}, {"when": "story:story_chengye:hired|story_chengye_fx:hired", "name": "程野", "seed": 4401, "info": "后端 · 4 月入职\n工作年限（含实习）", "criteria": "“工作年限不达标”：含实习那 8 个月不算", "opener": "（程野坐下，手里攥着工牌。）我才来一个月。"}, {"when": "story:story_fresh_genius:hired", "name": "宋知遥", "seed": 4402, "info": "后端 · 4 月入职\n工作年限 1 年 10 个月", "criteria": "“工作年限不达标”"}, {"when": "hired_month:2", "name": "{hire_name}", "seed": 4403, "info": "4 月入职 · 你招进来的", "criteria": "“学历不达标”", "opener": "（{hire_name} 坐下。你认得这张脸：上个月你面过 TA。）"}]}]
+candidate_ask = ExtResource("ask19")
+chief_opener = "婚育那栏你看了吧？我就不问了，问了犯法。"
+desk_texts = [{"id": "t19_1", "at": 910, "text": "老婆：名单出了。有我。", "replies": [{"key": "wait", "label": "协议先别签，等我回去看。", "marriage": 1}, {"key": "busy", "label": "我在忙，晚上说。", "marriage": -1}]}]
+home_scene = [{"text": "到家 19:50。她把协议摊在桌上。"}, {"text": "老婆：N+1。他们 HR 说：“这是对你最好的安排。今天签，多给半个月。”"}, {"text": "这句话，你今天下午念过。", "when": "talk_own_hire:signed|talk_r19:signed"}, {"ask": "h19_wife", "options": [{"key": "full", "label": "基数不对，该按前十二个月平均算。明天我陪你去谈。", "marriage": 1, "then": [{"text": "老婆：……你怎么连这个都知道？"}, {"text": "你：我每天都在算别人的。"}]}, {"key": "base", "label": "差不多就签吧，闹僵了以后背调不好看。", "then": [{"text": "老婆：你是在劝我，还是在劝今天下午那几个人？"}]}, {"key": "same", "label": "这套话我今天也念了。", "marriage": 1, "then": [{"text": "老婆很久没说话。"}, {"text": "老婆：那他们签了吗？"}]}]}]
+headline = "一位 HR 的自述：“那条规则从来不写在纸上”"
+news_body = "“我们只是执行。拒的时候，理由写别的。”"
+news_by = [{"when": "story:story_philosophy:reject", "headline": "一位 HR 的自述：“那条规则从来不写在纸上”", "body": "实习记者 苏见青"}]
+family_sms = "老婆：协议我先收起来了。"
+sms_flag = "d19_eve"

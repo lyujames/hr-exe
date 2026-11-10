@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+is_intern = false
+is_story = true
+docs = PackedStringArray("id_card")
+id = &"story_weilai"
+display_name = "魏来"
+applied_position = "高级全栈工程师"
+birth_date = "1997-02-11"
+degree = 2
+school = "东江开放大学"
+degree_note = "第一学历：中专（北海电子）；成教本科，2021 年拿证"
+exp_months = 123
+skills = PackedStringArray("JavaScript", "Java", "MySQL", "Vue", "Linux", "Docker", "码力")
+salary_k = 30
+salary_low_k = 0
+jobs = [{"company": "拓鼎科技", "title": "全栈工程师", "start": "2020-09", "end": ""}, {"company": "东江电子厂", "title": "产线脚本 / 测试工装", "start": "2018-03", "end": "2020-08"}, {"company": "东江电子厂", "title": "产线操作工", "start": "2016-02", "end": "2018-02"}]
+self_eval = "十九岁进厂拧螺丝，二十一岁开始给产线写脚本。没上过全日制大学，十年没断过工。"
+attachment = "无"
+portrait_seed = 19970211
+ability = 88
+honesty = 86
+loyalty = 80
+pressure = 76
+performance = 80
+event_override = &"praise"
+answers = {"q_tech_depth": "产线上一个工装脚本出错，一条线停四十分钟。我写的东西没人兜底，所以每一行都先测。", "q_ai_tool": "用码力。它写得快，但它不知道产线凌晨换班那十分钟数据会断。那一段我自己写。", "q_ai_tool+": "上周它给我编了一个不存在的接口。测试先挂的，我发现的。", "q_leaving": "拓鼎在裁人。我还没在名单上，但我知道下一批是谁。", "r_edu": "成教本科，晚上上的课。白天在厂里。证是 2021 年拿的。", "r_job:1": "那几年我把整条线的测试工装都换成了脚本。厂长说省了六个人。那六个人里有我师傅。", "r_self_eval": "简历上我只写了我干过的。第一页那两个字，我知道你们会看。"}
+epilogue = {"hired": "你录用了他。定薪那天 HireBot 建议 22k，理由一栏写着：第一学历议价能力弱。", "pass": "你放他进了面试。第一页写着中专、电子厂，你的手停了一下，还是拿了通过章。", "exception": "他本来就合规，用不着破格。", "reject": "你回他：“{reason}”。他每一条都合格。你看的是第一页那两个字。"}

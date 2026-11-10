@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Candidate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"story_zhou_daughter"
+display_name = "周以宁"
+applied_position = "内容运营实习生"
+birth_date = "1999-11-14"
+degree = 3
+school = "东江大学"
+undergrad_school = "云岭大学"
+skills = PackedStringArray("深度采访", "新闻写作", "数据可视化", "英语六级")
+is_intern = true
+major = "新闻学"
+gpa = 3.71
+projects = [{"name": "导师横向课题：县级融媒体中心调研", "role": "核心成员", "start": "2025-03", "end": "2026-01"}, {"name": "学院公众号运营", "role": "负责人", "start": "2024-09", "end": "2025-06"}]
+intern_days = 5
+intern_months = 8
+salary_k = 0
+jobs = []
+self_eval = "我爸在一家互联网公司做了十几年行政。他说现在招实习生先看年龄，让我在简历上写 2000 年。我没写。"
+attachment = "三篇调查报道，其中一篇被省报转载。"
+portrait_seed = 20260327
+ability = 80
+honesty = 95
+loyalty = 85
+pressure = 70
+performance = 75
+docs = PackedStringArray("id_card")
+epilogue = {"hired": "你破格放了她，自己面、自己签的字。那天老周在茶水间给你泡了杯茶，什么都没说。", "exception": "你破格放了她，面试后没录用。老周没问，你也没提。", "pass": "你放了她。违规单上写着：应拒绝：年龄要求。", "unbooked": "你放了她，违规单上写着：应拒绝：年龄要求。那天晚上你约的是别人。", "reject": "你回她：“{reason}”。第二天老周的便签上只写了规则，别的一个字都没写。"}
+is_story = true

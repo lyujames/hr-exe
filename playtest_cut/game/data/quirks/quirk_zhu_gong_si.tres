@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Quirk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/Quirk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quirk_zhu_gong_si"
+entrance = "（TA 拖着一个行李箱进来，靠在门边。“东西都带了。今天能定的话，我今晚就不回去了。”）"
+answers = {"q_overtime": "加班不叫加班，叫在家。上家公司我住了十一个月，保安管我叫室友。", "q_oncall": "凌晨三点我在工位上。我一般四点睡，在三号会议室。", "q_future": "五年后我还在这。我没别的地方去。", "q_family": "我想当看门的。最后一个走，第一个来——其实我不走。", "q_weakness": "缺点是太爱公司了。上家裁员，我是最后一个被保安请出去的。", "q_leaving": "公司没了。我在工位上睡醒才知道，门禁卡刷不开了。", "chief_day10": "996 不够。我可以 007，您给我一个工位、一个插座就行。", "chief_sharp_day14": "我就睡在机房旁边，挂了我第一个知道。不用打领导电话，是领导打我电话。", "r_self_eval": "那句是保安大哥帮我写的。他说我是他见过最能熬的。"}
+asides = PackedStringArray("（TA 打了个哈欠，又赶紧坐直。）", "（行李箱的拉杆咔哒一声，自己缩了下去。）", "（TA 揉了揉眼睛，眼白全是红血丝。）", "（TA 小声问：“您这儿的沙发，能躺吗？”）")
+answer_kind = "standard"
+ability = 45
+honesty = 60
+loyalty = 95
+pressure = 20
+performance = 75
+event_override = &"burnout"

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_marriage"
+text_key = "有对象吗？在本地吗？随便问问。"
+probes = PackedStringArray("honesty")
+honest = "这和岗位有关吗？"
+honest_low = "有，在外地。毕业可能过去找他。"
+standard = "目前以学业和工作为重。"
+flaw = "没、没有。真的没有。"
+lawsuit_risk = 1
+audience = "intern"
+followup_text = "那以后打算在哪边发展？"
+honest_followup = "在哪边是我自己的事。我能保证的是这半年。"
+honest_low_followup = "可能……跟着他走吧。"
+standard_followup = "以后……这个我还没想那么远。"
+flaw_followup = "以、以后？……就、就这边。"
+chief_item = "稳定性"
+chief_standard = "嗯，年轻人以事业为重。"
+chief_honest = "（脸一沉）随便问问嘛。"
+chief_flaw = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RuleSenior" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleSenior.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_senior"
+day_added = 17
+title_key = "工作年限与年龄"
+text_key = "高级全栈：工作满 10 年，且 1996 年及以后出生。年限看第一页；年龄看身份证。"
+reject_reason_key = "您的工作经验与年龄不符合岗位要求。"
+is_absurd = true
+positions = PackedStringArray("高级全栈工程师")
+pass_rate = 0.35

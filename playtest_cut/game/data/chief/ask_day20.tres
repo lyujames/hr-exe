@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CandidateAsk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CandidateAsk.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+question = "简历是我自己写的。你们怎么判是不是 AI 写的？"
+lie = "我们有专业的检测系统，很准。"
+safe = "以系统结果为准。"
+truth = "看右上角一个数。它说老周二十年前手写的入党申请书 71%。"

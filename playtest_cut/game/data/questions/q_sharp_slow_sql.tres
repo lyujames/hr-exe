@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_sharp_slow_sql"
+text_key = "线上一条 SQL 突然慢了十倍，你第一步看什么？"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+honest = "先看执行计划，是不是没走索引。上回是有人把字段从数字改成了字符串，索引直接废了。"
+honest_low = "……加索引？我们一般是让 DBA 看。"
+standard = "我会从 SQL 优化、索引设计、分库分表多个维度进行系统性分析。"
+flaw = "慢、慢了就……先重启一下数据库？"
+followup_text = "执行计划里 type 是 ALL，扫了两百万行，下一步呢？"
+honest_followup = "全表扫。先看 where 上那列有没有索引；有的话，看是不是隐式转换或者套了函数，把索引用废了。"
+honest_low_followup = "ALL……是全部的意思吧。我其实不太会看这个。"
+standard_followup = "这个……要结合具体业务场景具体分析。"
+flaw_followup = "两、两百万……那就……加机器？"
+chief_item = "格局"
+chief_standard = "分库分表，有高度。"
+chief_honest = "说这么细，格局小了。"
+chief_flaw = "重启？"

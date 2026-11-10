@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_grad_phd"
+text_key = "以后打算读博吗？"
+probes = PackedStringArray("loyalty")
+honest = "不读了，毕业就想工作。"
+honest_low = "导师一直劝我直博，我还在想。"
+standard = "我更看重在业界积累实战经验。"
+flaw = "博、博士……暂时不考虑。暂时。"
+audience = "grad"
+chief_item = "稳定性"
+chief_standard = "好，读博的留不住。"
+chief_honest = "还在想？那就是要走。"
+chief_flaw = "暂时是多久？"
+followup_text = "导师要是劝你直博呢？"
+honest_followup = "已经劝过了。我说了不读，他也同意了。"
+honest_low_followup = "那……我可能会再考虑一下。"
+standard_followup = "我会坚持自己的职业规划。……应该。"
+flaw_followup = "劝、劝我？……还没劝。还没。"

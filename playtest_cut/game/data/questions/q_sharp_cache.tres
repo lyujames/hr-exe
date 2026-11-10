@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_sharp_cache"
+text_key = "缓存和数据库对不上了，你们怎么处理的？"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+honest = "先更库，再删缓存，删失败了丢队列重试。中间还是有一小段会脏，我们认了。"
+honest_low = "我们没遇到过……可能遇到了，没发现。"
+standard = "采用延时双删等策略，保证缓存与数据库的强一致性。"
+flaw = "不会对不上的，我们的缓存很、很稳定。"
+followup_text = "真的从来没脏过？最近一次对不上是什么事？"
+honest_followup = "去年大促，库存缓存晚删了三秒，超卖四十单。从那以后库存不走缓存了。"
+honest_low_followup = "……用户投诉过一次价格不对。组长改的，我不知道他怎么改的。"
+standard_followup = "我们的方案比较成熟……理论上，不会。"
+flaw_followup = "没、没有……真的没有。可能有？那块不归我管。"
+chief_item = "格局"
+chief_standard = "强一致，好。"
+chief_honest = "还“认了”？出了问题就得解决。"
+chief_flaw = "……"

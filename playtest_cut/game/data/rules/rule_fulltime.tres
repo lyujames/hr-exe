@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RuleFullTime" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleFullTime.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_fulltime"
+day_added = 23
+title_key = "第一学历（HireBot #001）"
+text_key = "第一学历须为全日制本科。看学历栏小字：成人教育、自考、网络教育、开放大学、专升本都不算。本规则由 HireBot 生成。"
+reject_reason_key = "您的第一学历不符合岗位要求。"
+is_absurd = true

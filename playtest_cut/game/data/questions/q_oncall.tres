@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_oncall"
+text_key = "凌晨三点线上告警，你在干嘛？"
+probes = PackedStringArray("pressure")
+audience = "regular"
+honest = "爬起来先止血，回滚。根因第二天白天查，半夜脑子不清楚，容易越修越坏。"
+honest_low = "我睡觉手机静音……我知道这不好。"
+standard = "第一时间响应，系统就是我的孩子。"
+flaw = "我、我不睡觉的。随时在线。"
+followup_text = "上一次半夜被叫起来是什么事？修了多久？"
+honest_followup = "支付回调超时。四十分钟回滚完，第二天才查到是第三方证书过期。"
+honest_low_followup = "……没被叫过，我们组有别人值班。"
+standard_followup = "具体……那次情况比较复杂，一下说不清。"
+flaw_followup = "很、很多次……具体哪次……都、都修好了。"
+chief_item = "狼性"
+chief_standard = "这才是程序员。"
+chief_honest = "白天查？半夜就该查完。"
+chief_flaw = "……行吧。"

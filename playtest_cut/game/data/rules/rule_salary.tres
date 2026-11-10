@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RuleSalary" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RuleSalary.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rule_salary"
+day_added = 10
+title_key = "薪资预算"
+text_key = "期望月薪不超过 18k（JD 上的 12–18k）。写区间的看上限：15–20k 就是 20k。"
+reject_reason_key = "期望薪资超出岗位预算。"
+is_absurd = false
+max_monthly_k = 18

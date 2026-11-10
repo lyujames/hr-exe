@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_day18"
+text_key = "AI 都能写代码了，要你干什么？"
+probes = PackedStringArray("ability")
+audience = "regular"
+honest = "它写，我判它写得对不对。它写错的时候不会告诉你，我会。"
+honest_low = "……我也在想这个问题。"
+standard = "我能驾驭 AI，一个人顶一个团队。"
+flaw = "我、我也会用 AI……用得很好。"
+followup_text = "那它上回写错，你多久发现的？"
+honest_followup = "十分钟。测试是我先写的，它的代码过不了。"
+honest_low_followup = "……上线以后。"
+standard_followup = "我会建立完善的 AI 输出审核机制。"
+flaw_followup = "没、没写错过……"
+chief_item = "格局"
+chief_standard = "一个人顶一个团队，好。"
+chief_honest = "判它对不对？那不还是要人。"
+chief_flaw = ""

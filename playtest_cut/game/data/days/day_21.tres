@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="DayConfig" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/DayConfig.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/Rule.gd" id="rule"]
+[ext_resource type="Script" path="res://scripts/resources/Candidate.gd" id="cand"]
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="jp"]
+[ext_resource type="Script" path="res://scripts/resources/Discrepancy.gd" id="disc"]
+[ext_resource type="Resource" path="res://data/jobs/job_fullstack_v2.tres" id="j_fullstack_v2"]
+[ext_resource type="Resource" path="res://data/chief/question_day21.tres" id="chief_q21"]
+[ext_resource type="Resource" path="res://data/chief/ask_day21.tres" id="ask21"]
+
+[resource]
+script = ExtResource("1")
+day = 21
+candidate_mix = {"regular": 70, "laid_off": 22, "changer": 8}
+screening_seconds = 230.0
+sms_replies = [{"key": "warm", "label": "早点睡，明天我送孩子。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
+date = "2026-05-22"
+resume_count = 16
+hirebot = 2
+standard_time = true
+retire = PackedStringArray("费用会计（兼出纳、兼行政）")
+new_postings = Array[ExtResource("jp")]([ExtResource("j_fullstack_v2")])
+morning_push = "某公司高级工程师岗位薪资下调三成：“AI 协同岗位，按协同定价”"
+boss_mail = "各位家人：\n规则不变。HireBot 从今天起先筛一遍：简历来的时候已经分好“推荐”“不推荐”两叠，你复核就行。跟它不一样的，写一句理由。\nJD 的薪资我改了：28k，接受 AI 协同。有 AI 帮忙，活轻了，钱自然不一样。\n从今天起录用的人，定薪你来谈，原则是按下限走。HireBot 会给一个建议数，谈到建议数以下的，省下来的提 5% 给你。\n实习生的转正名额取消，这批人月底结束，你下午一起谈了。李哲留下，别问。\n晚上我可能找你，手机别静音。\n—— 王总"
+coworker_note = "老周的便签（三楼）：\n实习生一起谈，十五分钟。别让他们一个一个问。\n定薪那个建议数，算的是这个人“最低肯来的钱”，不是他值多少。"
+mail_ps_by = [{"when": "story:story_steady:hired", "ps": "（老周便签背面）方晓那孩子的事，我去三楼问过了，问不动。"}]
+bills = [{"id": "tutor_1v1", "label": "孩子英语一对一", "amount": 60}, {"id": "ai_class", "label": "AI 创想课", "amount": 30}, {"id": "meds", "label": "父亲药费", "amount": 40}, {"id": "household", "label": "家用（她没工资了）", "amount": 80}]
+exit_talks = [{"id": "interns", "name": "实习生（三人）", "seed": 3311, "info": "实习期月底结束\n转正名额：取消", "opener": "（三个实习生挤在一张桌子前。老周的便签说：一起谈，十五分钟，别让他们一个一个问。）", "questions": [{"q": "转正的事，是不是没有了？", "options": [{"style": "lie", "label": "转正名额今年冻结了，明年还有机会。", "reply": "明年……我们实习期月底就到了。", "minutes": 3, "effects": {"lawsuit": 1}}, {"style": "safe", "label": "这个要看公司安排。", "reply": "（三个人互相看了一眼。）", "minutes": 2}, {"style": "truth", "label": "没有了。转正名额取消了。", "reply": "……哦。", "minutes": 4, "effects": {"conscience": 1}}]}, {"q": "（方晓）转正那封邮件，我还存着。", "when": "story:story_steady:hired", "options": [{"style": "lie", "label": "那是之前的政策。", "reply": "方晓把手机收起来了。", "minutes": 3}, {"style": "safe", "label": "邮件不代表承诺。", "reply": "……那代表什么？", "minutes": 2}, {"style": "truth", "label": "那封邮件是我发的。说话不算数，对不起。", "reply": "方晓：……谢谢你说对不起。别人都没说。", "minutes": 4, "effects": {"conscience": 1}}]}, {"q": "那李哲呢？他也走吗？", "when": "!story:story_steady:hired", "options": [{"style": "lie", "label": "每个人情况不一样。", "reply": "（没人说话。）", "minutes": 3}, {"style": "safe", "label": "我不方便说。", "reply": "那就是不走。", "minutes": 2}, {"style": "truth", "label": "他留下。为什么，王总说别问。", "reply": "……懂了。", "minutes": 4, "effects": {"conscience": 1}}]}, {"template": "sign", "minutes": 3}], "signed": "三个人在同一张纸上签了名。十五分钟，正好。", "refused": "三个人把协议拿走了：“我们问问学校。”"}]
+chief_question = ExtResource("chief_q21")
+candidate_ask = ExtResource("ask21")
+chief_opener = "28k 还嫌少？我当年 3k。"
+desk_memos = [{"id": "m21_weilai", "at": 600, "when": "hired:story_weilai", "title": "定薪：魏来", "text": "魏来要 30k。HireBot 的建议数是 22k，理由一栏写着：“第一学历议价能力弱。”\n王总：原则是按下限走。谈到建议数以下的，省下来的提 5% 给你。\n电话那头，魏来在等你开口。", "options": [{"key": "30", "label": "30k，照他要的。", "reply": "魏来：……谢谢。（王总在抄送里回了一个“？”）", "effects": {"trust": -1, "conscience": 1}}, {"key": "26", "label": "26k。", "reply": "魏来：行。"}, {"key": "22", "label": "22k，照 HireBot 的建议数。", "reply": "魏来停了一会儿：“……行。”", "effects": {"trust": 1}}, {"key": "20", "label": "20k。（省下的 2k，提 5% 是 ¥100）", "reply": "魏来：“我上一份 26k。”你没接话。他说：“……行。”", "effects": {"trust": 1, "conscience": -1, "money": 100}}]}]
+desk_texts = [{"id": "t21_1", "at": 700, "text": "老婆：又投了九家。一家都没回。", "replies": [{"key": "warm", "label": "这周都这样，不是你的问题。", "marriage": 1}, {"key": "curt", "label": "再等等。", "marriage": 0}]}]
+home_scene = [{"text": "会议室里只有你们两个。她念到“一孩，无二胎计划”的时候停了一下。你在评分表上写字，她看着你写。", "when": "story:story_shenwen:exception"}, {"text": "她头一回看见你上班是什么样子。", "when": "story:story_shenwen:exception", "effects": {"marriage": 2}}, {"text": "到家 20:40。孩子睡了。"}, {"text": "21:40　王总：在？"}, {"text": "22:15　王总：明天的名单发你了。"}, {"text": "23:05　王总：已读了怎么不回。"}, {"text": "桌上压着一张纸条：“爸爸：同学都报了三个班，我是不是很笨？”"}, {"ask": "h21_note", "options": [{"key": "write", "label": "在背面写：“不笨。爸爸小时候一个班都没上过。”", "marriage": 1, "say": "你写完，把纸条压回原处。睡觉晚了十分钟。"}, {"key": "fold", "label": "把纸条折好放回去。", "say": "你把纸条折好，放回了原处。"}]}]
+headline = "新项目组 Banyan 重构项目暂停"
+news_body = "公司称：“等 AI 能力成熟后重启。”"
+news_by = [{"when": "story:story_banyan_liar:hired", "headline": "Banyan 重构延期，组长许言“主动离职”", "body": "孙浩代理组长。"}]
+family_sms = "老婆：王总又找你了？手机一直亮。"
+sms_flag = "d21_eve"

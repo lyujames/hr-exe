@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_day13"
+text_key = "期望薪资能不能再降点？我们看重成长。"
+probes = PackedStringArray("loyalty")
+honest = "可以谈，但低于 13k 我房租交不起。"
+honest_low = "……您说多少就多少吧。"
+standard = "我更看重平台和成长空间，薪资可以商量。"
+flaw = "降、降多少都行……我都可以。"
+followup_text = "那你的底线是多少？"
+honest_followup = "13k。我算过，房租加上给家里的，再低就得找第二份活。"
+honest_low_followup = "没、没有底线……有工作就行。"
+standard_followup = "我相信公司会给出合理的薪资。"
+flaw_followup = "底线……我、我没想过。"
+chief_item = "格局"
+chief_standard = "有格局。"
+chief_honest = "房租？谁不交房租。"
+chief_flaw = ""
+audience = "regular"

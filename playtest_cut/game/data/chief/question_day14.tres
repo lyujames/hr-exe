@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_day14"
+text_key = "有孩子吗？孩子谁带？"
+probes = PackedStringArray("pressure")
+lawsuit_risk = 2
+honest = "有一个，上小学。老人帮忙接，我晚上辅导作业。"
+honest_low = "有，还小，经常生病……我会尽量安排。"
+standard = "家里都安排好了，不影响工作。"
+flaw = "孩、孩子……没有。暂时没有。"
+followup_text = "孩子生病了怎么办？"
+honest_followup = "我和孩子爸爸轮流请假。一年大概三四天，我会提前把活交接好。"
+honest_low_followup = "……只能我请假，没别人能管。"
+standard_followup = "家里有老人，基本不会影响。"
+flaw_followup = "生、生病……不会生病的。"
+chief_item = "稳定性"
+chief_standard = "这就好。"
+chief_honest = "晚上辅导作业？那还能加班吗。"
+chief_flaw = "嗯。"
+audience = "regular"

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="JobPosting" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/JobPosting.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+title = "高级全栈工程师"
+pay_text = "月薪 28k（接受 AI 协同）\n原 35–45k"
+majors = PackedStringArray()
+lookalikes = PackedStringArray()
+requirements = PackedStringArray("前端、后端、运维一人全包", "接受 AI 协同定价", "定薪按下限走")
+skill_pool = PackedStringArray("Java", "Go", "MySQL", "Redis", "Vue", "React", "Node.js", "Docker", "Linux", "Kubernetes", "TypeScript", "Kafka")
+job_titles = PackedStringArray("全栈工程师", "后端开发", "前端开发", "技术负责人", "软件工程师", "运维开发")
+role = "全栈"

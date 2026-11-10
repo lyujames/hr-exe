@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_it_sharp"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+lead_item = "技术"
+text_key = "月底发工资那天，财务说报销系统里少了三十七笔。你怎么找？"
+honest = "先按日期把三十七笔的单号拉出来，看卡在哪个审批节点。上回是一个离职的经理没人接他的待审批，单子全挂在他名下。"
+honest_low = "……先看日志吧。报销系统我没碰过，得先知道它是怎么流转的。"
+standard = "我会从数据一致性的角度全面排查，确保问题闭环。"
+flaw = "三十七笔……让财务再提一遍不就行了。"
+followup_text = "挂在离职的人名下，以后怎么防？"
+honest_followup = "离职流程里加一步：交接人没签字，人事这边办不了离职。系统不改，改流程。"
+honest_low_followup = "……让人事提醒一下？我也不知道归谁管。"
+standard_followup = "建立长效机制，从根本上杜绝此类问题。"
+flaw_followup = "那、那就不让他们离职？"
+lead_strong = "改流程不改系统。对，我们这儿就是这么活下来的。"
+lead_standard = "闭环。财务听不懂这个词。"

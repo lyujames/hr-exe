@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"q_intern_role"
+text_key = "说说你理解的这个实习要做什么。"
+probes = PackedStringArray("honesty", "ability")
+honest = "拉群、写文案、盯数据。大部分是杂活，但能看清一个 App 是怎么转起来的。"
+honest_low = "说实话不太清楚，JD 上写的是“参与核心业务”。"
+standard = "深度参与核心业务，在实践中快速成长。"
+flaw = "就是……运营？运营产品。对，运营产品。"
+audience = "intern"
+chief_item = "格局"
+chief_standard = "对，我们的实习生都是核心。"
+chief_honest = "杂活也是活。"
+chief_flaw = "进来就知道了。"
+followup_text = "那你说说，一个活动从拉群到复盘，你会先做什么？"
+honest_followup = "先定拉谁进来、怎么算有效。人拉进来以后每天看一次活跃，掉到一半就换话题。"
+honest_low_followup = "先……做海报？其他的我想进来再学。"
+standard_followup = "这个……我会根据实际情况灵活调整。"
+flaw_followup = "先、先拉群。然后……然后再拉群。"

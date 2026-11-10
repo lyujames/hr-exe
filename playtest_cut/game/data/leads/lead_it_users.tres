@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_it_users"
+probes = PackedStringArray("honesty")
+audience = "regular"
+lead_item = "协作"
+text_key = "王总说 OA 的按钮太小，让你今天改。产品没有，设计没有，就你一个。"
+honest = "今天改。改大一号，截图发他确认，留个记录。下回再改，就有东西可以对。"
+honest_low = "……改吧。他是老板。我不太会跟领导沟通。"
+standard = "我会主动沟通需求，确保交付符合预期。"
+flaw = "按钮小？那是他眼神不好。"
+followup_text = "他看了截图说再大一点。改几次算完？"
+honest_followup = "改到他满意。我们组的活就是这样，不难，也不算功劳。"
+honest_low_followup = "……我也不知道。改到他不说为止吧。"
+standard_followup = "持续迭代，不断优化用户体验。"
+flaw_followup = "那、那就让他自己改？"
+lead_strong = "不难，也不算功劳。你说对了。"
+lead_standard = "迭代。我们一年迭代一次。"

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"lead_fe_compat"
+probes = PackedStringArray("ability")
+audience = "regular"
+lead_item = "技术"
+text_key = "你电脑上好好的，用户说他手机上“立即购买”按钮点不了。你先干什么？"
+honest = "先问他什么手机、什么系统、在不在微信里打开。然后借一台一样的真机连上调，十次有八次是被什么东西盖住了。"
+honest_low = "……我一般在浏览器里切成手机模式看。没问题就是他网不好。"
+standard = "我会第一时间复现问题，定位原因，并做好兼容性测试。"
+flaw = "让他换个浏览器试试。"
+followup_text = "真机上也复现不出来。只有他一个人点不了。"
+honest_followup = "那就看他的字体是不是调大了。系统字体一放大，底下那条栏会盖住按钮。上次就是一个阿姨。"
+honest_low_followup = "那……就是他的手机有问题吧。"
+standard_followup = "可以收集更多日志信息进行分析。"
+flaw_followup = "那、那就不是我们的问题。"
+lead_strong = "字体调大。对，就是那个阿姨。"
+lead_weak = "浏览器的手机模式不是手机。"
+lead_flaw = "他不会换浏览器。他就是想买东西。"

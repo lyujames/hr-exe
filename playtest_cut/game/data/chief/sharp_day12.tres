@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="QuestionCard" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/QuestionCard.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chief_sharp_day12"
+text_key = "你写的代码，现在还有多少在线上跑？哪个系统？"
+probes = PackedStringArray("ability")
+audience = "regular"
+sharp = true
+honest = "订单系统里结算那块，大概八千行，三年了还在跑。上个月有人想重写，看了一眼又放下了。"
+honest_low = "……好像都下线了。项目黄了以后，代码也没人要。"
+standard = "我参与开发的多个核心系统目前均稳定运行，服务亿级用户。"
+flaw = "很、很多。基本都在跑吧……应该在。"
+followup_text = "最近一次有人改你那段代码，改的是哪？"
+honest_followup = "改了一个时区。我当年按北京时间写死的，海外订单一来就对不上。那是我的锅。"
+honest_low_followup = "不知道。离职以后，那边的群我就退了。"
+standard_followup = "这个……我离职有段时间了，不太清楚细节。"
+flaw_followup = "改、改了……应该没人改。写得挺好的。"
+chief_item = "格局"
+chief_standard = "亿级，有格局。"
+chief_honest = "八千行？就这点？"
+chief_flaw = "……"
