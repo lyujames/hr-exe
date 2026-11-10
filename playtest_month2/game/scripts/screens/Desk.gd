@@ -960,14 +960,19 @@ func _ring(text: String, is_call: bool) -> void:
 	_bubble.position = _bubble_pos()
 	_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bubble)
-	var height := 64.0 if is_call else 40.0
-	UI.panel(_bubble, Rect2(0, 0, 210, height), UI.BLACK, UI.GREEN_DIM)
-	UI.label(_bubble, ("来电" if is_call else "消息") + "　" + text, Vector2(6, 4), UI.TEXT, 198)
-	if not is_call:
-		UI.label(_bubble, "点手机回复", Vector2(150, 26), UI.GREEN_DIM)
+	# 框跟着字撑高：正文几行就多高，底下一行放“点手机回复”或“知道了”，不压字
+	var frame := UI.panel(_bubble, Rect2(0, 0, 210, 40), UI.BLACK, UI.GREEN_DIM)
+	var body := UI.label(_bubble, ("来电" if is_call else "消息") + "　" + text, Vector2(6, 4), UI.TEXT, 198)
+	var text_bottom := 4.0 + body.get_line_count() * (body.get_line_height() + 1)
 	if is_call:
-		UI.button(_bubble, "知道了", Rect2(150, 40, 54, 18), _hang_up_home)
+		UI.button(_bubble, "知道了", Rect2(150, text_bottom + 4, 54, 18), _hang_up_home)
+		frame.size.y = text_bottom + 26
 	else:
+		UI.label(_bubble, "点手机回复", Vector2(142, text_bottom), UI.GREEN_DIM)
+		frame.size.y = text_bottom + 18
+	# 高了以后底边别出屏幕
+	_bubble.position.y = minf(_bubble.position.y, 360.0 - frame.size.y)
+	if not is_call:
 		var shown := _bubble
 		var fade := create_tween()
 		fade.tween_interval(4.0)

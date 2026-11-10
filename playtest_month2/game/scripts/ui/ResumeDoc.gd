@@ -8,6 +8,8 @@ const SIZE := Vector2(232, 268)
 const HEAD_X := 80
 const VALUE_X := 44
 const LINE := 17
+## 正文最低到这儿，再往下是页码、翻页按钮和初筛章。
+const BOTTOM := 245.0
 
 var candidate: Candidate
 var page := 0
@@ -132,15 +134,19 @@ func _note(text: String, line: int) -> int:
 
 func _render_back() -> void:
 	var c := candidate
-	# 自评有长有短：项目少就往上提，附件接在自评实际的最后一行下面，不叠字
-	var y := float(_render_projects() if c.is_intern else 172)
-	if not c.is_intern:
-		_render_jobs()
-	y = maxf(minf(y, 172.0), 110.0)
-	UI.label(_content, "自我评价", Vector2(8, y), UI.INK_SOFT)
-	var eval := UI.label(_content, c.self_eval, Vector2(8, y + 16), UI.INK, 216)
-	y += 16.0 + eval.get_line_count() * (eval.get_line_height() + 1) + 4.0
-	UI.label(_content, "附：" + c.attachment, Vector2(8, y), UI.INK_SOFT, 216)
+	# 上面经历排到哪：在校项目或工作经历的最后一行下面
+	var top := float(_render_projects() if c.is_intern else _render_jobs())
+	# 自评和附件先排出来量高度，再整块放：平时从 172 起，放不下就往上提，最低不压经历；
+	# 底下 BOTTOM 以下是页码、翻页按钮、初筛章，不让字压上去
+	var head := UI.label(_content, "自我评价", Vector2.ZERO, UI.INK_SOFT)
+	var eval := UI.label(_content, c.self_eval, Vector2.ZERO, UI.INK, 216)
+	var attach := UI.label(_content, "附：" + c.attachment, Vector2.ZERO, UI.INK_SOFT, 216)
+	var eval_h := _height(eval)
+	var block := 16.0 + eval_h + 3.0 + _height(attach)
+	var y := maxf(top, minf(172.0, BOTTOM - block))
+	head.position = Vector2(8, y)
+	eval.position = Vector2(8, y + 16)
+	attach.position = Vector2(8, y + 16 + eval_h + 3)
 
 
 ## 返回项目下面空出来的那一行。
@@ -157,7 +163,8 @@ func _render_projects() -> int:
 	return line + 2
 
 
-func _render_jobs() -> void:
+## 返回经历下面空出来的那一行。
+func _render_jobs() -> int:
 	var c := candidate
 	UI.label(_content, "工作经历（从新到旧）", Vector2(8, 8), UI.INK_SOFT)
 	var line := 26
@@ -172,6 +179,7 @@ func _render_jobs() -> void:
 			var note := c.gap_note if c.gap_note != "" else "（未写）"
 			UI.label(_content, "┆ 空窗说明：" + note, Vector2(16, line), UI.INK)
 			line += 16
+	return line + 2
 
 
 func _can_drop_data(_at: Vector2, data: Variant) -> bool:
