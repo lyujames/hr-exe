@@ -167,6 +167,11 @@ func salary_text() -> String:
 
 
 ## 在读的研究生实习生：面试多问几问，还有专门的问题卡。
+## 婚育栏写了性别就按它；没写的看名字（头像也是按名字挑的）。
+func is_female() -> bool:
+	return gender == "女" if gender != "" else CandidateGenerator.female_name(display_name)
+
+
 func is_grad() -> bool:
 	return is_intern and degree >= Degree.MASTER
 

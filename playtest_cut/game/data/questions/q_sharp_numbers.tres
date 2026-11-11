@@ -22,3 +22,10 @@ chief_item = "狼性"
 chief_standard = "300%，数字漂亮。"
 chief_honest = "一堆数，听不懂。"
 chief_flaw = "……嗯。"
+male = {
+"standard": "我主导的优化，系统整体性能提升了 300%。"
+}
+female = {
+"honest": "接口 P99 从 1.2 秒到 300 毫秒。压测和流量回放是我做的，改代码的是两个人。",
+"standard": "通过团队协作，系统整体性能提升了 300%。"
+}

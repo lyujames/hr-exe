@@ -17,3 +17,11 @@ chief_item = ""
 chief_standard = ""
 chief_honest = "题是上一批实习生出的，答案我也没对过。"
 chief_flaw = ""
+male = {
+"honest": "（TA 两分钟拉完透视表，往椅背上一靠：“就这？”）",
+"honest_low": "（TA 算出来的留存率是 137%。“这数据源有问题吧。”）"
+}
+female = {
+"honest": "（TA 两分钟拉完透视表，又从头核了一遍，才小声问测试账号要不要剔掉。）",
+"honest_low": "（TA 算出来的留存率是 137%。TA 盯着那个数，说了声对不起。）"
+}

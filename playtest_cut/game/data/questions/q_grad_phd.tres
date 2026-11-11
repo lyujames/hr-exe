@@ -21,3 +21,14 @@ honest_followup = "已经劝过了。我说了不读，他也同意了。"
 honest_low_followup = "那……我可能会再考虑一下。"
 standard_followup = "我会坚持自己的职业规划。……应该。"
 flaw_followup = "劝、劝我？……还没劝。还没。"
+male = {
+"honest_low": "导师劝我直博。可家里等着我挣钱，我还在想。",
+"honest": "不读了，毕业就想工作，早点挣钱。",
+"standard": "我更看重在业界积累实战经验，读博太慢了。"
+}
+female = {
+"honest_low": "导师劝我直博。家里说女孩读太久不好找对象……我还在想。",
+"honest": "不读了，毕业就想工作。读完博三十岁，到时候更不好找。",
+"standard": "我更看重在业界积累经验，也想早点稳定下来。",
+"chief_standard": "早点稳定，好。"
+}

@@ -20,6 +20,23 @@ const POOL := [
 	["年会可以带爸妈来吗？想让他们看看我上班的地方。",
 		"当然，我们很欢迎家属。", "年会安排行政会另行通知。", "年会去年取消了，今年还没说。"],
 ]
+## 男生、女生心里惦记的不一样：男生问钱、问转正、问能不能早点带项目；女生问安全、问门禁、问组里有没有女的。
+const POOL_MALE := [
+	["转正以后一个月多少钱？我得先算算房租。",
+		"转正薪资在行业里很有竞争力。", "以 offer 上写的为准。", "今年转正名额两个，比实习多一千五。"],
+	["实习生能自己带项目吗？我想早点独立负责。",
+		"能，我们这里看能力不看资历。", "看个人表现和团队安排。", "上一个说要带项目的，带的是年会抽奖。"],
+	["组里晚上一般几点走？我无所谓的，就是问问。",
+		"弹性工作，做完就能走。", "看项目节奏。", "九点前走的会被组长问一句“今天这么早”。"],
+]
+const POOL_FEMALE := [
+	["加班晚了，公司能报打车吗？我住得有点远。",
+		"能，十点以后打车全报。", "有相应的报销制度。", "十点以后能报，要主管签字。主管经常十点还在。"],
+	["组里女生多吗？带我的是男老师还是女老师呀？",
+		"很多，男女比例很均衡。", "团队构成比较多元。", "运营组都是女生，管运营组的都是男的。"],
+	["学校宿舍十一点关门，下班晚了怎么办？",
+		"我们基本不加班，不会影响。", "可以提前跟带你的人说。", "去年有个实习生翻墙回去的，后来就不来了。"],
+]
 ## 先问一个傻问题的概率。
 const EXTRA_CHANCE := 0.5
 
@@ -30,9 +47,10 @@ static func for_candidate(c: Candidate, day: int, day_ask: CandidateAsk, asked_b
 	rng.seed = hash(c.display_name + str(day))
 	var asks: Array[CandidateAsk] = []
 	if day_ask == null or rng.randf() < EXTRA_CHANCE:
-		var fresh := POOL.filter(func(row: Array) -> bool: return not (row[0] in asked_before))
+		var pool: Array = POOL + (POOL_FEMALE if c.is_female() else POOL_MALE)
+		var fresh := pool.filter(func(row: Array) -> bool: return not (row[0] in asked_before))
 		if fresh.is_empty():
-			fresh = POOL
+			fresh = pool
 		var row: Array = fresh[rng.randi_range(0, fresh.size() - 1)]
 		asks.append(CandidateAsk.make(row[0], row[1], row[2], row[3]))
 	if day_ask:

@@ -17,4 +17,11 @@ chief_item = ""
 chief_standard = ""
 chief_honest = "题是我昨晚让实习生出的。"
 chief_flaw = ""
-
+male = {
+"honest": "（TA 三分钟排好了，还指出题目有个错，口气像在给出题人改作业。）",
+"honest_low": "（TA 盯着屏幕，鼠标停在半空，时间到了。“这电脑太卡了。”）"
+}
+female = {
+"honest": "（TA 三分钟排好了。题目有个错，TA 犹豫了一下，才指出来。）",
+"honest_low": "（TA 盯着屏幕，鼠标停在半空，时间到了。TA 说了好几声对不起。）"
+}

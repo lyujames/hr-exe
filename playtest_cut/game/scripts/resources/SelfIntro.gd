@@ -20,8 +20,10 @@ const MISSPEAK := 0.08
 const SKIP := 0.4
 ## 对质时背答案的门槛往下降多少：自己刚说的话，圆不回来。
 const CONFRONT_EASE := 15
-## 对质时背得住的人怎么圆。
+## 对质时背得住的人怎么圆。男的说是口误，女的先道歉。
 const CONFRONT_STANDARD := "刚才是我说错了，以简历上的为准。"
+const CONFRONT_STANDARD_MALE := "刚才口误。以简历上的为准。"
+const CONFRONT_STANDARD_FEMALE := "对不起，刚才是我说错了，以简历上的为准。"
 ## 你划了一句没毛病的话去对质：TA 莫名其妙，主管嫌你抠字眼。
 const PETTY_LINE := "你抓字眼干嘛。"
 const PETTY_LOYALTY := 5
@@ -64,9 +66,21 @@ static func build(c: Candidate) -> Array[Dictionary]:
 		if by_key.has("gap"):
 			out.append(_gap(c, by_key.gap))
 	out.append_array(_skills(c, lines))
-	var close := "我学习能力强、抗压能力强，非常期待加入贵公司。" if c.performance >= SMOOTH_AT else "就这些。我挺想来的。"
-	out.append(_say("", "", close, "", ""))
+	out.append(_say("", "", _close(c), "", ""))
 	return out
+
+
+## 收尾那句。背得熟的社招，男的往“扛事”上落，女的先把婚育那句替面试官说了；在校生还轮不到这句。
+static func _close(c: Candidate) -> String:
+	if c.performance < SMOOTH_AT:
+		return "就这些。我挺想来的。" if not c.is_female() else "就这些。……说得不好，不好意思。我挺想来的。"
+	if c.is_intern:
+		return "我学习能力强、抗压能力强，非常期待加入贵公司。"
+	if not c.is_female():
+		return "我学习能力强、抗压能力强，能扛事，非常期待加入贵公司。"
+	if c.marital.contains("已育"):
+		return "我学习能力强、抗压能力强。孩子有老人带，能全身心投入工作，非常期待加入贵公司。"
+	return "我学习能力强、抗压能力强，近两年没有婚育计划，能全身心投入工作，非常期待加入贵公司。"
 
 
 static func _say(key: String, kind: String, text: String, slip: String, said: String) -> Dictionary:
@@ -144,9 +158,18 @@ static func _projects(c: Candidate, lines: Array[Dictionary]) -> Array[Dictionar
 			if slip == "skip":
 				out.append(_say(line.key, line.kind, "", slip, ""))
 			else:
-				out.append(_say(line.key, line.kind, "在学校做过%s，我是%s。" % [name, role], slip, "%s%s" % [name, role]))
+				out.append(_say(line.key, line.kind, "在学校做过%s，我是%s%s" % [name, role, _project_tail(c, role)], slip, "%s%s" % [name, role]))
 		first = false
 	return out
+
+
+## 说完自己是什么角色，男的往上抬一句，女的往下压一句。表演到家的不加，照纸念。
+static func _project_tail(c: Candidate, role: String) -> String:
+	if c.performance >= SMOOTH_AT:
+		return "。"
+	if c.is_female():
+		return "，主要是配合大家。" if role in LEAD_ROLES else "，帮着做些整理的活。"
+	return "，从头带到尾。" if role in LEAD_ROLES else "，核心的那块是我做的。"
 
 
 ## 项目名本身带引号的（电子商务“三创赛”）不再套一层。
@@ -170,7 +193,10 @@ static func _skills(c: Candidate, lines: Array[Dictionary]) -> Array[Dictionary]
 		else:
 			said.append(line.sub.skill)
 	if not said.is_empty():
-		var head := _say("skill:" + said[0], "skill", "会%s。" % "、".join(said), "", "会" + "、".join(said))
+		var tail := "。"
+		if c.performance < SMOOTH_AT:
+			tail = "，不算精，但我学得快。" if c.is_female() else "，都挺熟。"
+		var head := _say("skill:" + said[0], "skill", "会%s%s" % ["、".join(said), tail], "", "会" + "、".join(said))
 		out.push_front(head)
 	return out
 
@@ -198,7 +224,10 @@ static func _job(c: Candidate, line: Dictionary) -> Dictionary:
 			return _say(line.key, line.kind, "", slip, "")
 		"mismatch":
 			return _say(line.key, line.kind, "上一份在%s那边……驻场，合同签的是另一家。" % company, slip, "在%s驻场" % company)
-	return _say(line.key, line.kind, "上一份在%s做%s。" % [company, title], slip, "在%s做%s" % [company, title])
+	var tail := "。"
+	if c.performance < SMOOTH_AT:
+		tail = "，走之前在带新人。" if c.is_female() else "，组里的活基本是我在扛。"
+	return _say(line.key, line.kind, "上一份在%s做%s%s" % [company, title, tail], slip, "在%s做%s" % [company, title])
 
 
 static func _gap(c: Candidate, line: Dictionary) -> Dictionary:
@@ -208,7 +237,20 @@ static func _gap(c: Candidate, line: Dictionary) -> Dictionary:
 			return _say(line.key, line.kind, "", slip, "")
 		"mismatch":
 			return _say(line.key, line.kind, "中间那几个月……其实是被裁了，一直在找。", slip, "被裁了")
-	return _say(line.key, line.kind, "中间%s，歇了几个月。" % line.sub.gap, slip, line.sub.gap)
+	var tail := "歇了几个月。"
+	var note: String = line.sub.gap
+	if c.is_female():
+		if note in ["备孕", "产后休整"]:
+			tail = "歇了几个月。现在都过去了，不影响工作。"
+		elif note in ["照顾家人", "家中有事", "陪父亲住院"]:
+			tail = "歇了几个月。家里现在都安排好了。"
+		elif c.marital.contains("已育"):
+			tail = "歇了几个月。孩子有老人带。"
+		else:
+			tail = "歇了几个月。……不是因为结婚生孩子。"
+	elif c.performance < SMOOTH_AT:
+		tail = "歇了几个月，也一直在看机会。"
+	return _say(line.key, line.kind, "中间%s，%s" % [line.sub.gap, tail], slip, line.sub.gap)
 
 
 ## 有水分的那一行，真的是什么。自我介绍说漏、对质认了、追问破防，说出来的都是这一个：
@@ -278,12 +320,32 @@ static func confront(c: Candidate, line: Dictionary, card: QuestionCard, s: Dict
 	else:
 		out.text_key = "你刚才说“%s”，简历上写的是“%s”？" % [s.said, paper]
 	out.bluff_at = maxi(50, card.bluff_threshold() - CONFRONT_EASE)
+	# 男女说法是一份份字典，改之前先复制一份，别改到原卡上。
+	out.male = card.male.duplicate()
+	out.female = card.female.duplicate()
 	if s.slip in ["mismatch", "skip"]:
 		out.standard = CONFRONT_STANDARD
+		_drop(out, "standard")
+		out.male["standard"] = CONFRONT_STANDARD_MALE
+		out.female["standard"] = CONFRONT_STANDARD_FEMALE
 	if not ResumeQuestions.padded(c, line):
 		out.always_truthful = true
 		var why := "刚才嘴瓢了，我后面不是改过来了吗？" if s.slip == "misspeak" else "啊？……我说的就是这个啊。简历上写的没错。"
 		out.honest = why
 		out.honest_low = why
+		_drop(out, "honest")
+		_drop(out, "honest_low")
+		if s.slip != "misspeak":
+			out.male["honest"] = "啊？我说的就是这个。简历上写的没错，你可以去查。"
+			out.male["honest_low"] = out.male.honest
+			out.female["honest"] = "啊？……我、我说的就是这个呀。是我哪里没说清楚吗？"
+			out.female["honest_low"] = out.female.honest
 		out.set_meta("petty", true)
 	return out
+
+
+## 对质改了卡上的某句话，男女说法里的同一句（连已育那句）也得拿掉，不然还是说老词。
+static func _drop(card: QuestionCard, field: String) -> void:
+	for own: Dictionary in [card.male, card.female]:
+		own.erase(field)
+		own.erase(field + "_mom")

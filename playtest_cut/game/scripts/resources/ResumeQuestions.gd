@@ -224,7 +224,254 @@ const SOCIAL := {
 		"flaw_followup": "几、几分……挺高的。",
 	},}
 
+## 男女说法（同 QuestionCard.male / female）：同一行简历，男的往大里说、往自己身上揽、压力在“挣钱养家”；
+## 女的先把没问出口的那句（结婚、生孩子、家里）堵上，功劳往别人身上推，说完还要道歉。
+## 在校生（KINDS 里的学历、专业、绩点、技能、自评、项目）还没挨过社会的打：男的吹“队长”“部长”，女的被分去记纪要；
+## 社招（年限、工作、空窗，SOCIAL 里的学历、技能、自评）已经挨过了：男的扛房贷、往管理说，女的婚育抢答、功劳被别人领。
+## 键是 KINDS 里的字段名；admit / admit_followup 只在这一行有水分时用。加“_mom”是给已育的。没写的用 KINDS 那句。
+const VOICES := {
+	"exp": {
+		"male": {
+			"honest": "从第一份工作算起，一年没断过。中间换过一次组，后来组里的活基本是我在分。",
+			"honest_low": "{exp}是算到这个月的。前两年主要打杂……不过那会儿谁不是。",
+			"admit": "里面有一年多是实习，我算进去了。大家都这么写，不写吃亏。",
+			"standard": "{exp}一线开发经验，独立负责过核心模块，也带过新人。",
+			"flaw": "就是{exp}。从毕业算的，没问题。",
+			"honest_followup": "{first_start}。（TA 报得很快。）第二年就转了正，比同一批早三个月。",
+			"flaw_followup": "哪年……这个不重要吧？能力摆在这儿。",
+		},
+		"female": {
+			"honest": "从第一份工作算起，一年没断过，长假也没休过。",
+			"honest_mom": "从第一份工作算起，一年没断过。产假我休了四个月就回去了。",
+			"honest_low": "{exp}是算到这个月的。前两年主要在做测试，后来才转的开发。",
+			"honest_low_mom": "{exp}是算到这个月的。中间休了半年产假，我没扣掉……要扣吗？",
+			"admit": "里面有一年多是实习，我算进去了。……对不起，我知道这样不对。",
+			"standard": "{exp}的开发经验，覆盖需求、开发、上线全流程，团队协作能力强。",
+			"flaw": "就、就是{exp}。……中间没断过。真的没断过。",
+			"honest_followup": "{first_start}。（TA 报得很快。）转正那天我记得清楚，同一批的男生比我早转一个月。",
+		},
+	},
+	"job": {
+		"male": {
+			"honest": "在{company}做{title}，手上一直有两三个需求在跑。走之前组里的新人都是我带的。",
+			"honest_low": "在{company}做{title}，跟着改需求。核心的轮不到我——组长不放手。",
+			"admit": "{company}那段……其实是外包，驻场。说出去不好听，我就没写。",
+			"standard": "在{company}担任{title}，主导核心业务模块的设计与开发。",
+			"flaw": "{company}……什么都做。那边基本是我在扛。",
+			"honest_followup": "（TA 说了名字，还说了那人现在去了哪家。）我们现在还一起喝酒，你打过去他会夸我。",
+		},
+		"female": {
+			"honest": "在{company}做{title}，手上一直有两三个需求在跑。走之前在带一个新人，他现在是组长了。",
+			"honest_low": "在{company}做{title}。核心的轮不到我，组长说我细心，让我多做测试和文档。",
+			"admit": "{company}那段……其实是外包，驻场。不好意思，我怕写外包过不了筛。",
+			"standard": "在{company}担任{title}，参与核心业务模块开发，和团队配合得很顺。",
+			"flaw": "{company}……就是做开发。各种都做，大家都挺照顾我的。",
+			"honest_followup": "（TA 说了名字。）可以打电话问。他会说我能干，也可能说我“家里事多”。前半句是真的。",
+		},
+	},
+	"gap": {
+		"male": {
+			"honest": "照顾家里，也在学东西。每周投十几份，面了七家。那几个月房贷是我爸妈帮着还的。",
+			"honest_low": "主要在家。投简历，没什么回音。家里人到现在还以为我在上班。",
+			"admit": "其实是被裁的。写“{gap}”，是听说写被裁过不了筛。男的被裁，听着像没本事。",
+			"standard": "这段时间我系统地做了职业规划，也接了一些私活。",
+			"flaw": "就是休息了一下。……也在看机会，好几家在谈。",
+			"honest_followup": "（TA 打开手机，翻出一个代码仓库，最近一次提交是上周。）星最多的那个是我自己写的。",
+		},
+		"female": {
+			"honest": "照顾家里，也在学东西。每周投十几份简历，面了七家，有三家问我是不是去生孩子了。",
+			"honest_mom": "生孩子，带到一岁。这期间我把以前项目的文档都过了一遍，没落下。",
+			"honest_low": "主要在家。投简历，没什么回音。……不是怀孕，您放心。",
+			"honest_low_mom": "主要在家带孩子。投简历，一听有孩子就没下文了。",
+			"admit": "其实是被裁的，名单上是我们组的三个女的。写“{gap}”，是听说写被裁过不了筛。",
+			"admit_mom": "其实是休完产假回去，岗位没了，等于被裁。写“{gap}”，是怕你们问。",
+			"standard": "这段时间我进行了系统的自我提升。家里的事都已经安排好了。",
+			"flaw": "就、就是休息了一下。不是、不是因为家里。",
+			"honest_followup": "（TA 打开手机，翻出一个代码仓库，最近一次提交是上周。）您可以随便点开看。",
+			"honest_followup_mom": "（TA 打开手机，翻出一个代码仓库，提交时间全是夜里十一点以后。）孩子睡了以后写的。",
+		},
+	},
+	"edu": {
+		"male": {
+			"honest": "{school}，{degree}。专业课一般，在学校主要待在学生会，外联部部长，拉了两年赞助。",
+			"honest_low": "{school}。课没怎么上，大部分时间在宿舍打游戏。",
+			"standard": "在{school}系统学习了专业知识，担任学生干部，组织能力突出。",
+			"flaw": "{school}……正常上课。没挂。",
+			"honest_low_followup": "姓……陈吧。没怎么见过，我们宿舍都翘课。",
+		},
+		"female": {
+			"honest": "{school}，{degree}。专业课一般，在学校公众号干了两年，排版、选题、催稿都是我。主编挂的是学长的名字。",
+			"honest_low": "{school}。课上得挺认真的，就是不知道学的有什么用。",
+			"standard": "在{school}系统学习了专业知识，认真踏实，多次获得奖学金。",
+			"flaw": "{school}……就、就正常上课。对不起，我说得不太好。",
+			"honest_low_followup": "姓陈。他上课只点男生回答问题，我记得很清楚。",
+		},
+	},
+	"major": {
+		"male": {
+			"honest": "{major}的课教会我看人想要什么。运营就是干这个的，以后我想往增长那边做。",
+			"honest_low": "本专业的岗位少，钱也少。运营先进来，以后转产品。",
+			"admit": "说实话，本专业找不到。投了四十多份，家里还等着我往回寄钱。",
+			"standard": "我对互联网行业充满热情，运营是我的职业理想，希望将来能操盘大项目。",
+			"flaw": "就是喜欢。……而且运营好晋升。",
+			"honest_followup": "一半考公，一半考研。我们宿舍就我一个出来找工作的。",
+		},
+		"female": {
+			"honest_low": "本专业的岗位少。招聘会上好几家写着“限男生”，运营没写。",
+			"admit": "说实话，是本专业找不到。投了四十多份，只有运营回了我。我妈让我回去考公。",
+			"standard": "我性格比较细心、有耐心，很适合做运营。",
+			"flaw": "就、就是喜欢。我觉得女生做运营挺合适的……吧？",
+			"honest_followup": "一半考公，一半考研。考公的基本是女生，家里都说稳定。",
+		},
+	},
+	"gpa": {
+		"male": {
+			"honest": "专业前百分之二十。有一门统计学重修过——那学期我在外面创业。",
+			"honest_low": "中间吧。不算好，没挂过。分数说明不了什么。",
+			"admit": "这个绩点是去掉了两门选修算的，全算的话 {real}。选修课谁认真上啊。",
+			"standard": "成绩中上。我更看重实践能力，在校期间一直在外面做事。",
+			"flaw": "排……挺靠前的。具体没关注过。",
+			"honest_followup": "（TA 从包里摸出一张对折的成绩单，抹平了递过来。重修那一门 TA 自己先指了出来。）",
+		},
+		"female": {
+			"honest": "专业前百分之十。……就是绩点好看，别的我不太会。",
+			"honest_low": "中间吧。不算好，没挂过。我已经很努力了。",
+			"admit": "这个绩点是去掉了两门选修算的。全算的话只有 {real}。对不起，我不该这么写。",
+			"standard": "我的成绩一直名列前茅，多次获得奖学金，学习态度认真。",
+			"flaw": "排、排……挺靠前的。（TA 的声音越来越小。）",
+			"honest_followup": "（TA 从文件袋里抽出一张盖了教务处章的成绩单，复印了三份，用回形针别好。）",
+		},
+	},
+	"schedule": {
+		"male": {
+			"honest": "课都排在周一周二了，剩下几天全是空的。导师那边我去说的，他签了。",
+			"honest_low": "课不多。有冲突的……翘了就行。",
+			"admit": "其实下学期课多，{days} 天有点悬。怕写少了你们不要，先来了再说。",
+			"standard": "课程基本修完了，可以全身心投入工作。",
+			"flaw": "课、课不多。我能搞定。",
+			"honest_followup": "期末两周只能来两天。其他时候一天不少，周末也能来。",
+		},
+		"female": {
+			"honest": "课都排在周一周二了，剩下几天全是空的，导师签了字。就是下班太晚的话，宿舍有门禁。",
+			"honest_low": "课不多。有冲突的我尽量调，调不开的……可能要请半天。真的很抱歉。",
+			"admit": "其实下学期课多，{days} 天有点悬。我怕写少了你们不要。对不起。",
+			"standard": "我会合理安排时间，保证学业与工作两不误，不会给团队添麻烦。",
+			"flaw": "课、课不多的……应该没问题。我会想办法的。",
+			"honest_followup": "期末两周我只能来两天，提前跟你们说。缺的活我晚上在宿舍补。",
+		},
+	},
+	"skill": {
+		"male": {
+			"honest": "在学校天天用，社团的数据都是我一个人在弄。有一篇推文阅读量破了一万。",
+			"honest_low": "“{skill}”会一点。真要用，现学也快。",
+			"admit": "“{skill}”……上过一节选修课。写上去是因为招聘要求里有，进来我自学。",
+			"standard": "“{skill}”我非常熟练，独立完成过多个项目。",
+			"flaw": "“{skill}”……用过，挺简单的。",
+		},
+		"female": {
+			"honest": "在学校公众号天天用。有一篇推文是我做的，阅读量破了一万，署名是部长。",
+			"honest_low": "“{skill}”会一点，跟着教程能做出来。……我是不是不该写上去？",
+			"admit": "“{skill}”……我就上过一节选修课。对不起，写上去是因为招聘要求里有。",
+			"standard": "“{skill}”比较熟练。我学习能力强，不会的可以很快学会。",
+			"flaw": "“{skill}”……用、用过的。不太熟，但我会努力学。",
+		},
+	},
+	"self_eval": {
+		"male": {
+			"honest": "去年社团办活动，赞助商前一天跑了。我连夜打了十几个电话，第二天照常办。有三个电话是打给我爸朋友的。",
+			"honest_low": "例子……老师交代的事我都做完了。大事还没轮到我。",
+			"admit": "这句是网上模板抄的。我觉得写什么都差不多。",
+			"standard": "在校期间担任学生干部，带领团队完成多项活动，抗压能力强。",
+			"flaw": "例子……很多。挑一个？太多了。",
+			"honest_followup": "社团指导老师。（TA 报了老师的名字和电话。）他会说那天我嗓子都喊哑了。",
+			"honest_low_followup": "……室友吧。他知道我那段时间挺忙的。",
+		},
+		"female": {
+			"honest": "去年社团办活动，赞助商前一天跑了。我连夜打了十几个电话，第二天照常办。总结会上部长说“大家辛苦了”。",
+			"honest_low": "例子……我想想。其实就是老师和学长交代的事，我都做完了。我不太会说自己。",
+			"admit": "这句是从网上的模板抄的。说实话，我不知道该写什么。不好意思。",
+			"standard": "在校期间，我认真负责、细心踏实，多次获得老师认可。",
+			"flaw": "例、例子……我想想。对不起，一下说不上来。",
+		},
+	},
+	"project": {
+		"male": {
+			"honest": "从立项到结项我都在。中间有一次大返工，是我拍的板。",
+			"honest_low": "我主要跟着做……名字写前面，是因为我是队长。",
+			"admit": "我是挂名的。{role}是老师随手填的。不过答辩是我上去讲的。",
+			"standard": "我作为{role}，从 0 到 1 主导了整个项目，带领团队拿到了优异成绩。",
+			"flaw": "{project}……基本是我做的。",
+			"honest_followup": "拿了省二。评委问的那个最难的问题，是我答的。决赛就差一点。",
+		},
+		"female": {
+			"honest": "从立项到结项我都在。中间有一次大返工是我提的——第一次提没人理，第二次是队长替我说的。",
+			"honest_low": "我主要跟着做，开会记记纪要。他们说女生细心。",
+			"admit": "我是挂名的。{role}是老师随手填的。真的很抱歉。",
+			"standard": "我在项目中担任{role}，主要负责统筹协调，团队配合得很好，取得了优异成绩。",
+			"flaw": "{project}……我、我参加了。主要是配合大家。",
+			"honest_followup": "拿了省二。评委问的那个最难的问题是我答的。上台领奖的是队长。",
+		},
+	},
+}
+## 社招那三行（SOCIAL）的男女说法：已经写了几年代码的人。
+const SOCIAL_VOICES := {
+	"edu": {
+		"male": {
+			"honest": "{school}，{degree}。课上学的用到的不多，写代码是那时候学会的，大二就在外面接活。",
+			"honest_low": "{school}。说实话，大学没怎么好好学，一直在打游戏。",
+			"standard": "在{school}系统学习了专业知识，竞赛拿过奖，基础扎实。",
+			"flaw": "{school}……正常读完的。学校不重要。",
+			"honest_followup": "一个排课系统。答辩的时候老师当场找出两个 bug，我修了一个，另一个我说是需求问题。",
+		},
+		"female": {
+			"honest": "{school}，{degree}。写代码是那时候学会的。我们班四十个人五个女生，现在还在写代码的就我一个。",
+			"honest_low": "{school}。说实话，大学没怎么好好学。……当时家里让我转去学会计。",
+			"standard": "在{school}系统学习了专业知识，成绩优异，基础扎实。",
+			"flaw": "{school}……就、就正常读完的。",
+			"honest_followup": "一个排课系统。答辩时老师当场找出两个 bug，我当场修了一个。他说“女生能写成这样不错了”。",
+		},
+	},
+	"skill": {
+		"male": {
+			"honest": "上一份工作天天用 {skill}。线上出过一次大问题，是我查出来的，全组就我会。",
+			"honest_low": "{skill} 会用，深的说不上。用到了再看，问题不大。",
+			"admit": "{skill}……跟着教程做过一个 demo。JD 里有就写了，大家都这么写。",
+			"standard": "{skill} 我非常熟练，主导过多个大型项目落地。",
+			"flaw": "{skill}？熟。没什么难的。",
+		},
+		"female": {
+			"honest": "上一份工作天天用 {skill}。线上出过一次问题，是我查出来的。周报里写的是“团队快速定位”。",
+			"honest_low": "{skill} 会用，深的说不上。跟着文档能做，慢一点，但不出错。",
+			"admit": "{skill}……我就跟着教程做过一个 demo。写上去是因为 JD 里有。对不起。",
+			"standard": "{skill} 比较熟练，有项目经验。我学习能力强，新东西上手快。",
+			"flaw": "{skill}……用、用过的。不算很熟，但我学得很快。",
+			"honest_followup": "上个月。查一个慢接口，最后改了三行。（TA 把那三行背了出来，连行号都对。）",
+		},
+	},
+	"self_eval": {
+		"male": {
+			"honest": "去年项目延期，全组压在我这一块。我拆成三段，每天报进度，最后只晚了两天。那个月我在公司睡了一周。",
+			"honest_low": "例子……领导交代的事我都做完了。主要是没碰上大项目。",
+			"admit": "这句是模板上抄的。自评谁看啊。",
+			"standard": "在过往工作中，我抗压能力强，多次在关键节点扛下核心任务。",
+			"flaw": "例子……太多了。上家没我早就乱了。",
+			"honest_followup": "组长打的，B+。他说要是早点报风险，能拿 A。……我觉得我该拿 A。",
+		},
+		"female": {
+			"honest": "去年项目延期，全组压在我这一块。我拆成三段，每天报进度，最后只晚了两天。表扬邮件发给了组长。",
+			"honest_low": "例子……我想想。领导交代的事都做完了。我不太会说自己做了什么。",
+			"standard": "在过往工作中，我认真负责、沟通顺畅，和团队配合默契，多次获得领导认可。",
+			"flaw": "例、例子……很多。对不起，一下说不上来。",
+			"honest_followup": "组长打的，B+。他说我“稳”。稳就是 B+。",
+			"admit_followup_mom": "绩效是 C。那年我休了产假。",
+		},
+	},
+}
+
 const CHIEF := {"standard": "说得挺好。", "honest": "讲这么细干嘛。", "flaw": "……"}
+## 主管听男的、女的，夸法骂法不一样。
+const CHIEF_MALE := {"chief_standard": "有冲劲。"}
+const CHIEF_FEMALE := {"chief_standard": "女孩子，踏实就好。", "chief_honest": "这么较真，以后不好带。"}
 
 
 ## 简历上能问的行，从上到下：{key, kind, text（纸上印的那行字）, sub（替换用的字段）}。
@@ -311,7 +558,31 @@ static func card_for(c: Candidate, line: Dictionary, sharp := false) -> Question
 	card.chief_standard = CHIEF.standard
 	card.chief_honest = CHIEF.honest
 	card.chief_flaw = CHIEF.flaw
+	var social := not c.is_intern and SOCIAL.has(line.kind)
+	var voices: Dictionary = (SOCIAL_VOICES if social else VOICES).get(line.kind, {})
+	card.male = _voice(voices.get("male", {}), pad, line.sub).merged(CHIEF_MALE)
+	card.female = _voice(voices.get("female", {}), pad, line.sub).merged(CHIEF_FEMALE)
 	return card
+
+
+## 把 VOICES 里的一份说法换成卡上的字段：有水分时 admit 顶替 honest / honest_low，没水分时 admit 不用。
+static func _voice(src: Dictionary, pad: bool, sub: Dictionary) -> Dictionary:
+	var out := {}
+	for k: String in src:
+		var mom := "_mom" if k.ends_with("_mom") else ""
+		var base := k.trim_suffix("_mom")
+		var fields: Array = [base]
+		match base:
+			"admit":
+				fields = ["honest", "honest_low"] if pad else []
+			"admit_followup":
+				fields = ["honest_followup", "honest_low_followup"] if pad else []
+			"honest", "honest_low", "honest_followup", "honest_low_followup":
+				if pad:
+					fields = []
+		for f: String in fields:
+			out[f + mom] = _fill(src[k], sub)
+	return out
 
 
 static func _fill(text: String, sub: Dictionary) -> String:

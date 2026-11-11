@@ -979,7 +979,7 @@ func follow_up() -> void:
 
 ## 第一层回答时主管 / 组长的反应。
 func _reaction(card: QuestionCard, reply: Dictionary) -> Dictionary:
-	return card.lead_reaction(reply, asked) if lead else card.chief_reaction(reply.kind)
+	return card.lead_reaction(reply, asked) if lead else card.chief_reaction(reply.kind, candidate)
 
 
 ## 评分表和主管印象一起动：评分表玩家能改，主管印象不能。组长只动自己心里的分，不碰评分表。

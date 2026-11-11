@@ -16,4 +16,16 @@ chief_item = "格局"
 chief_standard = "这个有格局。"
 chief_honest = "一家人，不谈这个。"
 chief_flaw = "……也行。"
-
+male = {
+"standard": "哪里需要我，我就在哪里，冲在最前面。",
+"honest": "员工。拿钱干活。",
+"flaw": "当……大哥？（TA 自己先笑了。）",
+"chief_standard": "冲在前面，好。"
+}
+female = {
+"standard": "哪里需要我，我就在哪里。我很会照顾人。",
+"flaw": "当……女儿？还是……（TA 停住了。）",
+"chief_standard": "嗯，女同志细心。",
+"honest": "员工。……一家人的话，是不是家务也归我？",
+"honest_low": "家人不用发工资吧？我在家里就没拿过。"
+}

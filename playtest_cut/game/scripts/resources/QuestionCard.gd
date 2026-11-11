@@ -44,6 +44,13 @@ class_name QuestionCard extends Resource
 @export var lead_weak: String
 @export var lead_standard: String
 @export var lead_flaw: String
+@export_group("男女说法")
+## 同一道题，男的和女的心里想的不一样：男的往大里说、往自己身上揽，缺点也说成优点，压力在“养家”；
+## 女的先替面试官把没问出口的那句（结婚、生孩子、能不能加班）堵上，功劳往团队身上推，说完还要道个歉。
+## 键是上面的字段名（honest / standard_followup / chief_standard……），没写的就用上面那句。
+## 女的已经生了孩子（婚育栏写了“已育”），先找“字段名_mom”那句。
+@export var male: Dictionary
+@export var female: Dictionary
 
 
 ## 平时表演力到这个数就背标准答案。
@@ -70,12 +77,20 @@ func answer(c: Candidate) -> Dictionary:
 	if c.answers.has(String(id)):
 		return {"text": c.answers[String(id)], "tic": "none", "kind": c.answer_kind, "strong": strong}
 	if always_truthful:
-		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
+		return {"text": said(c, "honest" if strong else "honest_low"), "tic": "none", "kind": "honest", "strong": strong}
 	if c.performance >= bluff_threshold():
-		return {"text": standard, "tic": "none", "kind": "standard", "strong": strong}
+		return {"text": said(c, "standard"), "tic": "none", "kind": "standard", "strong": strong}
 	if c.honesty >= 55:
-		return {"text": honest if strong else honest_low, "tic": "none", "kind": "honest", "strong": strong}
-	return {"text": flaw, "tic": "sweat" if c.honesty < 30 else "eyes", "kind": "flaw", "strong": strong}
+		return {"text": said(c, "honest" if strong else "honest_low"), "tic": "none", "kind": "honest", "strong": strong}
+	return {"text": said(c, "flaw"), "tic": "sweat" if c.honesty < 30 else "eyes", "kind": "flaw", "strong": strong}
+
+
+## 这句话 TA 怎么说：先看男女说法里有没有，没有用通用那句。
+func said(c: Candidate, field: String) -> String:
+	var own: Dictionary = female if c.is_female() else male
+	if c.is_female() and c.marital.contains("已育") and own.has(field + "_mom"):
+		return own[field + "_mom"]
+	return own.get(field, get(field))
 
 
 func bluff_threshold() -> int:
@@ -103,14 +118,14 @@ func follow_up(c: Candidate, first: Dictionary) -> Dictionary:
 		return {"text": c.answers[key], "tic": "none", "kind": c.answer_kind, "strong": first.strong}
 	match first.kind:
 		"standard":
-			return {"text": standard_followup, "tic": "sweat" if sharp else "eyes", "kind": "standard", "strong": first.strong}
+			return {"text": said(c, "standard_followup"), "tic": "sweat" if sharp else "eyes", "kind": "standard", "strong": first.strong}
 		"flaw":
-			return {"text": flaw_followup, "tic": escalate(first.tic), "kind": "flaw", "strong": first.strong}
+			return {"text": said(c, "flaw_followup"), "tic": escalate(first.tic), "kind": "flaw", "strong": first.strong}
 	if c.answers.has(String(id)) and first.kind == "honest":
 		var told := "（TA 想了想，一条一条往下说：什么时候、几个人、多少数字，前后都对得上。）" if first.strong \
 			else "（TA 说得很细，细到连自己没做好的地方也一起说了。）"
 		return {"text": told, "tic": "none", "kind": "honest", "strong": first.strong}
-	return {"text": honest_followup if first.strong else honest_low_followup, "tic": "none", "kind": "honest", "strong": first.strong}
+	return {"text": said(c, "honest_followup" if first.strong else "honest_low_followup"), "tic": "none", "kind": "honest", "strong": first.strong}
 
 
 ## 越问越慌：眼神乱飘 → 冒汗 → 手抖。
@@ -123,14 +138,15 @@ static func escalate(tic: String) -> String:
 	return "shake"
 
 
-## 主管只听像不像：背得好加分，说实话减分，露破绽的没抬头。
-func chief_reaction(kind: String) -> Dictionary:
+## 主管只听像不像：背得好加分，说实话减分，露破绽的没抬头。听的是女的，有几句他换个说法。
+func chief_reaction(kind: String, c: Candidate = null) -> Dictionary:
+	var line := func(field: String) -> String: return said(c, field) if c else get(field)
 	match kind:
 		"standard":
-			return {"line": chief_standard, "delta": 1}
+			return {"line": line.call("chief_standard"), "delta": 1}
 		"honest":
-			return {"line": chief_honest, "delta": -1}
-	return {"line": chief_flaw, "delta": 0}
+			return {"line": line.call("chief_honest"), "delta": -1}
+	return {"line": line.call("chief_flaw"), "delta": 0}
 
 
 ## 追问时主管的反应：背的被问穿，把刚才加的分扣回去；说实话又说得出数的，他才服气。
