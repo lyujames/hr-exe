@@ -18,6 +18,7 @@ script = ExtResource("1")
 day = 11
 date = "2026-04-02"
 resume_count = 5
+hc_push = {"posting": "后端开发工程师", "note": "PS：赵主管说后端还缺一个，规则内的一直没有合适的。今天这个 HC 别再空着。"}
 screening_seconds = 175.0
 new_rules = Array[ExtResource("rule")]([ExtResource("r_rule_experience"), ExtResource("r_rule_pressure")])
 story_candidates = Array[ExtResource("cand")]([ExtResource("s_candidate_fresh_genius")])

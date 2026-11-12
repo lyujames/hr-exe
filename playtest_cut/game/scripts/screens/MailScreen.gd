@@ -20,6 +20,14 @@ func _ready() -> void:
 	for extra: Dictionary in cfg.mail_ps_by:
 		if GameState.family_matches(extra.when):
 			ps = extra.ps if ps == "" else ps + "\n" + extra.ps
+	# 今天的 HC 硬指标：主管的话写在附言里
+	var push_note: String = cfg.hc_push.get("note", "")
+	if push_note != "":
+		ps = push_note if ps == "" else ps + "\n" + push_note
+	# 被你按规则筛掉的人，在竞对干得好
+	var echo_ps := GameState.blocked_echo_ps()
+	if echo_ps != "":
+		ps = echo_ps if ps == "" else ps + "\n" + echo_ps
 	if GameState.late_ps != "":
 		ps = GameState.late_ps if ps == "" else ps + "\n" + GameState.late_ps
 	if ps != "":

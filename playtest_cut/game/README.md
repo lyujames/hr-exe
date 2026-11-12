@@ -177,7 +177,17 @@
   第二个月主管当天才拍便签，所以约面这一屏不给看。
 - 破格（从第一个月同步过来，`GameState.EXCEPTION_DAY` = 3，所以第二个月从第 10 天起桌上一直有第三个章）：一天只能盖一次，只能盖不合规的。
   盖了不出违规单、不算违规，也没有判断奖金；TA 不进主管 / 组长那场，第二天 14:00 你单独面（`GameState.vouched`，椅子空着，没人抢问、表是空的 3 分，组长也不来）。
-  代价：第二天筛简历 14:00 就收工；录用了算你担保（`hires[].vouched`，picked_by 是“你”），留任期满出事扣担保金 ¥100，干得好老板记一笔（`EmployeeEvents._settle_vouch`）。
+  代价：第二天筛简历 14:00 就收工；录用了算你担保（`hires[].vouched`，picked_by 是“你”），留任期满出事扣担保金 ¥100（`GameState.VOUCH_FINE`），
+  干得好日结单单列“破格担保奖”¥150（`GameState.VOUCH_BONUS`）、右栏一行王总批注、老板信任 +1（`EmployeeEvents._settle_vouch`）。单独面那场补贴 ¥50（`GameState.SOLO_PAY`）。
+  确认框上写明这三个数。
+- 被规则卡住的人（`BlockedTalent`）：第 3 天起每天换掉一份生成的简历（简历 ≥ 8 份或 HC 硬指标那天两份），只卡一条门槛规则（`BlockedTalent.credential`，学历和在职权重低），
+  自评前面加一件硬东西、附件写证明、附言统一是“我知道差在哪”。`Candidate.blocked` 是 real / fake：真的能力高、满期“项目大捷”，问自评那一行答得出细节；
+  吹的背得顺（主管爱听）、满期“项目延期”，附件一半露馅（“未附 / 私有 / 下架”），追问两次说漏嘴（`crack_lines`）。用自己的随机数（`CandidateGenerator._add_blocked`），别的简历不变。
+  筛简历时按规则拒了：两天后真的进王总邮件附言（`GameState.blocked_echo_ps`），吹的进日结单右栏（`GameState.blocked_echoes`）。第 23 天是空集日，卡一条塑不出来就留卡得最少的。
+- HC 硬指标（`DayConfig.hc_push` {posting, note}，第 6、11、19 天）：邮件附言是主管的话；那天投这个岗位的普通人都改成不合规，被卡住的人都投这个岗位。
+  一个都没放进（通过或破格）：扣 `GameState.HC_PUSH_FINE`（罚款开着的月份）、老板信任 −1，日结单一行、右栏一行。
+- 月底回顾（`SliceEnd._exception_notes`）：这个月一次没破格，主管（第一个月赵主管，之后王总）说“你太按规矩办事了”；盖过的写保了几个、几个干得好；再写按规则筛掉、后来在别家干得好的有几个。
+- 测试：`Godot --headless --path . res://tests/ExceptionCheck.tscn` 走 23 天，查份数、只卡一条、真假结局、HC 那天规则内没有普通人、担保奖 / 补贴 / 回响 / 问穿都出现过。
   猎头的人破格放进去也算放进面试，李哲他爸照样转钱。回响和月底回顾用“id:exception”（`Candidate.epilogue.exception`，这个月的手写人物还没写这一句，没写就按 pass / hired）。
 
 ## 目录

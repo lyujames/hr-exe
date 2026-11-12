@@ -299,6 +299,8 @@ func _attach_cover_note(d: ResumeDoc) -> void:
 		return
 	var pool: Array = COVER_NOTES.get(c.background, COVER_NOTES.regular)
 	var text: String = pool[absi(hash(String(c.id))) % pool.size()]
+	if c.blocked != "":
+		text = BlockedTalent.cover_note(c)
 	var note := Control.new()
 	note.position = Vector2(6, ResumeDoc.SIZE.y + 2)
 	note.rotation = -0.02
@@ -418,12 +420,12 @@ func _ask_vouch() -> void:
 	_vouch_confirm = Control.new()
 	add_child(_vouch_confirm)
 	UI.panel(_vouch_confirm, Rect2(0, 0, 640, 360), Color(0, 0, 0, 0.35)).mouse_filter = Control.MOUSE_FILTER_STOP
-	UI.panel(_vouch_confirm, Rect2(160, 110, 320, 132), UI.PAPER, UI.BLACK)
-	UI.label(_vouch_confirm, "破格：%s" % c.display_name, Vector2(172, 118), UI.INK)
-	var lines := "不合规：%s。\n%s你单独面 TA，主管不在场。录用了，出了事算你的（担保金 ¥%d）。\n今天的破格只有这一次。" % ["、".join(PackedStringArray(broken)), when, GameState.VOUCH_FINE]
-	UI.label(_vouch_confirm, lines, Vector2(172, 138), UI.INK_SOFT, 296)
-	UI.button(_vouch_confirm, "我签字", Rect2(172, 212, 140, 22), _confirm_vouch)
-	UI.button(_vouch_confirm, "算了", Rect2(326, 212, 140, 22), _cancel_vouch)
+	UI.panel(_vouch_confirm, Rect2(160, 96, 320, 160), UI.PAPER, UI.BLACK)
+	UI.label(_vouch_confirm, "破格：%s" % c.display_name, Vector2(172, 104), UI.INK)
+	var lines := "不合规：%s。\n%s你单独面 TA（补贴 ¥%d）。录用了满试用期：干得好，担保奖 +¥%d；出了事，担保金 −¥%d。\n今天的破格只有这一次。" % ["、".join(PackedStringArray(broken)), when, GameState.SOLO_PAY, GameState.VOUCH_BONUS, GameState.VOUCH_FINE]
+	UI.label(_vouch_confirm, lines, Vector2(172, 124), UI.INK_SOFT, 296)
+	UI.button(_vouch_confirm, "我签字", Rect2(172, 226, 140, 22), _confirm_vouch)
+	UI.button(_vouch_confirm, "算了", Rect2(326, 226, 140, 22), _cancel_vouch)
 
 
 func _confirm_vouch() -> void:
@@ -560,7 +562,7 @@ func _show_reveal(c: Candidate) -> void:
 	# 两段话都会换行：先入树量高度，再往下排，框跟着长
 	var liked := UI.label(_reveal, c.liked_line, Vector2(154, 70), UI.TEXT, 332)
 	var y := 70.0 + liked.get_line_count() * (liked.get_line_height() + 1) + 10.0
-	var drawer := UI.label(_reveal, "抽屉最底下有个章，入职那天就在，你一直没用过。章上刻着两个字：破格。\n盖了，明天你自己面；人是你保的，出了事你兜着。一天只能盖一次。", Vector2(154, y), UI.TEXT_DIM, 332)
+	var drawer := UI.label(_reveal, "抽屉最底下有个章，入职那天就在，你一直没用过。章上刻着两个字：破格。\n盖了，明天你自己面；人是你保的：干得好有担保奖，出了事你兜着。一天只能盖一次。", Vector2(154, y), UI.TEXT_DIM, 332)
 	y += drawer.get_line_count() * (drawer.get_line_height() + 1) + 8.0
 	UI.button(_reveal, "拿出来", Rect2(390, y, 96, 20), _take_out_stamp)
 	box.size.y = y + 28.0 - 60.0

@@ -17,6 +17,7 @@ screening_seconds = 230.0
 sms_replies = [{"key": "warm", "label": "早点睡，明天我送孩子。", "marriage": 1}, {"key": "curt", "label": "嗯。", "marriage": 0}, {"key": "silent", "label": "（不回）", "family": -1, "marriage": -1}]
 date = "2026-05-13"
 resume_count = 12
+hc_push = {"posting": "高级全栈工程师", "note": "PS：全栈那个坑空了两周了，规则内的没有能用的。今天必须放进来一个。"}
 hirebot = 1
 standard_time = true
 mail_print = "mail_19"

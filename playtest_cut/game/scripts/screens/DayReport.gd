@@ -68,8 +68,16 @@ func _ready() -> void:
 		else:
 			y = _row("审核违规 %d 次（本月不罚款）" % s.wrong, 0, y)
 	var vouch_bad: int = s.vouch.filter(func(v: Dictionary) -> bool: return not v.good).size()
+	# 破格：保的人干得好是一笔担保奖，出了事是担保金；单独面那场有补贴
 	for v: Dictionary in s.vouch:
-		y = _row("破格担保责任金 %s：%s" % [v.name, "干得好" if v.good else "出事了"], -GameState.VOUCH_FINE if not v.good else 0, y)
+		if v.good:
+			y = _row("破格担保奖 %s" % v.name, GameState.VOUCH_BONUS, y)
+		else:
+			y = _row("破格担保责任金 %s：出事了" % v.name, -GameState.VOUCH_FINE, y)
+	if not s.solo_done.is_empty():
+		y = _row("单独面试补贴（破格 %d 场）" % s.solo_done.size(), GameState.solo_pay(), y)
+	if GameState.hc_push_short():
+		y = _row("HC 没招满（%s）" % GameState.config.hc_push.posting, -GameState.hc_push_fine(), y)
 	if s.event_fine - vouch_bad * GameState.VOUCH_FINE > 0:
 		y = _row("用工事故扣款", -(s.event_fine - vouch_bad * GameState.VOUCH_FINE), y)
 	if s.gray > 0:
@@ -153,6 +161,17 @@ func _build_notice() -> void:
 			footer.append("今天通过 %d 人，明天只能约%s来面。" % [n, "一个" if slots == 1 else " %d 个" % slots])
 		else:
 			footer.append("今天通过 %d 人，约明天面试。" % n)
+	# 王总对你保的人的批注：老板信任的变化写出来，不只在后台加减
+	for v: Dictionary in s.vouch:
+		if v.good:
+			footer.append("王总批注：“你保的那个%s，不错。眼光可以。”（王总记你一笔好的）" % v.name)
+		else:
+			footer.append("王总：“%s是你破格放进来的，你自己兜着。”（王总记一笔）" % v.name)
+	for r: Dictionary in GameState.blocked_echoes("fake"):
+		footer.append("%s你第 %d 天按规则拒了 TA，拒对了。" % [r.text, int(r.day)])
+	if not GameState.config.hc_push.is_empty():
+		var n := GameState.hc_push_placed()
+		footer.append("%s：放了 %d 个。%s" % [GameState.config.hc_push.posting, n, "" if n > 0 else "王总：“我要的人呢？”（记一笔）"])
 	if s.exception != "" and GameState.day < GameState.LAST_DAY:
 		footer.append("破格：%s，%s 14:00 你单独面。" % [s.exception, "下个月第一天" if GameState.is_month_end() else "明天"])
 	if s.unprocessed > 0:

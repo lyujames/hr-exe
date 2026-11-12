@@ -12,6 +12,7 @@ script = ExtResource("1")
 day = 6
 date = "2026-03-19"
 resume_count = 7
+hc_push = {"posting": "产品运营实习生", "note": "PS：赵主管说产品运营实习生还缺一个，这几天投来的，规则内的一个都不行。今天这个 HC 再空着，你自己跟我解释。"}
 screening_seconds = 170.0
 new_rules = Array[ExtResource("2")]([])
 story_candidates = Array[ExtResource("3")]([ExtResource("story")])

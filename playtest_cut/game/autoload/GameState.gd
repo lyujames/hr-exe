@@ -14,6 +14,14 @@ const FREE_WARNINGS := 2
 ## 担保的人留任期满出事，不管这个月扣不扣钱，都扣 VOUCH_FINE；干得好，老板记你一笔。第二个月从第一天起就有。
 const EXCEPTION_DAY := 3
 const VOUCH_FINE := 100
+## 担保的人满试用期干得好：日结单上单列一行，比判断奖金大得多（风险 ¥100 对回报 ¥150）。
+const VOUCH_BONUS := 150
+## 破格那场单独面试的补贴：补那天提前一小时收工少筛的简历。
+const SOLO_PAY := 50
+## HC 硬指标（DayConfig.hc_push）没放满：扣钱（罚款开着的月份），王总记一笔。
+const HC_PUSH_FINE := 100
+## 被规则卡住的人（BlockedTalent）筛简历时拒掉，几天后在别处有回响。
+const BLOCKED_ECHO_DAYS := 2
 const KNOWING_FINE := 100
 const MISS_COST := 50
 ## 晚到：每晚一小时扣多少（底薪按 8 小时折）。这是考勤，不是违规罚款，第一个月也扣。
@@ -103,6 +111,8 @@ var evidence: Array = []
 var best_pace := 0.0
 ## 这个月里被作废的录用（HireBot 对出来的，比如沈雯）：候选人 id。
 var voided: Array = []
+## 筛简历时规则拒掉的“被卡住的人”[{name, kind, text, day, due}]：due 那天早上，真的进王总邮件附言，吹的进日结单。
+var blocked_rejects: Array = []
 ## 砍减版：昨天晚上的报纸 {date, headline, body}，第二天早上在邮件之前看。空表示没有。
 var paper := {}
 
@@ -132,6 +142,7 @@ func new_game(game_seed := 0, start_day := 1) -> void:
 	interviewees = []
 	unbooked = []
 	vouched = []
+	blocked_rejects = []
 	kickbacks = []
 	folder_filled = {}
 	sessions = []
@@ -330,7 +341,7 @@ func begin_day() -> void:
 	pay = RuleEngine.pay(day)
 	RuleEngine.set_day(day)
 	# retained：今天满期、人还在的 {name, day_hired, days}
-	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "broker": [], "broker_retained": [], "paid_bills": [], "left_early": false, "texts": [], "called": false, "edits": [], "rejects": [], "knowing": [], "transfers": [], "sent": [], "exception": "", "solo_done": [], "vouch": [], "ats_agree": 0, "ats_override": 0, "ats_override_ok": 0, "intake_left": [], "called_out": 0, "clock": 0, "held": 0, "late_home": 0, "few_sessions": false, "talks": [], "talk_fine": 0, "rescues": [], "paces": [], "overrides": [], "memo_money": 0}
+	stats = {"processed": 0, "correct": 0, "wrong": 0, "unprocessed": 0, "errors": [], "retained": [], "event_fine": 0, "reason_ok": 0, "reason_off": [], "chief_picks": [], "gray": 0, "broker": [], "broker_retained": [], "paid_bills": [], "left_early": false, "texts": [], "called": false, "edits": [], "rejects": [], "knowing": [], "transfers": [], "sent": [], "exception": "", "solo_done": [], "vouch": [], "ats_agree": 0, "ats_override": 0, "ats_override_ok": 0, "intake_left": [], "called_out": 0, "clock": 0, "held": 0, "late_home": 0, "few_sessions": false, "talks": [], "talk_fine": 0, "rescues": [], "paces": [], "overrides": [], "memo_money": 0, "hc_short": false}
 	passed_today = []
 	booked_today = []
 	vouched_today = []
@@ -406,8 +417,60 @@ func record_decision(c: Candidate, verdict: String, reason_rule: StringName, rea
 		passed_today.append(place(c, folder))
 		if c.broker:
 			broker_paid(c, BROKER_PASS)
+	elif c.blocked != "" and c.elsewhere != "" and not result.pass:
+		blocked_rejects.append({"name": c.display_name, "kind": c.blocked, "text": c.elsewhere, "day": day, "due": day + BLOCKED_ECHO_DAYS})
 	EventBus.stamp_applied.emit(c, verdict)
 	return why
+
+
+## 今天到期的回响：kind 为“real”的（拒掉的是真有东西的人）或“fake”的。
+func blocked_echoes(kind: String) -> Array:
+	return blocked_rejects.filter(func(r: Dictionary) -> bool: return int(r.due) == day and r.kind == kind)
+
+
+## 王总邮件附言：被你按规则筛掉的人，在竞对干得好。
+func blocked_echo_ps() -> String:
+	var lines := blocked_echoes("real").map(func(r: Dictionary) -> String:
+		return "PS：%s（第 %d 天你筛掉的）“这种人你也筛？”" % [r.text, int(r.day)])
+	return "\n".join(PackedStringArray(lines))
+
+
+## 某个月盖了几次破格章。
+func exceptions_in(in_month := month()) -> int:
+	return decision_log.filter(func(e: Dictionary) -> bool: return e.get("exception", false) and month_of(int(e.day)) == in_month).size()
+
+
+## 某个月筛简历时规则拒掉的“被卡住的人”，kind 是 real / fake。
+func blocked_rejected_in(kind: String, in_month := month()) -> int:
+	return blocked_rejects.filter(func(r: Dictionary) -> bool: return r.kind == kind and month_of(int(r.day)) == in_month).size()
+
+
+## HC 硬指标：今天这个岗位放进了几个（通过的和破格的）。
+func hc_push_placed() -> int:
+	var posting: String = config.hc_push.get("posting", "")
+	var placed := 0
+	for c: Candidate in passed_today + vouched_today:
+		if c.applied_position == posting:
+			placed += 1
+	return placed
+
+
+func hc_push_short() -> bool:
+	return not config.hc_push.is_empty() and hc_push_placed() == 0
+
+
+func hc_push_fine() -> int:
+	return HC_PUSH_FINE if hc_push_short() and fines_on() else 0
+
+
+## 担保的人干得好：每人一笔担保奖。
+func vouch_bonus() -> int:
+	return stats.vouch.filter(func(v: Dictionary) -> bool: return v.good).size() * VOUCH_BONUS
+
+
+## 今天面了几场破格：每场一笔补贴。
+func solo_pay() -> int:
+	return stats.solo_done.size() * SOLO_PAY
 
 
 ## 初筛系统上线的日子：跟它一致还是推翻了它，推翻的里面判对几份。老板只看前一个数。
@@ -916,6 +979,10 @@ func settle_family() -> void:
 	# 今天的 HC 没放满（第 23 天月底）：王总记一笔
 	if config.hc_today > 0 and passed_today.size() + vouched_today.size() < config.hc_today:
 		boss_trust -= 2
+	# HC 硬指标那个岗位一个都没放进去：王总记一笔
+	if hc_push_short():
+		stats.hc_short = true
+		boss_trust -= 1
 	# 没签的入职登记表：王总记一笔
 	if not stats.intake_left.is_empty():
 		boss_trust -= 1
@@ -1156,7 +1223,7 @@ func retention_bonus() -> int:
 
 ## 罚款开着时第 1–2 次违规只警告；未处理的简历拿不到绩效和判断奖金。
 func income() -> int:
-	return base_pay() + performance_pay() + judge_bonus() + reason_bonus() + chief_bonus() + edit_bonus() + retention_bonus() + echo_bonus() + reject_bonus() - reject_cost() - knowing_fine() - late_fine() - fines() - stats.event_fine + stats.gray + broker_income() - sent_total() - int(stats.talk_fine) + int(stats.memo_money)
+	return base_pay() + performance_pay() + judge_bonus() + reason_bonus() + chief_bonus() + edit_bonus() + retention_bonus() + echo_bonus() + reject_bonus() - reject_cost() - knowing_fine() - late_fine() - fines() - stats.event_fine + stats.gray + broker_income() - sent_total() - int(stats.talk_fine) + int(stats.memo_money) + vouch_bonus() + solo_pay() - hc_push_fine()
 
 
 ## 第 d 天是第几个月，1 起（月份长短见 MONTH_LENGTHS；超出的按最后一个月的长度往后排）。
@@ -1251,7 +1318,7 @@ func to_dict() -> Dictionary:
 		"month_lengths": MONTH_LENGTHS, "decision_log": decision_log, "hires": hires, "rejects": rejects, "boss_promised_rule": boss_promised_rule,
 		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log, "kickbacks": kickbacks, "wallet_out": wallet_out, "exposed": exposed,
 		"late_next": late_next, "late_today": late_today, "late_count": late_count, "late_ps": late_ps, "unbooked": unbooked,
-		"folder_filled": folder_filled, "talk_log": talk_log, "evidence": evidence, "best_pace": best_pace, "voided": voided, "paper": paper,
+		"folder_filled": folder_filled, "talk_log": talk_log, "evidence": evidence, "best_pace": best_pace, "voided": voided, "paper": paper, "blocked_rejects": blocked_rejects,
 		"interviewees": interviewees.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 		"vouched": vouched.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 	}
@@ -1286,6 +1353,7 @@ func load_dict(data: Dictionary) -> void:
 	evidence = data.get("evidence", [])
 	best_pace = float(data.get("best_pace", 0.0))
 	voided = data.get("voided", [])
+	blocked_rejects = data.get("blocked_rejects", [])
 	paper = data.get("paper", {})
 	interviewees = []
 	interviewed_today = []

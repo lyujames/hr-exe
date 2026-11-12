@@ -144,7 +144,7 @@ func _kickback_notes() -> Array:
 
 ## 这个月的活：初筛系统推翻了几次；月底那张盘点表你怎么交的。
 func _work_notes() -> Array:
-	var notes := []
+	var notes := _exception_notes()
 	var ats := GameState.ats_overrides(_month)
 	if ats.agree + ats.override > 0:
 		var line := "系统上线那两天，你跟它一致 %d 份。王总在周会上念了这个数。" % ats.agree
@@ -161,6 +161,29 @@ func _work_notes() -> Array:
 			notes.append("这个月你招了 %d 个人，月底交了一张表。表上有几格，你改过。" % _hired_count())
 		"delay", "ignored":
 			notes.append("这个月你招了 %d 个人。那张表你没交，王总说他自己来。" % _hired_count())
+	return notes
+
+
+## 破格章：这个月一次没盖，主管在月会上点你；盖过的，记下保了几个、几个干得好。按规矩筛掉、后来在别家干得好的，单列一行。
+func _exception_notes() -> Array:
+	var notes := []
+	if GameState.month_last_day(_month) < GameState.EXCEPTION_DAY:
+		return notes
+	var used := GameState.exceptions_in(_month)
+	var boss := "赵主管" if _month == 1 else "王总"
+	var missed := GameState.blocked_rejected_in("real", _month)
+	var tail := "按规则筛掉、后来在别家干得好的：%d 个。" % missed if missed > 0 else ""
+	if used == 0:
+		notes.append("月会上%s说：“你太按规矩办事了。”这个月，破格章你一次没用。%s" % [boss, tail])
+		return notes
+	else:
+		var first := GameState.month_first_day(_month)
+		var vouched := GameState.hires.filter(func(h: Dictionary) -> bool: return h.get("vouched", false) and int(h.day_hired) >= first)
+		var good := vouched.filter(func(h: Dictionary) -> bool: return h.event_resolved and EmployeeEvents.fate(Candidate.from_dict(h.candidate)) == "praise").size()
+		var line := "这个月你盖了 %d 次破格章，最后录了 %d 个。" % [used, vouched.size()]
+		if not vouched.is_empty():
+			line += "满了试用期、干得好的 %d 个。" % good
+		notes.append(line + tail)
 	return notes
 
 

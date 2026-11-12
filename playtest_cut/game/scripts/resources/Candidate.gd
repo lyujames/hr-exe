@@ -6,7 +6,7 @@ const DEGREE_NAMES := ["高中", "大专", "本科", "硕士", "博士"]
 const FIELDS: Array[String] = [
 	"id", "display_name", "applied_position", "birth_date", "degree", "school", "undergrad_school", "degree_note",
 	"is_intern", "exp_months", "exp_note", "major", "major_note", "gpa", "projects", "intern_days", "intern_months", "skills", "salary_k", "salary_low_k", "jobs", "gap_note", "self_eval", "attachment", "portrait_seed",
-	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "event_line", "is_story", "broker",
+	"ability", "honesty", "loyalty", "pressure", "performance", "event_override", "event_line", "is_story", "broker", "blocked", "elsewhere",
 	"docs", "doc_overrides", "folder", "gender", "marital", "ai_prob", "residence", "answers", "call_line", "envelope", "quirk", "entrance", "asides", "answer_kind", "padded_lines", "crack_lines",
 ]
 ## 公民身份号码的校验位。
@@ -105,6 +105,10 @@ const ID_CHECK := "10X98765432"
 ## 猎头（李哲他爸）推来的人：简历右下角铅笔写着“钱”。都卡在某一条规则边上不合格，能力也差；
 ## 放进面试他转 ¥100，录用后满试用期再转 ¥200（GameState.BROKER_PASS / BROKER_RETAIN）。
 @export var broker := false
+## 被规则卡住的人（BlockedTalent）：“real”真有东西，“fake”是吹的，空表示不是。只差一条门槛规则，自评里写着一件硬东西。
+@export var blocked := ""
+## 筛简历时被规则拒掉，两天后的回响（BlockedTalent 的 echo_real / echo_fake，名字已换好）。
+@export var elsewhere := ""
 
 ## 只供生成器排经历用：空窗月数、几个月前离职（-1 在职）。
 var gap_months := 0

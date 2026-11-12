@@ -122,3 +122,6 @@ class_name DayConfig extends Resource
 @export var news_by: Array = []
 ## 今天的 HC：一定要放满几个（第 23 天月底）。放不满王总记一笔。0 表示没有。
 @export var hc_today := 0
+## HC 硬指标 {posting: 岗位名, note: 邮件附言（主管的话）}：今天这个岗位至少放进一个人（通过或破格）。
+## 生成的简历里投这个岗位的都卡在规则上（BlockedTalent 那两份除外），规则内的基本没有。放不满扣 GameState.HC_PUSH_FINE、王总记一笔。
+@export var hc_push: Dictionary = {}

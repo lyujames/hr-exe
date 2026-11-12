@@ -75,12 +75,76 @@ static func generate_day(cfg: DayConfig, rules: Array[Rule], day_seed: int, late
 		_seed_chief_need(c, cfg.chief_need, rng)
 		_attach_docs(c, rng)
 		result.append(c)
+	_add_blocked(cfg, rules, result, broker_slots, day_seed)
 	# 倒着插，同一个位置上几个人按 story_candidates 的顺序排
 	var stories := cfg.story_candidates.filter(func(story: Candidate) -> bool: return not GameState.story_skipped(story))
 	stories.reverse()
 	for story: Candidate in stories:
 		result.insert(0 if late else mini(cfg.story_slot, result.size()), story)
 	return result
+
+
+## 被规则卡住的人（BlockedTalent）换掉几份普通的，HC 硬指标那个岗位规则内的再改成不合格。
+## 用自己的随机数，不动上面那一叠的：没有这两样的日子，生成的人和以前一模一样。
+static func _add_blocked(cfg: DayConfig, rules: Array[Rule], result: Array[Candidate], broker_slots: Array, day_seed: int) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([day_seed, "blocked"])
+	var push: String = cfg.hc_push.get("posting", "")
+	if push != "" and RuleEngine.posting_for(push) == null:
+		push = ""
+	if push != "":
+		for i in result.size():
+			var c := result[i]
+			if c.applied_position == push and not c.broker and RuleEngine.evaluate(c).pass:
+				var again := _generate(rng, rules, String(c.id), c.background, cfg.day, Rule.Shape.FAIL, push)
+				_attach_docs(again, rng)
+				result[i] = again
+	var kinds := BlockedTalent.kinds(BlockedTalent.count_for(cfg), rng)
+	var slots := range(1 if result.size() > 1 else 0, result.size()).filter(func(i: int) -> bool: return i not in broker_slots)
+	var used := []
+	for kind: String in kinds:
+		if slots.is_empty():
+			return
+		var at: int = slots.pop_at(rng.randi_range(0, slots.size() - 1))
+		var old := result[at]
+		result[at] = _generate_blocked(rng, rules, String(old.id), old.background, cfg.day, kind, push, used)
+		used.append(result[at].self_eval.left(10))
+
+
+static func _weighted(rng: RandomNumberGenerator, pool: Array) -> Rule:
+	var total := 0
+	for r: Rule in pool:
+		total += BlockedTalent.weight(r)
+	var roll := rng.randi_range(0, total - 1)
+	for r: Rule in pool:
+		roll -= BlockedTalent.weight(r)
+		if roll < 0:
+			return r
+	return pool.back()
+
+
+## 只卡一条门槛规则、差一点（EDGE_FAIL），其余都合格；塑不出来就退到明显不合格，再不行换任意一条。
+static func _generate_blocked(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background: String, day: int, kind: String, position := "", used: Array = []) -> Candidate:
+	# 第 23 天这种“空集日”放谁都违反一条以上：试满了就留卡得最少的那份
+	var c: Candidate
+	var best := 99
+	for attempt in BlockedTalent.TRIES:
+		var form := Rule.Shape.EDGE_FAIL if attempt < BlockedTalent.TRIES - 3 else Rule.Shape.FAIL
+		var probe := _generate(rng, rules, id, background, day, form, position, attempt < BlockedTalent.TRIES - 1)
+		# 先穿上（自评、附件也有规则看），再数卡了几条
+		BlockedTalent.dress(probe, kind, rng, used)
+		var failed: int = RuleEngine.evaluate(probe).failed.size()
+		if failed >= 1 and failed < best:
+			best = failed
+			c = probe
+		if best == 1:
+			break
+	if c == null:
+		c = _generate(rng, rules, id, background, day, Rule.Shape.FAIL, position)
+		BlockedTalent.dress(c, kind, rng, used)
+	# 材料矛盾不往这些人身上埋：只差那一条，别的都干净
+	c.docs = RuleEngine.active_docs
+	return c
 
 
 ## 赵主管便签上要的那种项目，往几份简历里多撒一点，免得一整叠都对不上；角色和时长照旧随机，对不对得上还得看纸。
@@ -139,14 +203,24 @@ static func _generate_broker(rng: RandomNumberGenerator, rules: Array[Rule], id:
 	return c
 
 
-## force：猎头的人用，目标规则只从老规则里挑、形态定死。
-static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background := "regular", day := 0, force := -1) -> Candidate:
-	var c := _base(rng, id)
+## force：猎头的人、被卡住的人用，目标规则只从老规则里挑、形态定死。position 不空时投这个岗位。
+## credential_only：被卡住的人只卡门槛规则（BlockedTalent.credential），挑不出来就随便一条。
+static func _generate(rng: RandomNumberGenerator, rules: Array[Rule], id: String, background := "regular", day := 0, force := -1, position := "", credential_only := false) -> Candidate:
+	var c := _base(rng, id, position)
 	_apply_background(c, background, rng)
 	var applicable := rules.filter(func(r: Rule) -> bool: return r.applies_to(c))
 	if force >= 0:
-		var old := applicable.filter(func(r: Rule) -> bool: return r.day_added < day)
-		var target_rule: Rule = (old if not old.is_empty() else applicable)[rng.randi_range(0, (old if not old.is_empty() else applicable).size() - 1)]
+		var pool := applicable
+		if credential_only:
+			var gates := applicable.filter(BlockedTalent.credential)
+			if not gates.is_empty():
+				pool = gates
+		var old := pool.filter(func(r: Rule) -> bool: return r.day_added < day)
+		if old.is_empty():
+			old = pool
+		var target_rule: Rule = old[rng.randi_range(0, old.size() - 1)]
+		if credential_only:
+			target_rule = _weighted(rng, old)
 		for rule in applicable:
 			rule.shape(c, force if rule == target_rule else Rule.Shape.PASS, rng)
 		_finish_shape(c, rng)
@@ -213,12 +287,14 @@ static func match_name(c: Candidate, female: bool) -> void:
 	c.display_name = c.display_name.left(1) + pool[absi(hash(String(c.id))) % pool.size()]
 
 
-static func _base(rng: RandomNumberGenerator, id: String) -> Candidate:
+static func _base(rng: RandomNumberGenerator, id: String, position := "") -> Candidate:
 	var c := Candidate.new()
 	var pick := func(list: Array) -> Variant: return list[rng.randi_range(0, list.size() - 1)]
 	c.id = id
 	c.display_name = pick.call(SURNAMES) + pick.call(GIVEN)
 	c.applied_position = _pick_position(rng)
+	if position != "":
+		c.applied_position = position
 	c.birth_date = DateUtil.years_before(GameState.today, rng.randi_range(24, 44), -rng.randi_range(0, 360))
 	c.degree = Candidate.Degree.BACHELOR if rng.randf() < 0.7 else Candidate.Degree.MASTER
 	c.school = pick.call(SCHOOLS)
