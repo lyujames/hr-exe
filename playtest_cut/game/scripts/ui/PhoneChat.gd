@@ -251,6 +251,9 @@ func _build_thread() -> void:
 			y += _photo(col, y, e.photo) + 4.0
 		else:
 			y += _bubble(col, y, preview(it), false) + 4.0
+		# 赌一把的后账：钱是自动转的，跟一张已转账的卡
+		if e.has("reveal") and int(e.get("transfer", 0)) > 0:
+			y += _card(col, y, int(e.transfer), e.get("note", ""), "sent", true) + 4.0
 		if e.has("replies") and GameState.text_replied(e.id):
 			var option := _chosen(e)
 			if option.is_empty():
@@ -260,6 +263,9 @@ func _build_thread() -> void:
 				y += _bubble(col, y, option.label, true) + 4.0
 			else:
 				y += _bubble(col, y, option.label, true) + 4.0
+			# 意外支出：选完对方再回一句（Surprises 的 reply）
+			if option.get("after", "") != "":
+				y += _bubble(col, y, String(option.after).trim_prefix(e.get("from", "老婆") + "："), false) + 4.0
 	if its.is_empty():
 		UI.label(col, "（今天还没有消息）", Vector2(PAD, y), GREY)
 		y += 16.0

@@ -1132,6 +1132,20 @@ func _build_family() -> void:
 
 func _check_home(minutes: int) -> void:
 	var cfg := GameState.config
+	# 意外支出（Surprises）：到点从手机上来，和别的消息一样一次只响一条
+	var sur := GameState.surprise_today
+	if not sur.is_empty() and minutes >= int(sur.at) and not GameState.stats.texts.any(func(e: Dictionary) -> bool: return e.get("id", "") == sur.id):
+		GameState.receive_text(sur)
+		_unread.visible = true
+		_ring(sur.text, false)
+		return
+	# 前两天赌一把的后账：到点揭晓（钱下班时自动从工资卡转）
+	for r: Dictionary in GameState.reveal_today:
+		if minutes >= int(r.at) and not GameState.stats.texts.any(func(e: Dictionary) -> bool: return e.get("id", "") == r.id):
+			GameState.receive_text(r)
+			_unread.visible = true
+			_ring(r.text, false)
+			return
 	while _texts_sent < cfg.desk_texts.size() and minutes >= int(cfg.desk_texts[_texts_sent].at):
 		var entry: Dictionary = cfg.desk_texts[_texts_sent]
 		_texts_sent += 1

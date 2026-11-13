@@ -96,6 +96,11 @@ func _build_panel() -> void:
 	_number_row("老板信任", "boss_trust", [-5, -1, 1, 5])
 	_number_row("家庭", "family_state", [-5, -1, 1, 5])
 	_number_row("诉讼风险", "lawsuit_risk", [-5, -1, 1, 5])
+	var sur_row := _row()
+	_btn(sur_row, "今天来一件意外支出", func() -> void: GameState.force_surprise())
+	_btn(sur_row, "下次赌一把：好", func() -> void: GameState.luck_force = "good")
+	_btn(sur_row, "下次：坏", func() -> void: GameState.luck_force = "bad")
+	_btn(sur_row, "清零连坏", func() -> void: GameState.luck_streak = 0)
 
 	_section("跳天（从那天早上开始，面试者按前一天的简历补）")
 	var row := _row()
@@ -225,6 +230,9 @@ func _status_text() -> String:
 	var s: Dictionary = g.stats
 	var text := "第 %d 天（%d 月第 %d 天）%s · %s\n" % [g.day, g.month(), g.day_in_month(), g.today, screen.get_script().resource_path.get_file().get_basename() if screen else "-"]
 	text += "存款 %d　感情 %d　良心 %d　信任 %d\n" % [g.savings, g.marriage, g.conscience, g.boss_trust]
+	text += "意外支出：目标线 ¥%d，多出 ¥%d，今天%s\n" % [Surprises.target(g.day), Surprises.surplus(g.day, g.savings), ("有：%s ¥%d" % [g.surprise_today.surprise, g.surprise_today.cost]) if not g.surprise_today.is_empty() else "没有"]
+	var lo := Surprises.odds(Surprises.surplus(g.day, g.savings), g.luck_streak)
+	text += "赌一把：连坏 %d 次，下次坏 %d%%%s　后账 %s\n" % [g.luck_streak, int(round(lo.bad * 100)), ("（修改器定成 %s）" % g.luck_force) if g.luck_force != "" else "", ", ".join(PackedStringArray(g.surprise_queue.map(func(q: Dictionary) -> String: return "%s→第%d天%s" % [q.id, q.due, q.outcome]))) if not g.surprise_queue.is_empty() else "无"]
 	text += "家庭 %d　诉讼 %d　延发奖金 %d　录用 %d\n" % [g.family_state, g.lawsuit_risk, g.deferred_bonus, g.hires.size()]
 	text += "今日 处理 %d　对 %d　错 %d　通过 %d　面试者 %d\n" % [s.get("processed", 0), s.get("correct", 0), s.get("wrong", 0), g.passed_today.size(), g.interviewees.size()]
 	text += "人效 %d 份　标准耗时 %.1f 分/份　HireBot 档 %d\n" % [g.quota_today(), g.best_pace, g.config.hirebot if g.config else 0]

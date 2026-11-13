@@ -115,6 +115,18 @@ var voided: Array = []
 var blocked_rejects: Array = []
 ## 砍减版：昨天晚上的报纸 {date, headline, body}，第二天早上在邮件之前看。空表示没有。
 var paper := {}
+## 意外支出（动态难度，见 Surprises）：来过的 [{day, id, cost, paid, key}]；今天要来的那条手机消息，空表示今天没事。
+var surprises: Array = []
+var surprise_today := {}
+## 赌一把留下的后账 [{id, day, due, outcome, amount, at}]，到 due 那天手机上揭晓、自动扣钱（Surprises.reveals）。
+## 当天扣完才删，所以早上的存档里还在，读档重来同一条。
+var surprise_queue: Array = []
+## 今天要揭晓的那几条手机消息（早上从 surprise_queue 生成）。
+var reveal_today: Array = []
+## 赌一把连着坏了几次（到 Surprises.PITY 下一次保底不坏）。
+var luck_streak := 0
+## 修改器：下一次赌一把的结果（good / mid / bad），空表示照常掷。不存档。
+var luck_force := ""
 
 # 当日数据，只在一天内有效
 var stats := {}
@@ -157,6 +169,9 @@ func new_game(game_seed := 0, start_day := 1) -> void:
 	best_pace = 0.0
 	voided = []
 	paper = {}
+	surprises = []
+	surprise_queue = []
+	luck_streak = 0
 	begin_day()
 
 
@@ -348,6 +363,8 @@ func begin_day() -> void:
 	interviewed_today = []
 	sessions = []
 	event_today = {}
+	surprise_today = Surprises.pick(day, savings, surprises, run_seed)
+	reveal_today = Surprises.reveals(day, surprise_queue)
 	morning = to_dict().duplicate(true)
 
 
@@ -963,9 +980,71 @@ func reply_text(entry: Dictionary, option: Dictionary) -> void:
 	family_state += int(option.get("family", 0))
 	boss_trust += int(option.get("trust", 0))
 	if option.has("transfer"):
-		send_transfer(entry.get("from", "老婆"), int(option.transfer), option.get("note", ""))
+		# 意外支出走工资卡，不动猎头那笔零钱（第 15 天“我手头有”看的是零钱）
+		if entry.has("surprise"):
+			stats.sent.append({"to": entry.get("from", "老婆"), "amount": int(option.transfer), "note": option.get("note", "")})
+		else:
+			send_transfer(entry.get("from", "老婆"), int(option.transfer), option.get("note", ""))
 	if option.get("evidence", "") != "":
 		add_evidence(option.evidence)
+
+
+## 意外支出：今天那件事收尾。消息没到（下班早）或到了没回，都按第一项（全价）办；
+## 没回的再按发消息的人扣一次（老婆 −1 感情）。选了赌一把的当场掷骰，排进后账。
+## 今天到期的后账（reveal_today）也在这里扣钱。重复调用没事。日结单打开时和 settle 里各调一次。
+func close_surprise() -> void:
+	for r: Dictionary in reveal_today:
+		if not stats.texts.any(func(e: Dictionary) -> bool: return e.get("id", "") == r.id):
+			receive_text(r)
+		if r.id in stats.get("reveals_paid", []):
+			continue
+		stats["reveals_paid"] = stats.get("reveals_paid", []) + [r.id]
+		if int(r.transfer) > 0:
+			stats.sent.append({"to": r.from, "amount": int(r.transfer), "note": r.note})
+		marriage += int(r.marriage)
+		family_state += int(r.family)
+		for k in r.flag:
+			family[k] = r.flag[k]
+		for h: Dictionary in surprises:
+			if h.id == r.surprise:
+				h["revealed"] = int(r.transfer)
+	surprise_queue = surprise_queue.filter(func(q: Dictionary) -> bool: return int(q.due) > day)
+	if surprise_today.is_empty():
+		return
+	var entry := surprise_today
+	if not stats.texts.any(func(e: Dictionary) -> bool: return e.get("id", "") == entry.id):
+		receive_text(entry)
+	if not text_replied(entry.id):
+		reply_text(entry, entry.replies[0])
+		if entry.from == "老婆":
+			marriage -= 1
+		else:
+			family_state -= 1
+		stats["surprise_ignored"] = true
+	if surprises.any(func(h: Dictionary) -> bool: return int(h.day) == day):
+		return
+	var key: String = family.get(entry.id, "")
+	var h := {"day": day, "id": entry.surprise, "cost": int(entry.cost), "paid": 0, "key": key}
+	for o: Dictionary in entry.replies:
+		if o.key != key:
+			continue
+		h.paid = int(o.transfer)
+		if o.get("gamble", false) and day < LAST_DAY:
+			var extra := Surprises.surplus(day, int(morning.get("savings", savings)))
+			var g := Surprises.gamble(day, entry.surprise, int(entry.cost), extra, luck_streak, run_seed, luck_force)
+			luck_force = ""
+			h["outcome"] = g.outcome
+			h["streak"] = luck_streak
+			luck_streak = luck_streak + 1 if g.outcome == "bad" else 0
+			surprise_queue.append(g.item)
+	surprises.append(h)
+
+
+## 修改器：今天立刻来一件（不看门槛），还没发到手机上的话 Desk 下一分钟就发。
+func force_surprise() -> void:
+	surprise_today = Surprises.pick(day, savings, surprises, run_seed + randi(), true)
+	if not surprise_today.is_empty():
+		surprise_today.at = 0
 
 
 ## 下班结算：收到了没回的算不回。来了电话没走，也算一次。
@@ -1284,6 +1363,7 @@ func bills_today() -> Array:
 
 func settle(paid_bills: Array, rescues: Array = []) -> int:
 	stats.paid_bills = paid_bills.duplicate()
+	close_surprise()
 	settle_family()
 	_settle_pace()
 	var net := income() - mortgage_today()
@@ -1318,7 +1398,7 @@ func to_dict() -> Dictionary:
 		"month_lengths": MONTH_LENGTHS, "decision_log": decision_log, "hires": hires, "rejects": rejects, "boss_promised_rule": boss_promised_rule,
 		"lawsuit_risk": lawsuit_risk, "reply_log": reply_log, "kickbacks": kickbacks, "wallet_out": wallet_out, "exposed": exposed,
 		"late_next": late_next, "late_today": late_today, "late_count": late_count, "late_ps": late_ps, "unbooked": unbooked,
-		"folder_filled": folder_filled, "talk_log": talk_log, "evidence": evidence, "best_pace": best_pace, "voided": voided, "paper": paper, "blocked_rejects": blocked_rejects,
+		"folder_filled": folder_filled, "talk_log": talk_log, "evidence": evidence, "best_pace": best_pace, "voided": voided, "paper": paper, "blocked_rejects": blocked_rejects, "surprises": surprises, "surprise_queue": surprise_queue, "luck_streak": luck_streak,
 		"interviewees": interviewees.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 		"vouched": vouched.map(func(c: Candidate) -> Dictionary: return c.to_dict()),
 	}
@@ -1355,6 +1435,9 @@ func load_dict(data: Dictionary) -> void:
 	voided = data.get("voided", [])
 	blocked_rejects = data.get("blocked_rejects", [])
 	paper = data.get("paper", {})
+	surprises = data.get("surprises", [])
+	surprise_queue = data.get("surprise_queue", [])
+	luck_streak = int(data.get("luck_streak", 0))
 	interviewees = []
 	interviewed_today = []
 	for c: Dictionary in data.get("interviewees", []):

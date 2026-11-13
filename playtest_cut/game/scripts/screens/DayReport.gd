@@ -14,6 +14,8 @@ var settled_net := 0
 
 
 func _ready() -> void:
+	# 今天的意外支出没回的，先按全价办掉，日结单上才有那一行
+	GameState.close_surprise()
 	var s := GameState.stats
 	UI.panel(self, Rect2(0, 0, 640, 360), UI.DESK_DARK)
 	UI.panel(self, Rect2(30, 12, 280, 336), UI.PAPER, UI.BLACK)
@@ -86,6 +88,8 @@ func _ready() -> void:
 		y = _row("李哲他爸转账 %d 笔（不入账）" % s.broker.size(), GameState.broker_income(), y)
 	for t: Dictionary in s.sent:
 		y = _row("手机转给%s（%s）" % [t.to, t.note], -int(t.amount), y)
+	if s.get("surprise_ignored", false):
+		y = _row("（没回消息，%s按原价办了）" % GameState.surprise_today.get("from", "老婆"), 0, y)
 	if GameState.is_month_end():
 		y = _row("房贷（月供）", -GameState.MORTGAGE, y)
 	y += 6.0
