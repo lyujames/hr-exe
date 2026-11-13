@@ -14,12 +14,25 @@ func _ready() -> void:
 	var re = root.get_node("RuleEngine")
 	var rich := 0
 	var cheap := false
+	var full := false
+	var game_seed := 4242
+	var days := 999
+	var quiet := false
 	for a in OS.get_cmdline_user_args():
 		if a == "cheap":
 			cheap = true
+		elif a == "full":
+			full = true
+		elif a == "quiet":
+			quiet = true
+		elif a.begins_with("seed="):
+			game_seed = int(a.trim_prefix("seed="))
+		elif a.begins_with("days="):
+			days = int(a.trim_prefix("days="))
 		else:
 			rich = int(a)
-	gs.new_game(4242, 1)
+	gs.new_game(game_seed, 1)
+	var nets := []
 	while true:
 		var d: int = gs.day
 		# 早上：昨天的晚报在不在
@@ -83,6 +96,9 @@ func _ready() -> void:
 				_errors.append("第 %d 天谈话停不下来" % d)
 				break
 		# cheap：回消息，选最省钱的那项（看后账来不来）
+		if full and not gs.surprise_today.is_empty():
+			gs.receive_text(gs.surprise_today)
+			gs.reply_text(gs.surprise_today, gs.surprise_today.replies[0])
 		if cheap and not gs.surprise_today.is_empty():
 			var e: Dictionary = gs.surprise_today
 			gs.receive_text(e)
@@ -96,6 +112,7 @@ func _ready() -> void:
 		await _frames(2)
 		var sur: Dictionary = gs.surprise_today
 		report.confirm()
+		nets.append(report.settled_net)
 		if not sur.is_empty():
 			print("  意外：%s 原价 ¥%d 选 %s（早上多出 ¥%d）后账 %s" % [sur.surprise, sur.cost, gs.family.get(sur.id, "?"), Surprises.surplus(d, gs.morning.savings), gs.surprise_queue])
 		gs.savings += rich
@@ -125,11 +142,21 @@ func _ready() -> void:
 		if gs.is_bankrupt():
 			print("  破产，补 ¥2000 接着走")
 			gs.savings += 2000
-		if gs.day >= gs.LAST_DAY:
+		if gs.day >= gs.LAST_DAY or gs.day >= days:
 			break
 		gs.advance_day()
 		if gs.interviewees.size() > 1:
 			_errors.append("第 %d 天约了 %d 个人" % [gs.day, gs.interviewees.size()])
+	var spent := 0
+	var revealed := 0
+	var pending := 0
+	for h: Dictionary in gs.surprises:
+		spent += int(h.paid)
+		revealed += int(h.get("revealed", 0))
+	for q: Dictionary in gs.surprise_queue:
+		pending += int(q.amount)
+	var outs: Array = gs.surprises.map(func(h: Dictionary) -> String: return "%s/%s/%s" % [h.id, h.key, h.get("outcome", "-")])
+	print("RESULT seed=%d 存款=%d 日结=%s 意外首付=%d 后账已付=%d 后账未到=%d 感情=%d 家庭=%d 事件=%s" % [game_seed, gs.savings, nets, spent, revealed, pending, gs.marriage, gs.family_state, outs])
 	print("ERRORS: ", _errors.size())
 	for e in _errors:
 		print("  ", e)

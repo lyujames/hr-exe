@@ -115,6 +115,21 @@ func _ready() -> void:
 	gs.close_surprise()
 	_check(gs.surprise_queue.is_empty() and gs.luck_streak == 0, "没回也掷骰了")
 
+	# 8. 保底：存款 0 的人每个月也正好来一件，¥MIN_COST，在保底日或之后、月底之前
+	for seed in 40:
+		gs.new_game(seed, 1)
+		var hist := []
+		for d in range(1, gs.LAST_DAY + 1):
+			var p := Surprises.pick(d, 0, hist, seed)
+			if not p.is_empty():
+				hist.append({"day": d, "id": p.surprise, "cost": p.cost})
+				_check(p.floor and int(p.cost) == Surprises.MIN_COST, "钱紧的人来了不是保底的小事：第 %d 天 %s" % [d, p])
+		for m in [1, 2, 3]:
+			var got := hist.filter(func(h: Dictionary) -> bool: return gs.month_of(int(h.day)) == m)
+			_check(got.size() == 1, "种子 %d 第 %d 月保底来了 %d 件" % [seed, m, got.size()])
+			if got.size() == 1:
+				_check(int(got[0].day) >= Surprises.floor_day(m, seed) and int(got[0].day) < gs.month_last_day(m), "保底日不对：%s" % [got])
+
 	print("ERRORS: ", _errors.size())
 	for e in _errors:
 		print("  ", e)

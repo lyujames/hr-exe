@@ -232,6 +232,7 @@ func _status_text() -> String:
 	text += "存款 %d　感情 %d　良心 %d　信任 %d\n" % [g.savings, g.marriage, g.conscience, g.boss_trust]
 	text += "意外支出：目标线 ¥%d，多出 ¥%d，今天%s\n" % [Surprises.target(g.day), Surprises.surplus(g.day, g.savings), ("有：%s ¥%d" % [g.surprise_today.surprise, g.surprise_today.cost]) if not g.surprise_today.is_empty() else "没有"]
 	var lo := Surprises.odds(Surprises.surplus(g.day, g.savings), g.luck_streak)
+	text += "本月保底日：第 %d 天%s\n" % [Surprises.floor_day(g.month(), g.run_seed), "（本月已来过）" if g.surprises.any(func(h: Dictionary) -> bool: return g.month_of(int(h.day)) == g.month()) else ""]
 	text += "赌一把：连坏 %d 次，下次坏 %d%%%s　后账 %s\n" % [g.luck_streak, int(round(lo.bad * 100)), ("（修改器定成 %s）" % g.luck_force) if g.luck_force != "" else "", ", ".join(PackedStringArray(g.surprise_queue.map(func(q: Dictionary) -> String: return "%s→第%d天%s" % [q.id, q.due, q.outcome]))) if not g.surprise_queue.is_empty() else "无"]
 	text += "家庭 %d　诉讼 %d　延发奖金 %d　录用 %d\n" % [g.family_state, g.lawsuit_risk, g.deferred_bonus, g.hires.size()]
 	text += "今日 处理 %d　对 %d　错 %d　通过 %d　面试者 %d\n" % [s.get("processed", 0), s.get("correct", 0), s.get("wrong", 0), g.passed_today.size(), g.interviewees.size()]

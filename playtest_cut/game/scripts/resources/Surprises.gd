@@ -22,6 +22,9 @@ const MAX_PER_MONTH := 3
 const GAP := 1
 ## 每月第几天起才可能来（第 1 月前两天还在教学）。
 const FIRST_DAY_IN_MONTH := [3, 2, 2]
+## 保底：这个月到 floor_day 还一件没来，就不看富余来一件小的（钱紧的人也有，¥MIN_COST 起）。
+## floor_day 在 [第一天可来, 月底前 FLOOR_BEFORE_END 天] 里按种子抽；被“隔一天”挡住就顺延，到月底前一天为止。
+const FLOOR_BEFORE_END := 2
 
 ## 赌一把的结果。概率：中固定 MID_ODDS；坏看掷骰那天早上多出多少；剩下的是好。
 const MID_ODDS := 0.3
@@ -90,7 +93,7 @@ const POOL := [
 			"mid": {"text": "老婆：国产那个吃了脚有点肿，医生加了个利尿的。¥{extra}。"},
 			"bad": {"text": "老婆：你爸又住进去了。医生说是心衰，下回再这样就要装起搏器。这次住院 ¥{extra}。", "family": -2, "marriage": -1, "flag": {"dad_ill": "2"}},
 		}},
-	{"id": "fall", "from": "你爸", "tiers": ["mid", "big"], "note": "拍片",
+	{"id": "fall", "from": "你爸", "tiers": ["small", "mid", "big"], "note": "拍片",
 		"text": "你爸：没事，早上下楼滑了一下。你妈非让我去拍片，说要 ¥{cost}，我说不拍了。",
 		"options": [
 			{"key": "scan", "label": "爸，拍。钱我转你。", "share": 1.0, "family": 1},
@@ -217,22 +220,24 @@ static func available(e: Dictionary, d: int) -> bool:
 static func pick(d: int, savings: int, history: Array, seed: int, force := false) -> Dictionary:
 	var m := GameState.month_of(d)
 	var extra := surplus(d, savings)
+	var this_month := history.filter(func(h: Dictionary) -> bool: return GameState.month_of(int(h.day)) == m)
+	var is_floor := this_month.is_empty() and d >= floor_day(m, seed) and d < GameState.month_last_day(m)
 	if not force:
-		if d - GameState.month_first_day(m) + 1 < FIRST_DAY_IN_MONTH[clampi(m - 1, 0, FIRST_DAY_IN_MONTH.size() - 1)]:
+		if d - GameState.month_first_day(m) + 1 < _first_in_month(m):
 			return {}
-		if extra < THRESHOLD:
+		if extra < THRESHOLD and not is_floor:
 			return {}
-		var this_month := history.filter(func(h: Dictionary) -> bool: return GameState.month_of(int(h.day)) == m)
 		if this_month.size() >= MAX_PER_MONTH:
 			return {}
 		if history.any(func(h: Dictionary) -> bool: return d - int(h.day) <= GAP):
 			return {}
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed, d, "surprise"])
-	# 多出来越多越容易来：刚过门槛一半，多出 ¥600 以上必来
-	if not force and rng.randf() > clampf(float(extra) / 600.0, 0.5, 1.0):
+	# 多出来越多越容易来：刚过门槛一半，多出 ¥600 以上必来（保底那天必来）
+	if not force and not is_floor and rng.randf() > clampf(float(extra) / 600.0, 0.5, 1.0):
 		return {}
-	var cost := clampi(int(round(maxf(extra, 0) * SHARE / 10.0)) * 10, MIN_COST, MAX_COST)
+	# 没过门槛的（只有保底会走到这里）一律最小那档
+	var cost := MIN_COST if extra < THRESHOLD else clampi(int(round(extra * SHARE / 10.0)) * 10, MIN_COST, MAX_COST)
 	var tier := tier_of(cost)
 	var used := history.map(func(h: Dictionary) -> String: return String(h.id))
 	var open := POOL.filter(func(e: Dictionary) -> bool: return e.id not in used and available(e, d))
@@ -249,7 +254,23 @@ static func pick(d: int, savings: int, history: Array, seed: int, force := false
 	# 本档的事用完了借别档的：钱不超过那件事最高一档的上限（赔副眼镜不会要 ¥900）
 	if "big" not in ev.tiers:
 		cost = mini(cost, 600 if "mid" in ev.tiers else 300)
-	return build(ev, cost, rng.randi_range(600, 870))
+	var entry := build(ev, cost, rng.randi_range(600, 870))
+	entry["floor"] = is_floor
+	return entry
+
+
+static func _first_in_month(m: int) -> int:
+	return FIRST_DAY_IN_MONTH[clampi(m - 1, 0, FIRST_DAY_IN_MONTH.size() - 1)]
+
+
+## 第 m 个月的保底日（第几天，全局）。
+static func floor_day(m: int, seed: int) -> int:
+	var first := GameState.month_first_day(m)
+	var lo := first + _first_in_month(m) - 1
+	var hi := maxi(lo, GameState.month_last_day(m) - FLOOR_BEFORE_END)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([seed, m, "floor"])
+	return rng.randi_range(lo, hi)
 
 
 ## 把事件池里的一项变成一条手机消息。
