@@ -41,7 +41,7 @@ func _ready() -> void:
 	_advance()
 
 
-## 家里那张图：按到家的钟点换。七点半前一家人都在；八点半前孩子睡了、你那碗扣着；再晚灯全关了。
+## 家里那张图：按到家的钟点换。七点半前一家人都在；八点半前孩子睡了、你那碗扣着；再晚灯全关了。你爸来吃饭的日子换带你爸的那张。
 func _scene() -> void:
 	var variant := "1930"
 	if GameState.clocked_day() and not GameState.stats.left_early:
@@ -50,6 +50,9 @@ func _scene() -> void:
 			variant = "2230"
 		elif home >= GameState.LATE_HOME[0]:
 			variant = "2030"
+	# 你爸来吃饭的日子：七点半、八点半他还坐在桌子后面；十点半回去了
+	if GameState.config.dad_at_dinner and variant != "2230":
+		variant += "_dad"
 	var tex := AtlasTexture.new()
 	tex.atlas = load("res://assets/home/home_%s.png" % variant)
 	tex.region = SCENE_CROP

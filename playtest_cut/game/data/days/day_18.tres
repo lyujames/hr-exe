@@ -33,6 +33,7 @@ chief_question = ExtResource("chief_q18")
 candidate_ask = ExtResource("ask18")
 chief_opener = "会用 AI？那你说说，AI 都会了，要你干什么。"
 desk_texts = [{"id": "t18_1", "at": 600, "text": "老婆：主管今天挨个找人“聊聊职业规划”。名单说是下周出。", "replies": [{"key": "know", "label": "这是在摸底。你别先开口提钱。", "marriage": 1}, {"key": "curt", "label": "别多想。", "marriage": 0}]}, {"id": "t18_2", "at": 640, "when": "t18_1:know", "text": "老婆：你怎么知道？", "replies": [{"key": "admit", "label": "……我也这么聊过。", "marriage": 0}]}]
+dad_at_dinner = true
 home_scene = [{"text": "到家 19:20。你爸来吃饭，带了药盒，一格一格分好的。"}, {"text": "你爸：我去物业问了，想看个大门，一个月两千多，能帮你们还点房贷。人家说六十以上的不要。"}, {"text": "你爸：你们招人也这样？一刀切？"}, {"ask": "h18_dad", "options": [{"key": "same", "label": "差不多。", "then": [{"text": "他点点头：“那我就不怪他们了。”"}]}, {"key": "rest", "label": "爸，您歇着，钱的事有我。", "marriage": 1, "then": [{"text": "你爸：“你有什么。你有房贷。”"}]}]}]
 headline = "测试岗位需求同比减少四成"
 news_body = "业内人士：“写用例的活，AI 干得比人细。”"

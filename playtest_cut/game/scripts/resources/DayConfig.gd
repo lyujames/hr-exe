@@ -78,6 +78,8 @@ class_name DayConfig extends Resource
 ## {ask: 标记, when, options: [{key, label, say, marriage, when, then: [拍]}]}：你选一句说（say 是做了件事、不是说话时印出来的旁白），选了哪句记进 GameState.family[标记]，then 是接着的话。
 ## when 见 GameState.family_matches；晚上的短信先回，所以这里能看 sms_flag 回了什么。最后一天回家写在 SliceEnd。
 @export var home_scene: Array = []
+## 你爸来家里吃饭：回家那张图换成桌子后面坐着你爸的（home_1930_dad / home_2030_dad）；22:30 才到家他已经走了，用平常那张。
+@export var dad_at_dinner := false
 ## 面试：赵主管入座时说的话、抢走的那个问题、候选人的反问。
 @export var chief_opener: String
 ## 赵主管的便签 {note: 便签上的话, short: 桌角那张小便签上的要点, item: 评分表上打★的那项, project / role / months: 他要的经历, seed_projects: 往简历里多撒的项目名}：

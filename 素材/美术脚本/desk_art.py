@@ -106,109 +106,279 @@ def digits(P, x, y, s, c):
 
 
 def family_photo(W=72, H=56):
-    """公园里拍的四口人：你爸坐在长椅中间；你站左后、手搭在他肩上；老婆站右后；孩子在前面，攥着跳绳、缺颗门牙在笑。
-    右下角是老相机的橙色日期。这是你爸生病前最后一张合影。"""
+    """国庆在公园拍的四口人，午后斜光，树梢刚开始黄。你爸坐长椅中间，花白头发、灰开衫、手放膝盖；
+    你站左后、深蓝 polo、分头，一只手搭在他肩上；老婆站右后，齐肩黑发、灰绿上衣、金项链；
+    孩子在前面偏左，蓝外套，攥着跳绳的红把手，缺颗门牙在笑。右下角老相机的橙色日期。这是你爸生病前最后一张合影。"""
     img = Image.new('RGBA', (W + 2, H + 2))
     P = Pix(img)
+    rnd = random.Random(10)
     P.r(2, 2, W, H, (0, 0, 0, 140))
-    wood, wood_d, wood_l = hx('6a4630'), hx('4a2e1e'), hx('8a6044')
+
+    # ── 相框：胡桃木，左上受光，四角斜接 ──
+    wood, wood_d, wood_l = hx('6e4a32'), hx('42291a'), hx('9a6e4c')
     P.r(0, 0, W, H, wood)
-    for y in range(1, H - 1):
-        if y % 3 == 0:
-            P.r(1, y, W - 2, 1, mix(wood, wood_d, 0.3))
+    for y in range(H):
+        for x in range(W):
+            if min(x, y, W - 1 - x, H - 1 - y) < 5 and rnd.random() < 0.22:
+                P.p(x, y, mix(wood, wood_d, 0.35) if (x + y * 3) % 5 else mix(wood, wood_l, 0.3))
     P.r(0, 0, W, 1, wood_l)
     P.r(0, 0, 1, H, wood_l)
+    P.r(1, 1, W - 2, 1, mix(wood, wood_l, 0.5))
     P.r(0, H - 1, W, 1, wood_d)
     P.r(W - 1, 0, 1, H, wood_d)
+    for i in range(5):
+        P.p(i, i, mix(wood_l, wood, 0.4))
+        P.p(W - 1 - i, H - 1 - i, wood_d)
+    # 内沿：一圈暗槽
+    P.r(4, 4, W - 8, 1, wood_d)
+    P.r(4, 4, 1, H - 8, wood_d)
+    P.r(4, H - 5, W - 8, 1, mix(wood, wood_l, 0.4))
+    P.r(W - 5, 4, 1, H - 8, mix(wood, wood_l, 0.4))
     # 白卡纸衬边
-    P.r(4, 4, W - 8, H - 8, hx('e8e4d8'))
-    px, py, pw, ph = 6, 6, W - 12, H - 12
-    for y in range(16):
-        P.r(px, py + y, pw, 1, mix(hx('a8c8dc'), hx('dce8e0'), y / 15))
+    P.r(5, 5, W - 10, H - 10, hx('ece6d6'))
+    P.r(5, 5, W - 10, 1, hx('d6cfbd'))
+    P.r(5, 5, 1, H - 10, hx('d6cfbd'))
+
+    px, py, pw, ph = 7, 7, W - 14, H - 14       # 照片 58×42
+    OY = [0]   # 画人时整体上移
+
+    def p(x, y, c):
+        y += OY[0]
+        if 0 <= x < pw and 0 <= y < ph:
+            P.p(px + x, py + y, c)
+
+    def r(x, y, w, h, c):
+        y += OY[0]
+        x0, y0 = max(0, x), max(0, y)
+        x1, y1 = min(pw, x + w), min(ph, y + h)
+        P.r(px + x0, py + y0, x1 - x0, y1 - y0, c)
+
+    # ── 天：暖白往上转淡蓝 ──
+    for y in range(14):
+        r(0, y, pw, 1, mix(hx('9cc0d8'), hx('f0e6cc'), y / 13))
+    # 远树：灰绿一层
     for x in range(pw):
-        top = 10 + int(2.5 * math.sin(x / 4.0) + 1.5 * math.sin(x / 1.7 + 1))
-        P.r(px + x, py + top, 1, 22 - top, hx('5a8a5a') if (x // 4) % 2 else hx('4e7e50'))
-        P.p(px + x, py + top, hx('7aa874'))
+        t = 9 + int(1.6 * math.sin(x / 3.1) + 1.2 * math.sin(x / 1.3 + 2))
+        r(x, t, 1, 20 - t, hx('8aa48a'))
+    # 近树：深绿，树冠一团一团，个别泛黄
+    # 近树：一排圆树冠，有树干，中间两棵已经黄了
+    crowns = [(1, 11, 6), (11, 9, 6), (21, 12, 5), (30, 8, 6), (40, 11, 6), (50, 9, 6), (59, 12, 5)]
+    for (cx, cy, rr) in crowns:
+        r(cx, cy + rr - 1, 1, 23 - cy - rr, hx('4a3a2a'))
+    for (cx, cy, rr) in crowns:
+        gold = cx in (11, 50)
+        base = hx('c8a038') if gold else hx('527e4a')
+        lite = hx('ecc858') if gold else hx('7eaa66')
+        dark = hx('8e6e28') if gold else hx('3a5e3a')
+        for y in range(cy - rr - 1, cy + rr + 1):
+            for x in range(cx - rr - 1, cx + rr + 2):
+                d = math.hypot(x - cx, (y - cy) * 1.15)
+                if d <= rr + 0.7 * math.sin(x * 1.9 + y * 1.3):
+                    t = (x - cx) * 0.7 + (y - cy)
+                    c = lite if t < -rr * 0.55 else dark if t > rr * 0.45 else base
+                    p(x, y, c)
+    # 树后面的一溜灌木，接地
+    for x in range(pw):
+        t = 19 + int(1.3 * math.sin(x / 2.3))
+        r(x, t, 1, 23 - t, hx('46703e'))
+        p(x, t, hx('5e8a4c'))
+    for _ in range(40):
+        x, y = rnd.randrange(pw), rnd.randrange(4, 22)
+        c = P.get(px + x, py + y)
+        if c[1] > c[2] + 20:
+            p(x, y, sh(c, 1.15 if rnd.random() < 0.6 else 0.85))
+    # 地面：草坪，近处更亮，带一条小路的暖色
     for y in range(22, ph):
-        P.r(px, py + y, pw, 1, mix(hx('8ab868'), hx('6a9a50'), (y - 22) / (ph - 22)))
-    rnd = random.Random(10)
-    for _ in range(50):
-        P.p(px + rnd.randrange(pw), py + 23 + rnd.randrange(ph - 23), hx('a0c878'))
+        t = (y - 22) / (ph - 22)
+        r(0, y, pw, 1, mix(hx('6e9850'), hx('94b862'), t))
+    r(0, 22, pw, 1, hx('5a8044'))
+    for _ in range(70):
+        x, y = rnd.randrange(pw), rnd.randrange(23, ph)
+        p(x, y, hx('aacc78') if rnd.random() < 0.6 else hx('5e8844'))
+    for _ in range(10):   # 落叶
+        p(rnd.randrange(pw), rnd.randrange(26, ph), hx('e0b840'))
 
-    def head(x, y, skin, hair, style='short', mouth='smile'):
-        x += px; y += py
-        P.r(x + 1, y, 4, 1, skin)
-        P.r(x, y + 1, 6, 5, skin)
-        P.r(x + 1, y + 6, 4, 1, skin)
-        P.r(x + 1, y - 1, 4, 1, hair)
-        P.r(x, y, 6, 1, hair)
-        P.p(x, y + 1, hair)
-        P.p(x + 5, y + 1, hair)
-        if style == 'long':
-            P.r(x - 1, y, 1, 8, hair)
-            P.r(x + 6, y, 1, 8, hair)
-            P.r(x, y + 5, 1, 3, hair)
-            P.r(x + 5, y + 5, 1, 3, hair)
-        if style == 'side':
-            P.r(x + 1, y + 1, 2, 1, hair)
-        P.p(x + 1, y + 3, hx('2a2020'))
-        P.p(x + 4, y + 3, hx('2a2020'))
+    SK = hx('e0b898')    # 你
+    SK_W = hx('eec6aa')  # 老婆
+    SK_O = hx('d0a482')  # 你爸
+    SK_K = hx('f0caa8')  # 孩子
+    EYE = hx('2a2020')
+
+    def head(x, y, skin, hair, style, mouth='smile', w=7):
+        """x,y 是脸左上（不含头发）。w 宽 7，高 7。"""
+        sd = sh(skin, 0.86)
+        hl = mix(hair, hx('ffffff'), 0.22)
+        # 脸
+        r(x + 1, y, w - 2, 1, skin)
+        r(x, y + 1, w, 5, skin)
+        r(x + 1, y + 6, w - 2, 1, skin)
+        r(x + w - 1, y + 1, 1, 5, sd)     # 右侧背光
+        p(x + w - 2, y + 6, sd)
+        p(x - 1, y + 3, sd)                 # 耳朵
+        p(x + w, y + 3, sd)
+        # 头发
+        r(x + 1, y - 2, w - 2, 1, hair)
+        r(x, y - 1, w, 1, hair)
+        if style == 'side':          # 你：左分，刘海往右扫
+            r(x, y, w, 1, hair)
+            r(x + 3, y + 1, w - 3, 1, hair)
+            p(x, y + 1, hair)
+            p(x + 1, y - 2, hl); p(x + 2, y - 2, hl); p(x + 1, y - 1, hl)
+            p(x + 2, y, sd)
+        elif style == 'kid':         # 孩子：锅盖头
+            r(x, y, w, 2, hair)
+            r(x - 1, y, 1, 3, hair)
+            r(x + w, y, 1, 3, hair)
+            p(x + 2, y - 1, hl); p(x + 3, y - 1, hl)
+        elif style == 'grey':        # 你爸：花白，往后梳，发际线高
+            gr = hair
+            r(x + 1, y - 2, w - 2, 1, gr)
+            r(x, y - 1, w, 1, gr)
+            p(x, y, gr); p(x + w - 1, y, gr); p(x - 1, y + 1, gr); p(x + w, y + 1, gr)
+            p(x + 2, y - 2, hx('f0f0ea')); p(x + 3, y - 1, hx('f0f0ea'))
+            p(x + 4, y, sd)              # 抬头纹
+            r(x + 2, y + 1, 3, 1, mix(skin, sd, 0.5))
+        elif style == 'long':        # 老婆：齐肩，中分
+            r(x - 1, y - 1, 1, 9, hair)
+            r(x + w, y - 1, 1, 9, hair)
+            r(x, y, 3, 1, hair)
+            r(x + 4, y, 3, 1, hair)
+            p(x, y + 1, hair); p(x + w - 1, y + 1, hair)
+            r(x, y + 6, 1, 2, hair)
+            r(x + w - 1, y + 6, 1, 2, hair)
+            p(x - 1, y + 8, sh(hair, 0.8)); p(x + w, y + 8, sh(hair, 0.8))
+            p(x + 2, y - 2, hl); p(x + 1, y - 1, hl)
+        # 眼睛、腮红、嘴
+        ey = y + 3
+        if style == 'grey':          # 笑眯了
+            r(x + 1, ey, 2, 1, mix(skin, EYE, 0.7))
+            r(x + 4, ey, 2, 1, mix(skin, EYE, 0.7))
+        else:
+            p(x + 2, ey, EYE)
+            p(x + 4, ey, EYE)
+        p(x + 1, ey + 1, mix(skin, hx('e87870'), 0.35))
+        p(x + 5, ey + 1, mix(skin, hx('e87870'), 0.35))
+        my = y + 5
         if mouth == 'smile':
-            P.r(x + 2, y + 5, 2, 1, mix(skin, hx('8a3030'), 0.55))
-        elif mouth == 'gap':
-            P.r(x + 2, y + 5, 2, 1, hx('ffffff'))
-            P.p(x + 3, y + 5, hx('5a2020'))
-        P.p(x, y + 4, mix(skin, hx('e88078'), 0.3))
-        P.p(x + 5, y + 4, mix(skin, hx('e88078'), 0.3))
+            r(x + 2, my, 3, 1, mix(skin, hx('8a3030'), 0.5))
+        elif mouth == 'gap':         # 缺颗门牙
+            r(x + 2, my, 3, 1, hx('fffaf0'))
+            p(x + 3, my, hx('6a2424'))
+            p(x + 3, my + 1, mix(skin, hx('8a3030'), 0.4))
+        elif mouth == 'grin':
+            r(x + 2, my, 3, 1, hx('f4ece0'))
+            p(x + 1, my - 1, mix(skin, sd, 0.6)); p(x + 5, my - 1, mix(skin, sd, 0.6))
 
-    def body(x, y, w, h, c):
-        x += px; y += py
-        P.r(x + 1, y, w - 2, 1, c)
-        P.r(x, y + 1, w, h - 1, c)
-        P.r(x, y + 1, 1, h - 1, sh(c, 0.85))
+    def torso(x, y, w, h, c, collar=None):
+        """左上受光：左一列亮，右两列暗。"""
+        r(x + 1, y, w - 2, 1, c)
+        r(x, y + 1, w, h - 1, c)
+        r(x, y + 1, 1, h - 1, mix(c, hx('ffffff'), 0.12))
+        r(x + w - 2, y + 1, 2, h - 1, sh(c, 0.8))
 
-    # 长椅（在你爸身后）
-    P.r(px + 16, py + 27, 30, 2, hx('8a5a3a'))
-    P.r(px + 16, py + 24, 30, 1, hx('7a4a30'))
-    P.r(px + 18, py + 29, 1, 5, hx('3a3a3a'))
-    P.r(px + 43, py + 29, 1, 5, hx('3a3a3a'))
-    # 你：左后，深蓝 polo，短发分边
-    body(13, 18, 10, 18, hx('2f4a6a'))
-    P.r(px + 17, py + 18, 2, 2, hx('dcb898'))
-    head(14, 11, hx('dcb898'), hx('1e1c1c'), 'side')
-    # 老婆：右后，齐肩发，绿上衣，金项链
-    body(37, 19, 10, 17, hx('8a9a7a'))
-    P.r(px + 41, py + 19, 2, 1, hx('ecccb0'))
-    P.p(px + 41, py + 20, hx('e8c84a'))
-    head(39, 12, hx('ecccb0'), hx('2a201e'), 'long')
-    # 你爸：坐中间，花白头发，灰开衫，深色裤子，手放膝盖
-    body(25, 22, 12, 10, hx('7a7468'))
-    P.r(px + 29, py + 22, 4, 2, hx('e8e4d8'))
-    P.r(px + 25, py + 32, 12, 3, hx('3a3e48'))
-    P.r(px + 26, py + 35, 3, 3, hx('3a3e48'))
-    P.r(px + 33, py + 35, 3, 3, hx('3a3e48'))
-    P.r(px + 26, py + 31, 2, 1, hx('d0a888'))
-    P.r(px + 34, py + 31, 2, 1, hx('d0a888'))
-    head(28, 15, hx('d0a888'), hx('b8b8b0'))
-    P.p(px + 28, py + 17, mix(hx('d0a888'), hx('6a5040'), 0.4))
-    # 你的手搭在他肩上
-    P.r(px + 23, py + 22, 3, 2, hx('dcb898'))
-    # 孩子：前面偏左，蓝外套，缺颗门牙，两手攥着跳绳的红把手
-    body(5, 31, 8, 7, hx('3a6ab8'))
-    P.r(px + 8, py + 31, 2, 1, hx('ecc8a8'))
-    P.r(px + 5, py + 38, 3, 3, hx('2a2e3a'))
-    P.r(px + 10, py + 38, 3, 3, hx('2a2e3a'))
-    head(6, 24, hx('ecc8a8'), hx('241c1a'), 'short', 'gap')
-    P.r(px + 3, py + 34, 2, 3, hx('c8402f'))
-    P.r(px + 13, py + 34, 2, 3, hx('c8402f'))
+    OY[0] = -4
+    # ── 你：左后，站着，深蓝 polo ──
+    for x in range(8, 52):       # 三个人和长椅落在草上的影子
+        for y in (34, 35):
+            p(x, y + 4, mix(P.get(px + x, py + y), hx('2a4020'), 0.3 if y == 34 else 0.15))
+    r(11, 33, 4, 4, hx('3a3a40')); r(16, 33, 4, 4, hx('3a3a40'))   # 你的裤子
+    r(15, 33, 1, 3, hx('2a2a30'))
+    r(10, 37, 5, 1, hx('1a1a1c')); r(16, 37, 5, 1, hx('1a1a1c'))
+    torso(10, 17, 11, 17, hx('2f4a6a'))
+    r(13, 17, 5, 2, hx('3e5c80'))                 # polo 领
+    p(15, 18, SK); p(15, 19, sh(SK, 0.86))
+    r(15, 19, 1, 3, hx('243a54'))                 # 门襟
+    p(15, 20, hx('d8d4c8'))
+    r(10, 25, 1, 9, sh(hx('2f4a6a'), 0.75))       # 左臂垂下
+    r(9, 33, 2, 2, SK)
+    head(12, 9, SK, hx('1e1c1c'), 'side')
+    # ── 老婆：右后，站着，灰绿上衣，金项链 ──
+    r(38, 33, 4, 4, hx('4a4640')); r(43, 33, 4, 4, hx('4a4640'))   # 老婆的长裤
+    r(42, 33, 1, 3, hx('36322e'))
+    r(38, 37, 4, 1, hx('2a2220')); r(43, 37, 4, 1, hx('2a2220'))
+    torso(37, 18, 11, 16, hx('8a9a78'))
+    r(41, 18, 3, 1, SK_W)
+    p(41, 19, hx('d8b84a')); p(43, 19, hx('d8b84a')); p(42, 20, hx('f8e070'))
+    r(47, 25, 1, 9, sh(hx('8a9a78'), 0.78))
+    r(47, 33, 2, 2, SK_W)
+    head(39, 10, SK_W, hx('2a201e'), 'long')
+
+    # ── 长椅：木条椅背 + 铸铁腿，在两人前、你爸后 ──
+    bw_c, bw_l, bw_d, iron = hx('9a6a42'), hx('b8885a'), hx('6a4428'), hx('2e2e30')
+    for yy in (24, 27):
+        r(12, yy, 36, 2, bw_c)
+        r(12, yy, 36, 1, bw_l)
+    r(11, 31, 38, 2, bw_c)                        # 座面
+    r(11, 31, 38, 1, bw_l)
+    r(11, 33, 38, 1, bw_d)
+    for lx in (12, 46):
+        r(lx, 23, 2, 15, iron)
+        p(lx, 23, hx('4a4a4e'))
+        r(lx - 1, 37, 4, 1, iron)
+
+    # ── 你爸：坐中间，灰开衫，白衬衫领，深色裤子，手放膝盖 ──
+    cg = hx('7a7468')
+    torso(24, 22, 13, 11, cg)
+    r(29, 22, 3, 3, hx('ece8dc'))                 # 衬衫领
+    p(30, 25, hx('ece8dc'))
+    r(28, 23, 1, 9, sh(cg, 0.82)); r(32, 23, 1, 9, sh(cg, 0.82))   # 开衫门襟
+    p(28, 27, hx('c8c0a8')); p(32, 27, hx('c8c0a8'))
+    pants = hx('3a3e48')
+    r(23, 32, 15, 3, pants)                        # 大腿往前
+    r(23, 32, 15, 1, sh(pants, 1.2))
+    r(25, 35, 4, 4, pants); r(32, 35, 4, 4, pants) # 小腿
+    r(29, 35, 3, 4, sh(pants, 0.7))
+    r(24, 39, 5, 1, hx('1a1a1c')); r(32, 39, 5, 1, hx('1a1a1c'))   # 鞋
+    r(25, 31, 3, 2, SK_O); r(34, 31, 3, 2, SK_O)   # 手在膝盖上
+    p(27, 32, sh(SK_O, 0.85)); p(36, 32, sh(SK_O, 0.85))
+    r(23, 23, 1, 8, sh(cg, 0.9)); r(37, 23, 1, 8, sh(cg, 0.75))
+    head(27, 14, SK_O, hx('bcbab2'), 'grey', 'smile')
+    p(28, 21, sh(SK_O, 0.86)); p(32, 21, sh(SK_O, 0.86))           # 脖子
+    # 你的手搭在他左肩
+    r(20, 22, 3, 2, sh(hx('2f4a6a'), 0.85))
+    r(23, 22, 3, 1, SK)
+    r(23, 23, 2, 1, sh(SK, 0.86))
+    # 老婆的手搭他右肩
+    r(37, 22, 1, 2, hx('7c8c6a'))
+    r(35, 22, 2, 1, SK_W)
+    p(36, 23, sh(SK_W, 0.86))
+
+    OY[0] = -2
+    # ── 孩子：前面偏左，蓝外套，红把手跳绳，缺颗门牙 ──
+    kc = hx('3a6ab8')
+    torso(3, 34, 9, 6, kc)
+    r(6, 34, 3, 1, hx('f4f0e8'))                    # 白领口
+    r(7, 35, 1, 5, hx('2c5498'))                    # 拉链
+    r(4, 40, 3, 2, hx('2a2e3a')); r(8, 40, 3, 2, hx('2a2e3a'))
+    r(4, 42, 3, 1, hx('d0d0d0')); r(8, 42, 3, 1, hx('d0d0d0'))   # 白球鞋
+    head(4, 26, SK_K, hx('241c1a'), 'kid', 'gap')
+    r(0, 36, 2, 3, hx('c8402f')); p(0, 36, hx('e86a50'))
+    r(12, 36, 2, 3, hx('c8402f')); p(12, 36, hx('e86a50'))
+    r(1, 37, 2, 1, SK_K); r(11, 37, 2, 1, SK_K)
     for i in range(13):
-        P.p(px + 3 + i, py + 37 + int(4 * math.sin(math.pi * i / 12)), hx('f4ecc8'))
+        p(1 + i, 39 + int(2.2 * math.sin(math.pi * i / 12)), hx('f8f0d0'))
+    # 人脚下的影子
+    for x in range(3, 13):
+        if P.get(px + x, py + 43) [1] > 100:
+            p(x, 43, mix(P.get(px + x, py + 43), hx('203018'), 0.4))
+
+    # ── 冲印：暖光偏色 + 四角压暗 + 一点颗粒 ──
+    for y in range(ph):
+        for x in range(pw):
+            c = P.get(px + x, py + y)
+            d = math.hypot((x - pw / 2) / (pw / 2), (y - ph / 2) / (ph / 2))
+            k = 1 - max(0, d - 0.85) * 0.35
+            c = mix(c, hx('ffd890'), 0.10)
+            c = sh(c, k * (1 + (rnd.random() - 0.5) * 0.05))
+            P.p(px + x, py + y, c)
     # 橙色日期：25 10 03
-    digits(P, px + pw - 25, py + ph - 7, '25 10 03', hx('e88040'))
-    # 玻璃反光
-    for i in range(8):
-        P.p(px + 2 + i, py + 9 - i, (255, 255, 255, 70))
+    digits(P, px + pw - 30, py + ph - 7, '25 10 03', hx('ff8a3a'))
+    # 玻璃反光：左上一道斜线
+    for i in range(9):
+        P.p(px + 1 + i, py + 10 - i, mix(P.get(px + 1 + i, py + 10 - i), hx("ffffff"), 0.35))
+        P.p(px + 2 + i, py + 10 - i, mix(P.get(px + 2 + i, py + 10 - i), hx("ffffff"), 0.15))
     return img
+
 
 
 # ───────────── 手机 ─────────────

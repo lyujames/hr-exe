@@ -4,6 +4,9 @@ extends SceneTree
 ##   Godot --headless --script 素材/美术脚本/home_mock.gd
 ## 直接写进 playtest_cut/game/assets/home/home_{1930,2030,2230}.png（640×196），
 ## 另出一张 素材/样板图_回家改版_对比.png（每个钟点上旧下新，按游戏里的裁切，2 倍）。
+## 你爸来吃饭的日子（DayConfig.dad_at_dinner）多两张：home_1930_dad / home_2030_dad，你爸坐桌子后面正中；
+## 22:30 他已经回去了，用平常那张。
+## 注意：上面三张平常的图后来手修过人物，再跑这个脚本会把它们盖掉；只想更新你爸那两张的话，跑完把 home_{1930,2030,2230}.png 从 git 还原。
 ##
 ## 跟旧图的区别：
 ##  1. 光照统一一遍算：每个像素按离吊灯的距离 + 光锥 + 桌下遮挡算亮度，量化成 5 档，档与档之间才抖动；
@@ -28,6 +31,7 @@ const TY := 116
 
 var img: Image
 var v := "1930"
+var dad := false
 var olds: Array[Image] = []
 var news: Array[Image] = []
 var emis := PackedByteArray()   # 1 = 自发光，不吃光照
@@ -35,6 +39,10 @@ var occl := PackedFloat32Array()  # 遮挡系数（桌子底下）
 
 
 func _init() -> void:
+	# 先把游戏里现成的（手修过的）图读进来，你爸那两张贴在这上面
+	var game_imgs := {}
+	for variant: String in ["1930", "2030"]:
+		game_imgs[variant] = Image.load_from_file(GAME + "home_%s.png" % variant)
 	for variant: String in VARIANTS:
 		v = variant
 		var old := Image.load_from_file(OLD_DIR + "home_%s.png" % v)
@@ -44,6 +52,23 @@ func _init() -> void:
 		img.save_png(GAME + "home_%s.png" % v)
 		news.append(img)
 	_compare()
+	# 你爸那两张：游戏里的 home_1930 / 2030 后来手修过老婆和孩子，脚本重画不出来；
+	# 所以只把“有爸 / 没爸”两次渲染不一样的像素，贴到游戏里现成的那张上。
+	for variant: String in ["1930", "2030"]:
+		v = variant
+		dad = false
+		_draw()
+		var plain := img
+		dad = true
+		_draw()
+		var base: Image = game_imgs[v]
+		base.convert(Image.FORMAT_RGBA8)
+		for y in H:
+			for x in W:
+				if img.get_pixel(x, y) != plain.get_pixel(x, y):
+					base.set_pixel(x, y, img.get_pixel(x, y))
+		base.save_png(GAME + "home_%s_dad.png" % v)
+	dad = false
 	print("saved")
 	quit()
 
@@ -63,6 +88,8 @@ func _draw() -> void:
 	_lamp()
 	_wife()
 	_kid()
+	if dad:
+		_dad()
 	_table()
 	_shade(TX0 + 1, TY + 8, TX1 - TX0 - 2, 152 - TY - 8, 0.5)
 	_shade(186, 150, 30, 2, 0.6)
@@ -434,6 +461,69 @@ func _table() -> void:
 		r(lx, TY + 8, 1, 152 - TY - 8, top.darkened(0.1))
 
 
+## 爸：坐在桌子后面正中，正对镜头，看着你那把空椅子。花白头发往后梳、灰开衫、白衬衫领，跟全家福里一样；
+## 病了一年，人瘦了一圈，肩膀塌下去；拐杖挂在椅背上，碗边一瓶药。
+func _dad() -> void:
+	var ch := c("6a503c")
+	# 椅子：椅背从肩膀两边露出来，腿在桌下
+	r(285, 99, 3, 17, ch); r(285, 99, 3, 1, ch.lightened(0.15))
+	r(312, 99, 3, 17, ch); r(312, 99, 3, 1, ch.lightened(0.15))
+	r(286, 124, 2, 26, ch.darkened(0.2)); r(312, 124, 2, 26, ch.darkened(0.2))
+	# 拐杖：挂在椅背右上，垂到地
+	var cane := c("4a3426")
+	r(312, 97, 4, 1, cane); p(316, 98, cane); p(316, 99, cane)
+	r(312, 98, 1, 52, cane)
+	r(311, 149, 3, 1, c("1e1a18"))
+	var card := c("7a7468")
+	var pants := c("3a3e48")
+	var hair := c("b8b8b0")
+	var skin := c("cfa486")
+	# 桌下：两条小腿、旧布鞋
+	r(292, 124, 6, 25, pants); r(302, 124, 6, 25, pants)
+	r(291, 148, 8, 2, c("2a2620")); r(301, 148, 8, 2, c("2a2620"))
+	# 身子：瘦，肩膀往下塌
+	r(290, 97, 20, 19, card)
+	r(291, 96, 18, 1, card)
+	p(290, 97, ch); p(309, 97, ch)
+	r(290, 98, 1, 18, card.lightened(0.08))
+	r(308, 98, 2, 18, card.darkened(0.18))
+	r(297, 96, 6, 4, c("ece8dc"))                 # 白衬衫领
+	p(299, 100, c("ece8dc")); p(300, 100, c("ece8dc"))
+	r(296, 99, 1, 17, card.darkened(0.2)); r(303, 99, 1, 17, card.darkened(0.2))   # 开衫门襟
+	p(296, 104, c("c8c0a8")); p(296, 110, c("c8c0a8"))
+	# 胳膊：小臂搁在桌沿，两只手拢在碗边
+	r(289, 101, 3, 12, card.darkened(0.1)); r(308, 101, 3, 12, card.darkened(0.25))
+	r(290, 112, 9, 3, card.darkened(0.05)); r(301, 112, 9, 3, card.darkened(0.15))
+	r(296, 112, 3, 3, skin); r(301, 112, 3, 3, skin.darkened(0.1))
+	# 脖子
+	r(297, 93, 6, 3, skin.darkened(0.15))
+	# 头：正脸，两颊凹进去一点
+	r(294, 80, 12, 13, skin)
+	r(295, 79, 10, 1, skin)
+	r(295, 93, 10, 0, skin)
+	r(305, 81, 1, 11, skin.darkened(0.12))
+	r(296, 92, 8, 1, skin.darkened(0.1))
+	p(294, 92, Color(0, 0, 0, 0)); p(305, 92, Color(0, 0, 0, 0))
+	img.set_pixel(294, 92, c("7a6450")); img.set_pixel(305, 92, c("7a6450"))
+	p(293, 85, skin.darkened(0.15)); p(293, 86, skin.darkened(0.15))   # 耳朵
+	p(306, 85, skin.darkened(0.25)); p(306, 86, skin.darkened(0.25))
+	# 头发：花白，往后梳，发际线退到头顶，两鬓白
+	r(295, 76, 10, 1, hair)
+	r(294, 77, 12, 2, hair)
+	r(293, 78, 1, 6, hair); r(306, 78, 1, 6, hair)
+	r(296, 77, 3, 1, c("ecece6")); p(300, 76, c("ecece6"))
+	r(297, 79, 6, 1, hair.darkened(0.1))
+	r(298, 80, 4, 1, skin.darkened(0.06))                 # 抬头纹
+	# 眉、眼、法令纹、嘴：没在笑
+	r(296, 83, 3, 1, c("8a8880")); r(301, 83, 3, 1, c("8a8880"))
+	p(297, 85, c("1a1412")); p(302, 85, c("1a1412"))
+	p(296, 86, skin.darkened(0.15)); p(303, 86, skin.darkened(0.15))   # 眼袋
+	p(299, 87, skin.darkened(0.12)); p(300, 88, skin.darkened(0.12))  # 鼻子
+	p(296, 88, skin.darkened(0.12)); p(303, 88, skin.darkened(0.12))
+	r(298, 90, 4, 1, c("9a6a58"))
+	p(295, 89, skin.darkened(0.08)); p(304, 89, skin.darkened(0.08))  # 两颊凹
+
+
 ## 你的椅子：在桌子前面、背对镜头，空着
 func _your_chair() -> void:
 	var ch := c("6a503c")
@@ -463,10 +553,18 @@ func _bowl(x: int, steam: bool) -> void:
 	r(x + 1, TY - 4, 8, 1, c("f6f2ea"))
 	if steam:
 		for k in [Vector2i(3, -7), Vector2i(4, -10), Vector2i(3, -13), Vector2i(6, -9), Vector2i(7, -12), Vector2i(6, -15)]:
-			p(x + k.x, TY + k.y, c("f0ece4"), true)
+			if dad:   # 气是半透明的，透出后面坐着的你爸，不然落在开衫上像一排白点
+				p(x + k.x, TY + k.y, img.get_pixel(x + k.x, TY + k.y).lerp(c("f0ece4"), 0.45))
+			else:
+				p(x + k.x, TY + k.y, c("f0ece4"), true)
 
 
 func _tabletop() -> void:
+	if dad:
+		_bowl(300, v == "1930")      # 爸的：七点半还冒着气，八点半早凉了
+		r(311, TY - 6, 3, 6, c("8a5a2a"))             # 药瓶
+		r(311, TY - 7, 3, 1, c("ece8dc"))
+		r(311, TY - 4, 3, 2, c("e8e0c8"))
 	if v == "2030":
 		_covered(288)
 		r(314, TY - 3, 20, 3, c("e8e4d8"))            # 剩菜
@@ -479,8 +577,9 @@ func _tabletop() -> void:
 		return
 	_bowl(240, true)                 # 老婆的
 	_bowl(288, true)                 # 你的，热的，没人动
-	r(300, TY - 1, 11, 1, c("3a2a1a"))
-	r(300, TY - 2, 11, 1, c("4a3828"))
+	var chop := 274 if dad else 300                # 你爸在的话，筷子让到你碗左边
+	r(chop, TY - 1, 11, 1, c("3a2a1a"))
+	r(chop, TY - 2, 11, 1, c("4a3828"))
 	r(314, TY - 3, 20, 3, c("e8e4d8"))            # 一盘菜
 	r(316, TY - 4, 16, 1, c("d06a3a"))
 	r(318, TY - 5, 5, 1, c("7aa04a")); r(325, TY - 5, 4, 1, c("7aa04a"))
