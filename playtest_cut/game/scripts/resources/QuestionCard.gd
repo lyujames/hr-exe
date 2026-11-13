@@ -122,10 +122,25 @@ func follow_up(c: Candidate, first: Dictionary) -> Dictionary:
 		"flaw":
 			return {"text": said(c, "flaw_followup"), "tic": escalate(first.tic), "kind": "flaw", "strong": first.strong}
 	if c.answers.has(String(id)) and first.kind == "honest":
-		var told := "（TA 想了想，一条一条往下说：什么时候、几个人、多少数字，前后都对得上。）" if first.strong \
-			else "（TA 说得很细，细到连自己没做好的地方也一起说了。）"
+		# 手写人物都该写了追问；这里只是漏写时的保险，按人和题挑一句，别让每个人说得一模一样
+		var pool: Array = TOLD_STRONG if first.strong else TOLD_WEAK
+		var told: String = pool[absi(hash(String(c.id) + String(id))) % pool.size()]
 		return {"text": told, "tic": "none", "kind": "honest", "strong": first.strong}
 	return {"text": said(c, "honest_followup" if first.strong else "honest_low_followup"), "tic": "none", "kind": "honest", "strong": first.strong}
+
+
+## 手写人物漏写追问时的旁白。
+const TOLD_STRONG := [
+	"（TA 想了想，一条一条往下说：什么时候、几个人、多少数字，前后都对得上。）",
+	"（TA 没急着答，先说了个日子，又补了个数。你记下来，对得上。）",
+	"（TA 说得不快，可每一句都落在一件具体的事上。）",
+	"（TA 把那天从头讲了一遍，讲到一半还纠正了自己一个数。）",
+]
+const TOLD_WEAK := [
+	"（TA 说得很细，细到连自己没做好的地方也一起说了。）",
+	"（TA 讲着讲着停了一下，承认那一步不是自己做成的。）",
+	"（TA 没绕，说了经过，也说了自己卡在哪儿。）",
+]
 
 
 ## 越问越慌：眼神乱飘 → 冒汗 → 手抖。
